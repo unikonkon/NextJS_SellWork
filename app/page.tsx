@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/sections/HeroSection";
 import ProjectSection from "@/components/sections/ProjectSection";
+import PricingSection from "@/components/sections/PricingSection";
 
 export default function Home() {
   return (
@@ -19,6 +20,9 @@ export default function Home() {
       <main className="relative z-10">
         {/* Hero Section */}
         <HeroSection />
+
+        {/* Animation Service Section */}
+        <PricingSection />
 
         {/* Project Section */}
         <ProjectSection />
