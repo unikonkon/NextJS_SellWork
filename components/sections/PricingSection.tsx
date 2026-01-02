@@ -13,11 +13,23 @@ interface PageItem {
   animation: "none" | "basic" | "complex";
 }
 
+interface CustomAnimItem {
+  id: string;
+  label: string;
+  isCustom: boolean;
+}
+
 interface CalculatorState {
   step1: {
     package: "starter" | "basic" | "standard" | "premium";
-    navbar: "basic" | "animated" | "megaMenu";
-    footer: "basic" | "animated" | "complex";
+    navbar: "basic" | "animated";
+    footer: "basic" | "animated";
+    selectedNavbarAnim: string | null;
+    selectedFooterAnim: string | null;
+    navbarCustomAnims: CustomAnimItem[];
+    footerCustomAnims: CustomAnimItem[];
+    customNavbarInput: string;
+    customFooterInput: string;
   };
   step2: {
     pages: PageItem[];
@@ -100,13 +112,90 @@ const PACKAGES = [
 const NAVBAR_OPTIONS = [
   { id: "basic" as const, label: "พื้นฐาน", price: 0 },
   { id: "animated" as const, label: "+ Animation", price: 400 },
-  { id: "megaMenu" as const, label: "Mega Menu", price: 800 },
 ];
 
 const FOOTER_OPTIONS = [
   { id: "basic" as const, label: "พื้นฐาน", price: 0 },
   { id: "animated" as const, label: "+ Animation", price: 300 },
-  { id: "complex" as const, label: "ซับซ้อน", price: 600 },
+];
+
+// ==================== ANIMATION TYPES DATA ====================
+const NAVBAR_ANIMATION_TYPES = [
+  {
+    id: "sticky-fade",
+    label: "Sticky + Fade",
+    description: "Navbar จะลอยอยู่ด้านบนเสมอ และจะ fade in/out เมื่อ scroll",
+    icon: "◐",
+  },
+  {
+    id: "slide-down",
+    label: "Slide Down",
+    description: "Navbar จะเลื่อนลงมาจากด้านบนเมื่อ scroll ขึ้น",
+    icon: "↓",
+  },
+  {
+    id: "color-change",
+    label: "Color Change",
+    description: "สีพื้นหลัง Navbar จะเปลี่ยนเมื่อ scroll ผ่านจุดที่กำหนด",
+    icon: "◑",
+  },
+  {
+    id: "shrink",
+    label: "Shrink Effect",
+    description: "Navbar จะหดเล็กลงเมื่อ scroll ลง ขยายกลับเมื่อ scroll ขึ้น",
+    icon: "⊡",
+  },
+  {
+    id: "blur-glass",
+    label: "Glass Blur",
+    description: "เอฟเฟกต์กระจกฝ้าแบบ Glassmorphism",
+    icon: "◇",
+  },
+  {
+    id: "menu-reveal",
+    label: "Menu Reveal",
+    description: "เมนูจะ reveal ทีละรายการด้วย stagger animation",
+    icon: "≡",
+  },
+];
+
+const FOOTER_ANIMATION_TYPES = [
+  {
+    id: "fade-in",
+    label: "Fade In",
+    description: "Footer จะค่อยๆ ปรากฏเมื่อ scroll ถึง",
+    icon: "◔",
+  },
+  {
+    id: "slide-up",
+    label: "Slide Up",
+    description: "Footer จะเลื่อนขึ้นมาจากด้านล่างเมื่อ scroll ถึง",
+    icon: "↑",
+  },
+  {
+    id: "parallax",
+    label: "Parallax",
+    description: "องค์ประกอบต่างๆ ใน Footer จะเคลื่อนที่ความเร็วต่างกัน",
+    icon: "≋",
+  },
+  {
+    id: "hover-links",
+    label: "Hover Links",
+    description: "ลิงก์ใน Footer มีเอฟเฟกต์พิเศษเมื่อ hover",
+    icon: "◉",
+  },
+  {
+    id: "wave-bg",
+    label: "Wave Background",
+    description: "พื้นหลังแบบคลื่นเคลื่อนไหว",
+    icon: "∿",
+  },
+  {
+    id: "stagger-cols",
+    label: "Stagger Columns",
+    description: "คอลัมน์ต่างๆ จะปรากฏทีละอันตามลำดับ",
+    icon: "⊞",
+  },
 ];
 
 const PAGE_TYPES = [
@@ -166,12 +255,26 @@ function getEstimatedDays(total: number): string {
 export default function PricingSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const leftPanelRef = useRef<HTMLDivElement>(null);
+  const previewNavbarRef = useRef<HTMLDivElement>(null);
+  const previewFooterRef = useRef<HTMLDivElement>(null);
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [copiedQuote, setCopiedQuote] = useState(false);
+  const [navbarAnimating, setNavbarAnimating] = useState(false);
+  const [footerAnimating, setFooterAnimating] = useState(false);
 
   // Calculator State
   const [state, setState] = useState<CalculatorState>({
-    step1: { package: "standard", navbar: "basic", footer: "basic" },
+    step1: {
+      package: "standard",
+      navbar: "basic",
+      footer: "basic",
+      selectedNavbarAnim: null,
+      selectedFooterAnim: null,
+      navbarCustomAnims: [],
+      footerCustomAnims: [],
+      customNavbarInput: "",
+      customFooterInput: "",
+    },
     step2: { pages: [], extraSections: 0 },
     step3: {
       sectionAnimation: "none",
@@ -251,8 +354,86 @@ export default function PricingSection() {
   }, [state]);
 
   // ==================== HANDLERS ====================
-  const updateStep1 = useCallback((key: keyof CalculatorState["step1"], value: string) => {
+  const updateStep1 = useCallback((key: keyof CalculatorState["step1"], value: string | string[] | null | CustomAnimItem[]) => {
     setState((prev) => ({ ...prev, step1: { ...prev.step1, [key]: value } }));
+  }, []);
+
+  // Select single navbar animation
+  const selectNavbarAnimation = useCallback((animId: string) => {
+    setState((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        selectedNavbarAnim: prev.step1.selectedNavbarAnim === animId ? null : animId,
+      },
+    }));
+  }, []);
+
+  // Select single footer animation
+  const selectFooterAnimation = useCallback((animId: string) => {
+    setState((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        selectedFooterAnim: prev.step1.selectedFooterAnim === animId ? null : animId,
+      },
+    }));
+  }, []);
+
+  // Add custom navbar animation
+  const addCustomNavbarAnim = useCallback(() => {
+    if (state.step1.customNavbarInput.trim()) {
+      setState((prev) => ({
+        ...prev,
+        step1: {
+          ...prev.step1,
+          navbarCustomAnims: [
+            ...prev.step1.navbarCustomAnims,
+            { id: generateId(), label: prev.step1.customNavbarInput.trim(), isCustom: true },
+          ],
+          customNavbarInput: "",
+        },
+      }));
+    }
+  }, [state.step1.customNavbarInput]);
+
+  // Add custom footer animation
+  const addCustomFooterAnim = useCallback(() => {
+    if (state.step1.customFooterInput.trim()) {
+      setState((prev) => ({
+        ...prev,
+        step1: {
+          ...prev.step1,
+          footerCustomAnims: [
+            ...prev.step1.footerCustomAnims,
+            { id: generateId(), label: prev.step1.customFooterInput.trim(), isCustom: true },
+          ],
+          customFooterInput: "",
+        },
+      }));
+    }
+  }, [state.step1.customFooterInput]);
+
+  // Remove custom navbar animation
+  const removeNavbarCustomAnim = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        navbarCustomAnims: prev.step1.navbarCustomAnims.filter((a) => a.id !== id),
+      },
+    }));
+  }, []);
+
+  // Remove custom footer animation
+  const removeFooterCustomAnim = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        footerCustomAnims: prev.step1.footerCustomAnims.filter((a) => a.id !== id),
+      },
+    }));
   }, []);
 
   const addPage = useCallback((type: "small" | "medium" | "large") => {
@@ -369,6 +550,17 @@ export default function PricingSection() {
     setTimeout(() => setCopiedQuote(false), 2000);
   }, [generateQuote]);
 
+  // ==================== PREVIEW ANIMATION TRIGGERS ====================
+  const playNavbarAnimation = useCallback(() => {
+    setNavbarAnimating(true);
+    setTimeout(() => setNavbarAnimating(false), 2000);
+  }, []);
+
+  const playFooterAnimation = useCallback(() => {
+    setFooterAnimating(true);
+    setTimeout(() => setFooterAnimating(false), 2000);
+  }, []);
+
   // ==================== GSAP ANIMATIONS ====================
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -407,10 +599,6 @@ export default function PricingSection() {
       "Social Media Links",
     ];
 
-    if (state.step1.navbar === "megaMenu") {
-      reqs.push("โครงสร้างเมนูย่อย");
-    }
-
     state.step2.pages.forEach((page, idx) => {
       const pageType = PAGE_TYPES.find((p) => p.type === page.type)!;
       reqs.push(`เนื้อหาสำหรับ ${pageType.label} #${idx + 1}`);
@@ -440,11 +628,33 @@ export default function PricingSection() {
   const selectedAnimations = useMemo(() => {
     const anims: string[] = [];
 
-    if (state.step1.navbar === "animated" || state.step1.navbar === "megaMenu") {
-      anims.push("Navbar Animation");
+    if (state.step1.navbar === "animated") {
+      if (state.step1.selectedNavbarAnim) {
+        const navAnim = NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim);
+        if (navAnim) {
+          anims.push(`Navbar: ${navAnim.label}`);
+        }
+      }
+      state.step1.navbarCustomAnims.forEach((a) => {
+        anims.push(`Navbar: ${a.label}`);
+      });
+      if (!state.step1.selectedNavbarAnim && state.step1.navbarCustomAnims.length === 0) {
+        anims.push("Navbar Animation");
+      }
     }
-    if (state.step1.footer === "animated" || state.step1.footer === "complex") {
-      anims.push("Footer Animation");
+    if (state.step1.footer === "animated") {
+      if (state.step1.selectedFooterAnim) {
+        const footAnim = FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim);
+        if (footAnim) {
+          anims.push(`Footer: ${footAnim.label}`);
+        }
+      }
+      state.step1.footerCustomAnims.forEach((a) => {
+        anims.push(`Footer: ${a.label}`);
+      });
+      if (!state.step1.selectedFooterAnim && state.step1.footerCustomAnims.length === 0) {
+        anims.push("Footer Animation");
+      }
     }
 
     state.step2.pages.forEach((page, idx) => {
@@ -468,9 +678,114 @@ export default function PricingSection() {
     return anims;
   }, [state]);
 
+  // ==================== PREVIEW ANIMATION CLASSES ====================
+  const getNavbarPreviewClasses = useMemo(() => {
+    if (state.step1.navbar !== "animated" || !navbarAnimating) return "";
+
+    const animId = state.step1.selectedNavbarAnim;
+    if (animId === "sticky-fade") return "animate-navbar-fade";
+    if (animId === "slide-down") return "animate-navbar-slide";
+    if (animId === "color-change") return "animate-navbar-color";
+    if (animId === "shrink") return "animate-navbar-shrink";
+    if (animId === "blur-glass") return "animate-navbar-glass";
+    if (animId === "menu-reveal") return "animate-navbar-menu";
+
+    return "animate-navbar-fade";
+  }, [state.step1.navbar, state.step1.selectedNavbarAnim, navbarAnimating]);
+
+  const getFooterPreviewClasses = useMemo(() => {
+    if (state.step1.footer !== "animated" || !footerAnimating) return "";
+
+    const animId = state.step1.selectedFooterAnim;
+    if (animId === "fade-in") return "animate-footer-fade";
+    if (animId === "slide-up") return "animate-footer-slide";
+    if (animId === "parallax") return "animate-footer-parallax";
+    if (animId === "hover-links") return "animate-footer-hover";
+    if (animId === "wave-bg") return "animate-footer-wave";
+    if (animId === "stagger-cols") return "animate-footer-stagger";
+
+    return "animate-footer-fade";
+  }, [state.step1.footer, state.step1.selectedFooterAnim, footerAnimating]);
+
   // ==================== RENDER ====================
   return (
     <section ref={sectionRef} id="pricing" className="relative min-h-screen py-16 md:py-24">
+      {/* Animation Keyframes */}
+      <style jsx>{`
+        @keyframes navbarFade {
+          0% { opacity: 0; transform: translateY(-10px); }
+          50% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes navbarSlide {
+          0% { transform: translateY(-100%); }
+          50% { transform: translateY(0); }
+          100% { transform: translateY(0); }
+        }
+        @keyframes navbarColor {
+          0% { background: #1a1a1a; }
+          50% { background: #06b6d4; }
+          100% { background: #1a1a1a; }
+        }
+        @keyframes navbarShrink {
+          0% { transform: scaleY(1); }
+          50% { transform: scaleY(0.8); }
+          100% { transform: scaleY(1); }
+        }
+        @keyframes navbarGlass {
+          0% { backdrop-filter: blur(0); background: rgba(26,26,26,1); }
+          50% { backdrop-filter: blur(10px); background: rgba(26,26,26,0.7); }
+          100% { backdrop-filter: blur(0); background: rgba(26,26,26,1); }
+        }
+        @keyframes navbarMenu {
+          0% { opacity: 0; }
+          25% { opacity: 0.33; }
+          50% { opacity: 0.66; }
+          75% { opacity: 1; }
+          100% { opacity: 1; }
+        }
+        @keyframes footerFade {
+          0% { opacity: 0; }
+          50% { opacity: 1; }
+          100% { opacity: 1; }
+        }
+        @keyframes footerSlide {
+          0% { transform: translateY(20px); opacity: 0; }
+          50% { transform: translateY(0); opacity: 1; }
+          100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes footerParallax {
+          0% { transform: translateY(10px); }
+          50% { transform: translateY(-5px); }
+          100% { transform: translateY(0); }
+        }
+        @keyframes footerWave {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes footerStagger {
+          0% { opacity: 0; transform: translateY(10px); }
+          50% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-navbar-fade { animation: navbarFade 2s ease-out; }
+        .animate-navbar-slide { animation: navbarSlide 2s ease-out; }
+        .animate-navbar-color { animation: navbarColor 2s ease-in-out; }
+        .animate-navbar-shrink { animation: navbarShrink 2s ease-in-out; transform-origin: top; }
+        .animate-navbar-glass { animation: navbarGlass 2s ease-in-out; }
+        .animate-navbar-menu { animation: navbarMenu 2s ease-out; }
+        .animate-footer-fade { animation: footerFade 2s ease-out; }
+        .animate-footer-slide { animation: footerSlide 2s ease-out; }
+        .animate-footer-parallax { animation: footerParallax 2s ease-in-out; }
+        .animate-footer-wave {
+          background: linear-gradient(90deg, #1a1a1a, #10b981, #1a1a1a);
+          background-size: 200% 100%;
+          animation: footerWave 2s ease-in-out;
+        }
+        .animate-footer-stagger { animation: footerStagger 2s ease-out; }
+      `}</style>
+
       {/* Background Effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#8b5cf6]/5 rounded-full blur-[150px]" />
@@ -480,9 +795,9 @@ export default function PricingSection() {
       {/* Header */}
       <div className="relative px-6 mb-12 text-center">
         <div className="flex items-center justify-center gap-4 mb-4">
-          <span className="h-px w-12 bg-gradient-to-r from-transparent to-[#8b5cf6]" />
+          <span className="h-px w-12 bg-linear-to-r from-transparent to-[#8b5cf6]" />
           <span className="font-mono text-xs uppercase tracking-[0.3em] text-[#8b5cf6]">PRICE CALCULATOR</span>
-          <span className="h-px w-12 bg-gradient-to-l from-transparent to-[#8b5cf6]" />
+          <span className="h-px w-12 bg-linear-to-l from-transparent to-[#8b5cf6]" />
         </div>
         <h2 className="text-section mb-4">
           <span className="text-white">สร้างเว็บไซต์ </span>
@@ -515,13 +830,13 @@ export default function PricingSection() {
                           onClick={() => updateStep1("package", pkg.id)}
                           className={`relative p-4 rounded-xl border-2 text-left transition-all duration-300 ${
                             isSelected
-                              ? `${colors.border} ${colors.glow} bg-gradient-to-b from-[${pkg.color === "purple" ? "#8b5cf6" : pkg.color === "pink" ? "#ec4899" : pkg.color === "cyan" ? "#06b6d4" : "#10b981"}]/10 to-transparent`
+                              ? `${colors.border} ${colors.glow} bg-linear-to-b from-[${pkg.color === "purple" ? "#8b5cf6" : pkg.color === "pink" ? "#ec4899" : pkg.color === "cyan" ? "#06b6d4" : "#10b981"}]/10 to-transparent`
                               : "border-[#262626] bg-[#0d0d0d] hover:border-[#333]"
                           }`}
                         >
                           {pkg.popular && (
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white">
+                              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-linear-to-r from-[#8b5cf6] to-[#ec4899] text-white">
                                 แนะนำ
                               </span>
                             </div>
@@ -554,8 +869,8 @@ export default function PricingSection() {
                   {/* Navbar & Footer Options */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-[#262626]">
                     {/* Navbar */}
-                    <div>
-                      <label className="block font-mono text-xs text-[#52525b] mb-2">
+                    <div className="space-y-3">
+                      <label className="block font-mono text-xs text-[#52525b]">
                         <span className="text-[#06b6d4]">{">"}</span> Navbar
                       </label>
                       <div className="flex flex-wrap gap-2">
@@ -574,11 +889,92 @@ export default function PricingSection() {
                           </button>
                         ))}
                       </div>
+
+                      {/* Navbar Animation Types */}
+                      {state.step1.navbar === "animated" && (
+                        <div className="space-y-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#06b6d4]/20">
+                          <p className="text-xs text-[#06b6d4] font-medium">เลือก Animation 1 อย่าง:</p>
+                          <div className="grid grid-cols-1 gap-2">
+                            {NAVBAR_ANIMATION_TYPES.map((anim) => (
+                              <button
+                                key={anim.id}
+                                onClick={() => selectNavbarAnimation(anim.id)}
+                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${
+                                  state.step1.selectedNavbarAnim === anim.id
+                                    ? "bg-[#06b6d4]/20 border border-[#06b6d4]/50"
+                                    : "bg-[#1a1a1a] border border-[#262626] hover:border-[#06b6d4]/30"
+                                }`}
+                              >
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                                  state.step1.selectedNavbarAnim === anim.id
+                                    ? "border-[#06b6d4] bg-[#06b6d4]"
+                                    : "border-[#333]"
+                                }`}>
+                                  {state.step1.selectedNavbarAnim === anim.id && (
+                                    <div className="w-2 h-2 rounded-full bg-white" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg">{anim.icon}</span>
+                                    <span className="text-xs font-medium text-white">{anim.label}</span>
+                                  </div>
+                                  <p className="text-[10px] text-[#52525b] mt-0.5 leading-relaxed">{anim.description}</p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Custom Navbar Animation Input */}
+                          <div className="pt-3 border-t border-[#262626]">
+                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง:</p>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={state.step1.customNavbarInput}
+                                onChange={(e) => updateStep1("customNavbarInput", e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && addCustomNavbarAnim()}
+                                placeholder="เช่น: Logo spin, Dropdown slide..."
+                                className="flex-1 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#262626] text-xs text-[#a1a1aa] placeholder:text-[#333] focus:outline-none focus:border-[#06b6d4]/50"
+                              />
+                              <button
+                                onClick={addCustomNavbarAnim}
+                                className="px-3 py-1.5 rounded-lg bg-[#06b6d4] text-white text-xs font-medium hover:bg-[#06b6d4]/90 transition-colors"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Custom animations list */}
+                          {state.step1.navbarCustomAnims.length > 0 && (
+                            <div className="space-y-1.5 pt-2">
+                              <p className="text-[10px] text-[#06b6d4]">Animation ที่เพิ่ม:</p>
+                              {state.step1.navbarCustomAnims.map((anim) => (
+                                <div
+                                  key={anim.id}
+                                  className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#06b6d4]/10 border border-[#06b6d4]/30"
+                                >
+                                  <span className="text-xs text-[#06b6d4]">✦ {anim.label}</span>
+                                  <button
+                                    onClick={() => removeNavbarCustomAnim(anim.id)}
+                                    className="p-0.5 rounded hover:bg-[#06b6d4]/20 text-[#06b6d4]/70 hover:text-[#06b6d4]"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Footer */}
-                    <div>
-                      <label className="block font-mono text-xs text-[#52525b] mb-2">
+                    <div className="space-y-3">
+                      <label className="block font-mono text-xs text-[#52525b]">
                         <span className="text-[#10b981]">{">"}</span> Footer
                       </label>
                       <div className="flex flex-wrap gap-2">
@@ -597,6 +993,87 @@ export default function PricingSection() {
                           </button>
                         ))}
                       </div>
+
+                      {/* Footer Animation Types */}
+                      {state.step1.footer === "animated" && (
+                        <div className="space-y-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#10b981]/20">
+                          <p className="text-xs text-[#10b981] font-medium">เลือก Animation 1 อย่าง:</p>
+                          <div className="grid grid-cols-1 gap-2">
+                            {FOOTER_ANIMATION_TYPES.map((anim) => (
+                              <button
+                                key={anim.id}
+                                onClick={() => selectFooterAnimation(anim.id)}
+                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${
+                                  state.step1.selectedFooterAnim === anim.id
+                                    ? "bg-[#10b981]/20 border border-[#10b981]/50"
+                                    : "bg-[#1a1a1a] border border-[#262626] hover:border-[#10b981]/30"
+                                }`}
+                              >
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                                  state.step1.selectedFooterAnim === anim.id
+                                    ? "border-[#10b981] bg-[#10b981]"
+                                    : "border-[#333]"
+                                }`}>
+                                  {state.step1.selectedFooterAnim === anim.id && (
+                                    <div className="w-2 h-2 rounded-full bg-white" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg">{anim.icon}</span>
+                                    <span className="text-xs font-medium text-white">{anim.label}</span>
+                                  </div>
+                                  <p className="text-[10px] text-[#52525b] mt-0.5 leading-relaxed">{anim.description}</p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Custom Footer Animation Input */}
+                          <div className="pt-3 border-t border-[#262626]">
+                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง:</p>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={state.step1.customFooterInput}
+                                onChange={(e) => updateStep1("customFooterInput", e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && addCustomFooterAnim()}
+                                placeholder="เช่น: Social icons bounce, Map zoom..."
+                                className="flex-1 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#262626] text-xs text-[#a1a1aa] placeholder:text-[#333] focus:outline-none focus:border-[#10b981]/50"
+                              />
+                              <button
+                                onClick={addCustomFooterAnim}
+                                className="px-3 py-1.5 rounded-lg bg-[#10b981] text-white text-xs font-medium hover:bg-[#10b981]/90 transition-colors"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Custom animations list */}
+                          {state.step1.footerCustomAnims.length > 0 && (
+                            <div className="space-y-1.5 pt-2">
+                              <p className="text-[10px] text-[#10b981]">Animation ที่เพิ่ม:</p>
+                              {state.step1.footerCustomAnims.map((anim) => (
+                                <div
+                                  key={anim.id}
+                                  className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#10b981]/10 border border-[#10b981]/30"
+                                >
+                                  <span className="text-xs text-[#10b981]">✦ {anim.label}</span>
+                                  <button
+                                    onClick={() => removeFooterCustomAnim(anim.id)}
+                                    className="p-0.5 rounded hover:bg-[#10b981]/20 text-[#10b981]/70 hover:text-[#10b981]"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -963,13 +1440,15 @@ export default function PricingSection() {
                 <div className={`space-y-4 ${mobilePreviewOpen ? "block" : "hidden lg:block"}`}>
                   {/* Live Preview */}
                   <div className="p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-[#8b5cf6]">👁️</span>
-                      <span className="font-mono text-xs uppercase tracking-wider text-[#52525b]">LIVE PREVIEW</span>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#8b5cf6]">👁️</span>
+                        <span className="font-mono text-xs uppercase tracking-wider text-[#52525b]">LIVE PREVIEW</span>
+                      </div>
                     </div>
 
                     {/* Website Mockup */}
-                    <div className="relative aspect-[4/3] rounded-xl bg-[#0a0a0a] border border-[#1f1f1f] overflow-hidden">
+                    <div className="relative aspect-4/3 rounded-xl bg-[#0a0a0a] border border-[#1f1f1f] overflow-hidden">
                       {/* Browser Chrome */}
                       <div className="flex items-center gap-1.5 px-3 py-2 bg-[#141414] border-b border-[#1f1f1f]">
                         <div className="w-2.5 h-2.5 rounded-full bg-[#ec4899]" />
@@ -979,25 +1458,37 @@ export default function PricingSection() {
 
                       {/* Page Content */}
                       <div className="p-3 space-y-2">
-                        {/* Navbar */}
-                        <div
-                          className={`flex items-center justify-between p-2 rounded bg-[#1a1a1a] ${
-                            state.step1.navbar !== "basic" ? "ring-1 ring-[#06b6d4]/50" : ""
-                          }`}
-                        >
-                          <div className="w-12 h-3 rounded bg-[#262626]" />
-                          <div className="flex gap-2">
-                            {[1, 2, 3, 4].map((i) => (
-                              <div key={i} className="w-8 h-2 rounded bg-[#262626]" />
-                            ))}
+                        {/* Navbar with Play Button */}
+                        <div className="flex items-center gap-2">
+                          <div
+                            ref={previewNavbarRef}
+                            className={`flex-1 flex items-center justify-between p-2 rounded bg-[#1a1a1a] transition-all ${
+                              state.step1.navbar !== "basic" ? "ring-1 ring-[#06b6d4]/50" : ""
+                            } ${getNavbarPreviewClasses}`}
+                          >
+                            <div className="w-12 h-3 rounded bg-[#262626]" />
+                            <div className="flex gap-2">
+                              {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="w-8 h-2 rounded bg-[#262626]" />
+                              ))}
+                            </div>
+                            {state.step1.navbar !== "basic" && (
+                              <span className="text-[8px] text-[#06b6d4]">✨</span>
+                            )}
                           </div>
-                          {state.step1.navbar !== "basic" && (
-                            <span className="text-[8px] text-[#06b6d4]">✨</span>
+                          {state.step1.navbar === "animated" && (
+                            <button
+                              onClick={playNavbarAnimation}
+                              className="px-1.5 py-1 rounded bg-[#06b6d4]/20 text-[#06b6d4] text-[8px] font-medium hover:bg-[#06b6d4]/30 transition-colors"
+                              title="Play Navbar Animation"
+                            >
+                              ▶
+                            </button>
                           )}
                         </div>
 
                         {/* Hero Section */}
-                        <div className="p-3 rounded bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d]">
+                        <div className="p-3 rounded bg-linear-to-br from-[#1a1a1a] to-[#0d0d0d]">
                           <div className="w-20 h-3 rounded bg-[#262626] mb-2" />
                           <div className="w-16 h-2 rounded bg-[#333]" />
                         </div>
@@ -1018,22 +1509,34 @@ export default function PricingSection() {
                           </div>
                         )}
 
-                        {/* Footer */}
-                        <div
-                          className={`p-2 rounded bg-[#1a1a1a] ${
-                            state.step1.footer !== "basic" ? "ring-1 ring-[#10b981]/50" : ""
-                          }`}
-                        >
-                          <div className="flex justify-between">
-                            <div className="w-10 h-2 rounded bg-[#262626]" />
-                            <div className="flex gap-1">
-                              {[1, 2, 3].map((i) => (
-                                <div key={i} className="w-3 h-3 rounded-full bg-[#262626]" />
-                              ))}
+                        {/* Footer with Play Button */}
+                        <div className="flex items-center gap-2">
+                          <div
+                            ref={previewFooterRef}
+                            className={`flex-1 p-2 rounded bg-[#1a1a1a] transition-all ${
+                              state.step1.footer !== "basic" ? "ring-1 ring-[#10b981]/50" : ""
+                            } ${getFooterPreviewClasses}`}
+                          >
+                            <div className="flex justify-between">
+                              <div className="w-10 h-2 rounded bg-[#262626]" />
+                              <div className="flex gap-1">
+                                {[1, 2, 3].map((i) => (
+                                  <div key={i} className="w-3 h-3 rounded-full bg-[#262626]" />
+                                ))}
+                              </div>
                             </div>
+                            {state.step1.footer !== "basic" && (
+                              <span className="text-[8px] text-[#10b981]">✨</span>
+                            )}
                           </div>
-                          {state.step1.footer !== "basic" && (
-                            <span className="text-[8px] text-[#10b981]">✨</span>
+                          {state.step1.footer === "animated" && (
+                            <button
+                              onClick={playFooterAnimation}
+                              className="px-1.5 py-1 rounded bg-[#10b981]/20 text-[#10b981] text-[8px] font-medium hover:bg-[#10b981]/30 transition-colors"
+                              title="Play Footer Animation"
+                            >
+                              ▶
+                            </button>
                           )}
                         </div>
                       </div>
@@ -1063,6 +1566,38 @@ export default function PricingSection() {
                         {state.step4.cms && <span className="text-[10px]">⚙️</span>}
                       </div>
                     </div>
+
+                    {/* Animation Details */}
+                    {(state.step1.navbar === "animated" && (state.step1.selectedNavbarAnim || state.step1.navbarCustomAnims.length > 0)) ||
+                    (state.step1.footer === "animated" && (state.step1.selectedFooterAnim || state.step1.footerCustomAnims.length > 0)) ? (
+                      <div className="mt-3 p-2 rounded-lg bg-[#0d0d0d] border border-[#262626]">
+                        <p className="text-[10px] text-[#52525b] mb-1">Animation ที่เลือก:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {state.step1.selectedNavbarAnim && (
+                            <span className="px-1.5 py-0.5 rounded bg-[#06b6d4]/20 text-[8px] text-[#06b6d4]">
+                              {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim)?.icon}{" "}
+                              {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim)?.label}
+                            </span>
+                          )}
+                          {state.step1.navbarCustomAnims.map((anim) => (
+                            <span key={anim.id} className="px-1.5 py-0.5 rounded bg-[#06b6d4]/20 text-[8px] text-[#06b6d4]">
+                              ✦ {anim.label}
+                            </span>
+                          ))}
+                          {state.step1.selectedFooterAnim && (
+                            <span className="px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[8px] text-[#10b981]">
+                              {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim)?.icon}{" "}
+                              {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim)?.label}
+                            </span>
+                          )}
+                          {state.step1.footerCustomAnims.map((anim) => (
+                            <span key={anim.id} className="px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[8px] text-[#10b981]">
+                              ✦ {anim.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
 
                     {/* Page Count */}
                     <div className="mt-3 flex items-center justify-center gap-2 text-xs text-[#52525b]">
@@ -1096,7 +1631,7 @@ export default function PricingSection() {
                   )}
 
                   {/* Price Summary */}
-                  <div className="p-5 rounded-2xl bg-gradient-to-b from-[#1a1a1a] to-[#141414] border border-[#262626]">
+                  <div className="p-5 rounded-2xl bg-linear-to-b from-[#1a1a1a] to-[#141414] border border-[#262626]">
                     <div className="flex items-center gap-2 mb-4">
                       <span className="text-[#10b981]">📋</span>
                       <span className="font-mono text-xs uppercase tracking-wider text-[#52525b]">สรุปราคา</span>
@@ -1154,7 +1689,7 @@ export default function PricingSection() {
                         </button>
                         <a
                           href="#contact"
-                          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white text-sm font-medium hover:shadow-lg hover:shadow-[#8b5cf6]/25 transition-all"
+                          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-linear-to-r from-[#8b5cf6] to-[#ec4899] text-white text-sm font-medium hover:shadow-lg hover:shadow-[#8b5cf6]/25 transition-all"
                         >
                           <span>💬</span>
                           <span>ขอใบเสนอราคา</span>
@@ -1186,7 +1721,7 @@ export default function PricingSection() {
           </div>
           <a
             href="#contact"
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white text-sm font-medium"
+            className="px-6 py-3 rounded-xl bg-linear-to-r from-[#8b5cf6] to-[#ec4899] text-white text-sm font-medium"
           >
             ขอใบเสนอราคา
           </a>
