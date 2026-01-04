@@ -1060,6 +1060,34 @@ export default function PricingSection() {
     setTimeout(() => setFooterAnimating(false), 2000);
   }, []);
 
+  const playAllAnimations = useCallback(() => {
+    // Play Navbar animation
+    setNavbarAnimating(true);
+    setTimeout(() => setNavbarAnimating(false), 2000);
+
+    // Play Footer animation
+    setFooterAnimating(true);
+    setTimeout(() => setFooterAnimating(false), 2000);
+
+    // Play Main Sections animations
+    state.step2.mainSections.forEach((section) => {
+      if (section.animation) {
+        const refKey = `preview-main-${section.id}`;
+        playSectionAnimation(refKey, section.animation);
+      }
+    });
+
+    // Play Added Pages Sections animations
+    state.step2.pages.forEach((page) => {
+      page.sections.forEach((section) => {
+        if (section.animation) {
+          const refKey = `preview-page-${page.id}-${section.id}`;
+          playSectionAnimation(refKey, section.animation);
+        }
+      });
+    });
+  }, [state.step2.mainSections, state.step2.pages, playSectionAnimation]);
+
   // ==================== GSAP ANIMATIONS ====================
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -2071,13 +2099,21 @@ export default function PricingSection() {
                         <span className="text-[#8b5cf6]">👁️</span>
                         <span className="font-mono text-xs uppercase tracking-wider text-[#52525b]">LIVE PREVIEW</span>
                       </div>
+
+                      {/* Button Play All Animations */}
+                      <button
+                        onClick={playAllAnimations}
+                        className="p-2 rounded-lg text-xs bg-[#06b6d4]/20 text-[#06b6d4] hover:bg-[#06b6d4]/30"
+                      >
+                        ▶ เล่น Animation ทั้งหมด
+                      </button>
                     </div>
 
                     {/* Pages Horizontal Scroll Container */}
                     <div className="overflow-x-auto pb-4 -mx-2 px-3">
                       <div className="flex gap-6" style={{ minWidth: 'min-content' }}>
                         {/* Main Page */}
-                        <div className="shrink-0 w-[550px]">
+                        <div className="shrink-0 w-[380px] md:w-[550px]">
                           <div className="text-center mb-4">
                             <span className="px-4 py-1 rounded-full bg-[#8b5cf6]/20 text-sm text-[#8b5cf6] font-medium">
                               หน้าหลัก ({state.step2.mainSections.length} sec)
@@ -2239,7 +2275,7 @@ export default function PricingSection() {
 
                         {/* Added Pages */}
                         {state.step2.pages.map((page) => (
-                          <div key={page.id} className="shrink-0 w-[550px]">
+                          <div key={page.id} className="shrink-0 w-[380px] md:w-[550px]">
                             <div className="text-center mb-4">
                               <span className="px-4 py-1 rounded-full bg-[#ec4899]/20 text-sm text-[#ec4899] font-medium">
                                 {page.name}
