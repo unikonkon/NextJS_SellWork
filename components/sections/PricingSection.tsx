@@ -10,6 +10,7 @@ gsap.registerPlugin(ScrollTrigger);
 interface SectionItem {
   id: string;
   layout: string;
+  animation: string | null;
 }
 
 interface PageItem {
@@ -41,26 +42,12 @@ interface CalculatorState {
     pages: PageItem[];
   };
   step3: {
-    sectionAnimation: "none" | "basic" | "complex";
-    globalAnimations: {
-      scroll: number;
-      pageTransition: boolean;
-      loading: boolean;
-      text: boolean;
-      parallax: number;
-      hover: boolean;
-      cursor: boolean;
-      svgMorph: boolean;
-      lottie: boolean;
-    };
-  };
-  step4: {
     seo: boolean;
     bilingual: boolean;
     cms: boolean;
     extendedSupport: boolean;
   };
-  step5: {
+  step4: {
     customItems: string[];
   };
 }
@@ -233,19 +220,74 @@ const SECTION_LAYOUTS = [
   },
 ];
 
-const SECTION_PRICES = { none: 200, basic: 350, complex: 500 };
+const SECTION_ANIMATION_PRICE = 150; // ราคาต่อ animation ที่เพิ่ม
 
-const GLOBAL_ANIMATIONS = [
-  { id: "scroll", label: "Scroll Animation", price: 300, perSection: true, icon: "↓" },
-  { id: "pageTransition", label: "Page Transition", price: 500, perSection: false, icon: "⟷" },
-  { id: "loading", label: "Loading Animation", price: 500, perSection: false, icon: "◐" },
-  { id: "text", label: "Text Animation", price: 400, perSection: false, icon: "Aa" },
-  { id: "parallax", label: "Parallax Effect", price: 400, perSection: true, icon: "≋" },
-  { id: "hover", label: "Hover Effects (5)", price: 300, perSection: false, icon: "◉" },
-  { id: "cursor", label: "Custom Cursor", price: 600, perSection: false, icon: "↗" },
-  { id: "svgMorph", label: "SVG / Morph", price: 800, perSection: false, icon: "◇" },
-  { id: "lottie", label: "Lottie Animation", price: 500, perSection: false, icon: "▶" },
-];
+// ==================== SECTION ANIMATIONS MAPPING ====================
+// วิเคราะห์ Animation ที่เหมาะสมกับแต่ละ Layout Type
+const SECTION_ANIMATIONS: Record<string, { id: string; label: string; icon: string; description: string }[]> = {
+  hero: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
+    { id: "scale-in", label: "Scale In", icon: "⊡", description: "ขยายจากเล็กไปใหญ่" },
+    { id: "parallax-bg", label: "Parallax BG", icon: "≋", description: "พื้นหลังเคลื่อนที่ช้ากว่าเนื้อหา" },
+    { id: "text-reveal", label: "Text Reveal", icon: "Aa", description: "ตัวอักษรปรากฏทีละตัว" },
+    { id: "split-reveal", label: "Split Reveal", icon: "◰", description: "แยกเปิดจากกลาง" },
+  ],
+  "text-image": [
+    { id: "slide-left", label: "Slide Left", icon: "←", description: "เนื้อหาเลื่อนเข้าจากซ้าย" },
+    { id: "slide-right", label: "Slide Right", icon: "→", description: "รูปเลื่อนเข้าจากขวา" },
+    { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละส่วน" },
+    { id: "reveal-mask", label: "Reveal Mask", icon: "▣", description: "เปิดเผยด้วย mask effect" },
+  ],
+  "image-text": [
+    { id: "slide-right", label: "Slide Right", icon: "→", description: "รูปเลื่อนเข้าจากขวา" },
+    { id: "slide-left", label: "Slide Left", icon: "←", description: "เนื้อหาเลื่อนเข้าจากซ้าย" },
+    { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละส่วน" },
+    { id: "zoom-img", label: "Zoom Image", icon: "⊕", description: "รูปซูมเข้าเมื่อ scroll ถึง" },
+  ],
+  "three-cols": [
+    { id: "stagger-up", label: "Stagger Up", icon: "↑↑↑", description: "คอลัมน์ปรากฏทีละอัน" },
+    { id: "flip-in", label: "Flip In", icon: "◰", description: "พลิกเข้ามาทีละคอลัมน์" },
+    { id: "scale-stagger", label: "Scale Stagger", icon: "⊡⊡⊡", description: "ขยายขึ้นทีละอัน" },
+    { id: "fade-cascade", label: "Fade Cascade", icon: "◔◔◔", description: "ค่อยๆ ปรากฏต่อเนื่อง" },
+  ],
+  "four-cols": [
+    { id: "stagger-up", label: "Stagger Up", icon: "↑↑↑↑", description: "คอลัมน์ปรากฏทีละอัน" },
+    { id: "wave-in", label: "Wave In", icon: "∿", description: "เคลื่อนเข้ามาเป็นคลื่น" },
+    { id: "scale-stagger", label: "Scale Stagger", icon: "⊡⊡⊡⊡", description: "ขยายขึ้นทีละอัน" },
+    { id: "rotate-in", label: "Rotate In", icon: "↻", description: "หมุนเข้ามาทีละอัน" },
+  ],
+  gallery: [
+    { id: "masonry-fade", label: "Masonry Fade", icon: "▤", description: "รูปปรากฏแบบสุ่ม" },
+    { id: "zoom-hover", label: "Zoom Hover", icon: "⊕", description: "ซูมเมื่อ hover" },
+    { id: "lightbox", label: "Lightbox", icon: "◳", description: "เปิดดูเต็มจอเมื่อคลิก" },
+    { id: "grid-reveal", label: "Grid Reveal", icon: "▦", description: "เปิดเผยทีละช่อง" },
+  ],
+  cta: [
+    { id: "pulse", label: "Pulse", icon: "◉", description: "ปุ่มเต้นเป็นจังหวะ" },
+    { id: "glow", label: "Glow Effect", icon: "✦", description: "เรืองแสงเมื่อ hover" },
+    { id: "bounce", label: "Bounce", icon: "⤴", description: "เด้งขึ้นลง" },
+    { id: "shake", label: "Shake", icon: "↔", description: "สั่นเรียกความสนใจ" },
+    { id: "ripple", label: "Ripple", icon: "◎", description: "คลื่นกระจายเมื่อคลิก" },
+  ],
+  testimonial: [
+    { id: "slide-quote", label: "Slide Quote", icon: "❝", description: "คำพูดเลื่อนเข้ามา" },
+    { id: "fade-rotate", label: "Fade Rotate", icon: "↻", description: "หมุนสลับรีวิว" },
+    { id: "typewriter", label: "Typewriter", icon: "Aa", description: "พิมพ์ทีละตัวอักษร" },
+    { id: "card-flip", label: "Card Flip", icon: "◰", description: "พลิกการ์ดเปลี่ยนรีวิว" },
+  ],
+  faq: [
+    { id: "accordion", label: "Accordion", icon: "≡", description: "พับ/กางแบบ accordion" },
+    { id: "slide-expand", label: "Slide Expand", icon: "↕", description: "เลื่อนขยายเมื่อคลิก" },
+    { id: "fade-content", label: "Fade Content", icon: "◔", description: "เนื้อหาค่อยๆ ปรากฏ" },
+    { id: "highlight", label: "Highlight", icon: "◐", description: "ไฮไลท์คำถามที่เปิด" },
+  ],
+  stats: [
+    { id: "counter", label: "Counter", icon: "123", description: "ตัวเลขนับขึ้น" },
+    { id: "bar-grow", label: "Bar Grow", icon: "▐", description: "แท่งกราฟขยาย" },
+    { id: "flip-number", label: "Flip Number", icon: "↻", description: "พลิกตัวเลข" },
+    { id: "pop-scale", label: "Pop Scale", icon: "⊡", description: "ตัวเลขป็อปขึ้นมา" },
+  ],
+};
 
 const ADDON_SERVICES = [
   { id: "seo", label: "SEO Setup เต็มรูปแบบ", price: 1000, icon: "📊" },
@@ -288,6 +330,7 @@ export default function PricingSection() {
     return Array.from({ length: INITIAL_SECTIONS }, (_, i) => ({
       id: generateId(),
       layout: i === 0 ? "hero" : i === 1 ? "text-image" : "three-cols",
+      animation: null,
     }));
   };
 
@@ -303,15 +346,8 @@ export default function PricingSection() {
       customFooterInput: "",
     },
     step2: { mainSections: createInitialSections(), pages: [] },
-    step3: {
-      sectionAnimation: "none",
-      globalAnimations: {
-        scroll: 0, pageTransition: false, loading: false, text: false,
-        parallax: 0, hover: false, cursor: false, svgMorph: false, lottie: false,
-      },
-    },
-    step4: { seo: false, bilingual: false, cms: false, extendedSupport: false },
-    step5: { customItems: [] },
+    step3: { seo: false, bilingual: false, cms: false, extendedSupport: false },
+    step4: { customItems: [] },
   });
 
   const [newCustomItem, setNewCustomItem] = useState("");
@@ -345,34 +381,33 @@ export default function PricingSection() {
       items.push({ label: `Footer ${footer.label}`, price: footer.price, category: "footer" });
     }
 
+    // Main section animations
+    const mainSectionAnims = state.step2.mainSections.filter((s) => s.animation).length;
+    if (mainSectionAnims > 0) {
+      items.push({
+        label: `Animation หน้าหลัก ×${mainSectionAnims}`,
+        price: mainSectionAnims * SECTION_ANIMATION_PRICE,
+        category: "animations",
+      });
+    }
+
     // STEP 2: Added Pages with sections
     state.step2.pages.forEach((page) => {
       const sectionCount = page.sections.length;
-      const basePrice = sectionCount * SECTION_PRICES.none;
-      const animPrice = page.animation !== "none"
-        ? sectionCount * (SECTION_PRICES[page.animation] - SECTION_PRICES.none)
-        : 0;
-      const animLabel = page.animation === "none" ? "" : page.animation === "basic" ? " + Anim พื้นฐาน" : " + Anim ซับซ้อน";
+      const pageAnimations = page.sections.filter((s) => s.animation).length;
+      const sectionPrice = sectionCount * SECTION_PRICE;
+      const animPrice = pageAnimations * SECTION_ANIMATION_PRICE;
       items.push({
-        label: `${page.name} (${sectionCount} sec)${animLabel}`,
-        price: basePrice + animPrice,
+        label: `${page.name} (${sectionCount} sec${pageAnimations > 0 ? ` + ${pageAnimations} anim` : ""})`,
+        price: sectionPrice + animPrice,
         category: "pages",
       });
     });
 
-    // Global Animations
-    GLOBAL_ANIMATIONS.forEach((anim) => {
-      const value = state.step3.globalAnimations[anim.id as keyof typeof state.step3.globalAnimations];
-      if (typeof value === "boolean" && value) {
-        items.push({ label: anim.label, price: anim.price, category: "animations" });
-      } else if (typeof value === "number" && value > 0) {
-        items.push({ label: `${anim.label} ×${value}`, price: anim.price * value, category: "animations" });
-      }
-    });
 
     // STEP 4: Addons
     ADDON_SERVICES.forEach((service) => {
-      if (state.step4[service.id as keyof typeof state.step4]) {
+      if (state.step3[service.id as keyof typeof state.step3]) {
         items.push({ label: service.label, price: service.price, category: "addons" });
       }
     });
@@ -473,7 +508,7 @@ export default function PricingSection() {
         ...prev.step2,
         mainSections: [
           ...prev.step2.mainSections,
-          { id: generateId(), layout: "text-image" },
+          { id: generateId(), layout: "text-image", animation: null },
         ],
       },
     }));
@@ -497,10 +532,91 @@ export default function PricingSection() {
       step2: {
         ...prev.step2,
         mainSections: prev.step2.mainSections.map((section) =>
-          section.id === sectionId ? { ...section, layout } : section
+          section.id === sectionId ? { ...section, layout, animation: null } : section
         ),
       },
     }));
+  }, []);
+
+  // Update main section animation
+  const updateMainSectionAnimation = useCallback((sectionId: string, animation: string | null) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        mainSections: prev.step2.mainSections.map((section) =>
+          section.id === sectionId ? { ...section, animation } : section
+        ),
+      },
+    }));
+  }, []);
+
+  // Update page section animation
+  const updatePageSectionAnimation = useCallback((pageId: string, sectionId: string, animation: string | null) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        pages: prev.step2.pages.map((page) =>
+          page.id === pageId
+            ? {
+              ...page,
+              sections: page.sections.map((section) =>
+                section.id === sectionId ? { ...section, animation } : section
+              ),
+            }
+            : page
+        ),
+      },
+    }));
+  }, []);
+
+  // GSAP Animation Preview for sections
+  const playSectionAnimation = useCallback((elementId: string, animationType: string) => {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    // Reset any existing animations
+    gsap.killTweensOf(element);
+    gsap.set(element, { clearProps: "all" });
+
+    // Execute animation based on type
+    switch (animationType) {
+      case "fade-up":
+        gsap.fromTo(element, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
+        break;
+      case "scale-in":
+        gsap.fromTo(element, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" });
+        break;
+      case "slide-left":
+        gsap.fromTo(element, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" });
+        break;
+      case "slide-right":
+        gsap.fromTo(element, { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" });
+        break;
+      case "stagger-up":
+        const children = element.children;
+        gsap.fromTo(children, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, ease: "power2.out" });
+        break;
+      case "pulse":
+        gsap.to(element, { scale: 1.05, duration: 0.3, yoyo: true, repeat: 3, ease: "power1.inOut" });
+        break;
+      case "glow":
+        gsap.to(element, { boxShadow: "0 0 20px rgba(139, 92, 246, 0.6)", duration: 0.3, yoyo: true, repeat: 1 });
+        break;
+      case "bounce":
+        gsap.to(element, { y: -10, duration: 0.2, yoyo: true, repeat: 3, ease: "power1.out" });
+        break;
+      case "counter":
+        gsap.fromTo(element, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" });
+        break;
+      case "accordion":
+        gsap.fromTo(element, { height: 0, opacity: 0 }, { height: "auto", opacity: 1, duration: 0.4, ease: "power2.out" });
+        break;
+      default:
+        // Default fade animation
+        gsap.fromTo(element, { opacity: 0 }, { opacity: 1, duration: 0.5 });
+    }
   }, []);
 
   // Add new page with 1 section
@@ -517,7 +633,7 @@ export default function PricingSection() {
               id: generateId(),
               name: `หน้า ${pageNum}`,
               animation: "none",
-              sections: [{ id: generateId(), layout: "hero" }],
+              sections: [{ id: generateId(), layout: "hero", animation: null }],
             },
           ],
         },
@@ -532,15 +648,6 @@ export default function PricingSection() {
     }));
   }, []);
 
-  const updatePageAnimation = useCallback((id: string, animation: "none" | "basic" | "complex") => {
-    setState((prev) => ({
-      ...prev,
-      step2: {
-        ...prev.step2,
-        pages: prev.step2.pages.map((p) => (p.id === id ? { ...p, animation } : p)),
-      },
-    }));
-  }, []);
 
   const updateSectionLayout = useCallback((pageId: string, sectionId: string, layout: string) => {
     setState((prev) => ({
@@ -570,7 +677,7 @@ export default function PricingSection() {
           page.id === pageId
             ? {
               ...page,
-              sections: [...page.sections, { id: generateId(), layout: "text-image" }],
+              sections: [...page.sections, { id: generateId(), layout: "text-image", animation: null }],
             }
             : page
         ),
@@ -595,39 +702,11 @@ export default function PricingSection() {
     }));
   }, []);
 
-  const toggleGlobalAnimation = useCallback((id: string) => {
-    setState((prev) => {
-      const current = prev.step3.globalAnimations[id as keyof typeof prev.step3.globalAnimations];
-      if (typeof current === "boolean") {
-        return {
-          ...prev,
-          step3: { ...prev.step3, globalAnimations: { ...prev.step3.globalAnimations, [id]: !current } },
-        };
-      }
-      return prev;
-    });
-  }, []);
-
-  const updatePerSectionAnimation = useCallback((id: string, delta: number) => {
-    setState((prev) => {
-      const current = prev.step3.globalAnimations[id as keyof typeof prev.step3.globalAnimations];
-      if (typeof current === "number") {
-        return {
-          ...prev,
-          step3: {
-            ...prev.step3,
-            globalAnimations: { ...prev.step3.globalAnimations, [id]: Math.max(0, current + delta) },
-          },
-        };
-      }
-      return prev;
-    });
-  }, []);
 
   const toggleAddon = useCallback((id: string) => {
     setState((prev) => ({
       ...prev,
-      step4: { ...prev.step4, [id]: !prev.step4[id as keyof typeof prev.step4] },
+      step3: { ...prev.step3, [id]: !prev.step3[id as keyof typeof prev.step3] },
     }));
   }, []);
 
@@ -635,7 +714,7 @@ export default function PricingSection() {
     if (newCustomItem.trim()) {
       setState((prev) => ({
         ...prev,
-        step5: { ...prev.step5, customItems: [...prev.step5.customItems, newCustomItem.trim()] },
+        step4: { ...prev.step4, customItems: [...prev.step4.customItems, newCustomItem.trim()] },
       }));
       setNewCustomItem("");
     }
@@ -644,7 +723,7 @@ export default function PricingSection() {
   const removeCustomItem = useCallback((index: number) => {
     setState((prev) => ({
       ...prev,
-      step5: { ...prev.step5, customItems: prev.step5.customItems.filter((_, i) => i !== index) },
+      step4: { ...prev.step4, customItems: prev.step4.customItems.filter((_, i) => i !== index) },
     }));
   }, []);
 
@@ -724,20 +803,12 @@ export default function PricingSection() {
       reqs.push(`เนื้อหาสำหรับ ${page.name} (${page.sections.length} sec)`);
     });
 
-    if (state.step3.globalAnimations.loading) {
-      reqs.push("สี/ธีมสำหรับ Loading Animation");
-    }
-
-    if (state.step3.globalAnimations.lottie) {
-      reqs.push("ไฟล์ Lottie JSON หรือ reference");
-    }
-
-    if (state.step4.seo) {
+    if (state.step3.seo) {
       reqs.push("Keywords หลักสำหรับ SEO");
       reqs.push("Meta Description ที่ต้องการ");
     }
 
-    if (state.step4.bilingual) {
+    if (state.step3.bilingual) {
       reqs.push("เนื้อหาภาษาอังกฤษทั้งหมด");
     }
 
@@ -777,17 +848,26 @@ export default function PricingSection() {
       }
     }
 
-    state.step2.pages.forEach((page) => {
-      if (page.animation !== "none") {
-        anims.push(`${page.name}: ${page.animation === "basic" ? "พื้นฐาน" : "ซับซ้อน"}`);
+    // Main section animations
+    state.step2.mainSections.forEach((section) => {
+      if (section.animation) {
+        const animInfo = SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation);
+        if (animInfo) {
+          anims.push(`${SECTION_LAYOUTS.find((l) => l.id === section.layout)?.label}: ${animInfo.label}`);
+        }
       }
     });
 
-    GLOBAL_ANIMATIONS.forEach((anim) => {
-      const value = state.step3.globalAnimations[anim.id as keyof typeof state.step3.globalAnimations];
-      if ((typeof value === "boolean" && value) || (typeof value === "number" && value > 0)) {
-        anims.push(anim.label);
-      }
+    // Page section animations
+    state.step2.pages.forEach((page) => {
+      page.sections.forEach((section) => {
+        if (section.animation) {
+          const animInfo = SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation);
+          if (animInfo) {
+            anims.push(`${page.name} - ${animInfo.label}`);
+          }
+        }
+      });
     });
 
     return anims;
@@ -1178,62 +1258,104 @@ export default function PricingSection() {
                       </div>
                     </div>
                     <div className="rounded-xl bg-[#0d0d0d] border border-[#8b5cf6]/30 overflow-hidden">
-                      <div className="p-3 space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+                      <div className="p-3 space-y-3 max-h-[320px] overflow-y-auto custom-scrollbar">
                         {state.step2.mainSections.map((section: SectionItem, secIdx: number) => {
                           const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                          const availableAnims = SECTION_ANIMATIONS[section.layout] || [];
+                          const selectedAnim = availableAnims.find((a) => a.id === section.animation);
                           const isFreeSection = secIdx < INITIAL_SECTIONS;
                           return (
                             <div
                               key={section.id}
-                              className={`flex items-center gap-3 p-2 rounded-lg bg-[#1a1a1a] border group ${isFreeSection ? "border-[#262626]" : "border-[#8b5cf6]/30"
-                                }`}
+                              className={`p-3 rounded-xl bg-[#1a1a1a] border transition-all ${
+                                section.animation ? "border-[#ec4899]/40 bg-[#ec4899]/5" : isFreeSection ? "border-[#262626]" : "border-[#8b5cf6]/30"
+                              }`}
                             >
-                              <span className="font-mono text-[10px] text-[#8b5cf6] w-4">{secIdx + 1}</span>
+                              {/* Section Header Row */}
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="font-mono text-[10px] text-[#8b5cf6] w-4 shrink-0">{secIdx + 1}</span>
 
-                              {/* Layout Dropdown */}
-                              <div className="relative flex-1">
-                                <select
-                                  value={section.layout}
-                                  onChange={(e) => updateMainSectionLayout(section.id, e.target.value)}
-                                  className="w-full px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#333] text-xs text-white appearance-none cursor-pointer hover:border-[#8b5cf6]/50 focus:outline-none focus:border-[#8b5cf6] transition-colors"
-                                >
-                                  {SECTION_LAYOUTS.map((l) => (
-                                    <option key={l.id} value={l.id}>
-                                      {l.icon} {l.label}
-                                    </option>
-                                  ))}
-                                </select>
-                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#52525b]">
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
+                                {/* Layout Dropdown */}
+                                <div className="relative flex-1 min-w-0">
+                                  <select
+                                    value={section.layout}
+                                    onChange={(e) => updateMainSectionLayout(section.id, e.target.value)}
+                                    className="w-full px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#333] text-xs text-white appearance-none cursor-pointer hover:border-[#8b5cf6]/50 focus:outline-none focus:border-[#8b5cf6] transition-colors"
+                                  >
+                                    {SECTION_LAYOUTS.map((l) => (
+                                      <option key={l.id} value={l.id}>
+                                        {l.icon} {l.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#52525b]">
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </div>
                                 </div>
+
+                                {/* Price Badges */}
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {isFreeSection ? (
+                                    <span className="text-[8px] text-[#10b981] px-1.5 py-0.5 rounded bg-[#10b981]/10">ฟรี</span>
+                                  ) : (
+                                    <span className="text-[8px] text-[#f97316] px-1.5 py-0.5 rounded bg-[#f97316]/10">+{formatPrice(SECTION_PRICE)}</span>
+                                  )}
+                                  {section.animation && (
+                                    <span className="text-[8px] text-[#ec4899] px-1.5 py-0.5 rounded bg-[#ec4899]/10">+{formatPrice(SECTION_ANIMATION_PRICE)}</span>
+                                  )}
+                                </div>
+
+                                {/* Delete Button */}
+                                {state.step2.mainSections.length > 1 && (
+                                  <button
+                                    onClick={() => removeMainSection(section.id)}
+                                    className="p-1 rounded text-[#71717a] hover:text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors shrink-0"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                )}
                               </div>
 
-                              {/* Layout Description */}
-                              {layout && (
-                                <span className="hidden sm:block text-[10px] text-[#52525b] max-w-[80px] truncate">
-                                  {layout.description}
-                                </span>
-                              )}
-
-                              {/* Price/Free Badge */}
-                              {isFreeSection ? (
-                                <span className="text-[8px] text-[#10b981] px-1.5 py-0.5 rounded bg-[#10b981]/10">ฟรี</span>
-                              ) : (
-                                <span className="text-[8px] text-[#f97316] px-1.5 py-0.5 rounded bg-[#f97316]/10">+{formatPrice(SECTION_PRICE)}</span>
-                              )}
-
-                              {/* Delete Button (only for sections beyond INITIAL_SECTIONS) */}
-                              {state.step2.mainSections.length > 1 && (
-                                <button
-                                  onClick={() => removeMainSection(section.id)}
-                                  className="p-1 rounded text-[#71717a] hover:text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors"
-                                >
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
+                              {/* Animation Selection Row */}
+                              {availableAnims.length > 0 && (
+                                <div className="pl-7 pt-2 border-t border-[#262626]/50">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-[10px] text-[#ec4899]">✦</span>
+                                    <span className="text-[10px] text-[#71717a]">เลือก Animation</span>
+                                    {section.animation && (
+                                      <button
+                                        onClick={() => updateMainSectionAnimation(section.id, null)}
+                                        className="ml-auto text-[8px] text-[#71717a] hover:text-[#ec4899] transition-colors"
+                                      >
+                                        ยกเลิก
+                                      </button>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {availableAnims.map((anim) => (
+                                      <button
+                                        key={anim.id}
+                                        onClick={() => updateMainSectionAnimation(section.id, section.animation === anim.id ? null : anim.id)}
+                                        className={`group/anim relative px-2 py-1 rounded-md text-[10px] transition-all ${
+                                          section.animation === anim.id
+                                            ? "bg-[#ec4899] text-white"
+                                            : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                        }`}
+                                        title={anim.description}
+                                      >
+                                        <span className="mr-1">{anim.icon}</span>
+                                        {anim.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  {selectedAnim && (
+                                    <p className="mt-1.5 text-[9px] text-[#52525b] italic">{selectedAnim.description}</p>
+                                  )}
+                                </div>
                               )}
                             </div>
                           );
@@ -1299,53 +1421,95 @@ export default function PricingSection() {
                           </div>
 
                           {/* Sections List */}
-                          <div className="p-3 space-y-2">
+                          <div className="p-3 space-y-3">
                             {page.sections.map((section, secIdx) => {
-                              const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                              const availableAnims = SECTION_ANIMATIONS[section.layout] || [];
+                              const selectedAnim = availableAnims.find((a) => a.id === section.animation);
                               return (
                                 <div
                                   key={section.id}
-                                  className="flex items-center gap-3 p-2 rounded-lg bg-[#1a1a1a] border border-[#262626] group"
+                                  className={`p-3 rounded-xl bg-[#1a1a1a] border transition-all ${
+                                    section.animation ? "border-[#ec4899]/40 bg-[#ec4899]/5" : "border-[#262626]"
+                                  }`}
                                 >
-                                  <span className="font-mono text-[10px] text-[#ec4899] w-4">{secIdx + 1}</span>
+                                  {/* Section Header */}
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <span className="font-mono text-[10px] text-[#ec4899] w-4 shrink-0">{secIdx + 1}</span>
 
-                                  {/* Layout Dropdown */}
-                                  <div className="relative flex-1">
-                                    <select
-                                      value={section.layout}
-                                      onChange={(e) => updateSectionLayout(page.id, section.id, e.target.value)}
-                                      className="w-full px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#333] text-xs text-white appearance-none cursor-pointer hover:border-[#ec4899]/50 focus:outline-none focus:border-[#ec4899] transition-colors"
-                                    >
-                                      {SECTION_LAYOUTS.map((l) => (
-                                        <option key={l.id} value={l.id}>
-                                          {l.icon} {l.label}
-                                        </option>
-                                      ))}
-                                    </select>
-                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#52525b]">
-                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                      </svg>
+                                    {/* Layout Dropdown */}
+                                    <div className="relative flex-1 min-w-0">
+                                      <select
+                                        value={section.layout}
+                                        onChange={(e) => updateSectionLayout(page.id, section.id, e.target.value)}
+                                        className="w-full px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#333] text-xs text-white appearance-none cursor-pointer hover:border-[#ec4899]/50 focus:outline-none focus:border-[#ec4899] transition-colors"
+                                      >
+                                        {SECTION_LAYOUTS.map((l) => (
+                                          <option key={l.id} value={l.id}>
+                                            {l.icon} {l.label}
+                                          </option>
+                                        ))}
+                                      </select>
+                                      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#52525b]">
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                      </div>
                                     </div>
+
+                                    {/* Price Badge */}
+                                    {section.animation && (
+                                      <span className="text-[8px] text-[#ec4899] px-1.5 py-0.5 rounded bg-[#ec4899]/10 shrink-0">+{formatPrice(SECTION_ANIMATION_PRICE)}</span>
+                                    )}
+
+                                    {/* Remove Section Button */}
+                                    {page.sections.length > 1 && (
+                                      <button
+                                        onClick={() => removeSectionFromPage(page.id, section.id)}
+                                        className="p-1 rounded hover:bg-[#0d0d0d] text-[#52525b] hover:text-[#ec4899] transition-all shrink-0"
+                                      >
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                      </button>
+                                    )}
                                   </div>
 
-                                  {/* Layout Description */}
-                                  {layout && (
-                                    <span className="hidden sm:block text-[10px] text-[#52525b] max-w-[120px] truncate">
-                                      {layout.description}
-                                    </span>
-                                  )}
-
-                                  {/* Remove Section Button */}
-                                  {page.sections.length > 1 && (
-                                    <button
-                                      onClick={() => removeSectionFromPage(page.id, section.id)}
-                                      className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-[#0d0d0d] text-[#52525b] hover:text-[#ec4899] transition-all"
-                                    >
-                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                      </svg>
-                                    </button>
+                                  {/* Animation Selection */}
+                                  {availableAnims.length > 0 && (
+                                    <div className="pl-7 pt-2 border-t border-[#262626]/50">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-[10px] text-[#ec4899]">✦</span>
+                                        <span className="text-[10px] text-[#71717a]">Animation</span>
+                                        {section.animation && (
+                                          <button
+                                            onClick={() => updatePageSectionAnimation(page.id, section.id, null)}
+                                            className="ml-auto text-[8px] text-[#71717a] hover:text-[#ec4899] transition-colors"
+                                          >
+                                            ยกเลิก
+                                          </button>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {availableAnims.map((anim) => (
+                                          <button
+                                            key={anim.id}
+                                            onClick={() => updatePageSectionAnimation(page.id, section.id, section.animation === anim.id ? null : anim.id)}
+                                            className={`px-2 py-1 rounded-md text-[10px] transition-all ${
+                                              section.animation === anim.id
+                                                ? "bg-[#ec4899] text-white"
+                                                : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                            }`}
+                                            title={anim.description}
+                                          >
+                                            <span className="mr-1">{anim.icon}</span>
+                                            {anim.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                      {selectedAnim && (
+                                        <p className="mt-1.5 text-[9px] text-[#52525b] italic">{selectedAnim.description}</p>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
                               );
@@ -1358,113 +1522,13 @@ export default function PricingSection() {
                 </div>
               </div>
 
-              {/* STEP 3: Animation Options */}
+              {/* STEP 3: Add-on Services */}
               <div className="calc-step">
-                <StepHeader step={3} title="เพิ่ม Animation" />
-                <div className="space-y-4 p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
-                  {/* Page Animation Options (linked to STEP 2) */}
-                  {state.step2.pages.length > 0 && (
-                    <div className="space-y-3">
-                      <label className="block font-mono text-xs text-[#52525b]">
-                        <span className="text-[#8b5cf6]">{">"}</span> Animation สำหรับหน้าที่เพิ่ม
-                      </label>
-                      {state.step2.pages.map((page) => (
-                        <div key={page.id} className="p-3 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-[#a1a1aa]">
-                              {page.name} ({page.sections.length} sec)
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {(["none", "basic", "complex"] as const).map((anim) => {
-                              const labels = { none: "ไม่มี Animation", basic: "+ Animation พื้นฐาน", complex: "+ Animation ซับซ้อน" };
-                              return (
-                                <button
-                                  key={anim}
-                                  onClick={() => updatePageAnimation(page.id, anim)}
-                                  className={`px-3 py-1.5 rounded-lg text-xs transition-all ${page.animation === anim
-                                    ? "bg-[#8b5cf6] text-white"
-                                    : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#8b5cf6]/50"
-                                    }`}
-                                >
-                                  {labels[anim]}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Global Animations */}
-                  <div className={state.step2.pages.length > 0 ? "pt-4 border-t border-[#262626]" : ""}>
-                    <label className="block font-mono text-xs text-[#52525b] mb-3">
-                      <span className="text-[#ec4899]">{">"}</span> Animation เพิ่มเติม (Global)
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {GLOBAL_ANIMATIONS.map((anim) => {
-                        const value = state.step3.globalAnimations[anim.id as keyof typeof state.step3.globalAnimations];
-                        const isActive = typeof value === "boolean" ? value : value > 0;
-                        return (
-                          <div
-                            key={anim.id}
-                            className={`flex items-center justify-between p-3 rounded-lg border transition-all ${isActive ? "bg-[#ec4899]/10 border-[#ec4899]/30" : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
-                              }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-base">{anim.icon}</span>
-                              <span className="text-sm text-[#a1a1aa]">{anim.label}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-[#52525b]">
-                                +{formatPrice(anim.price)}
-                                {anim.perSection && "/sec"}
-                              </span>
-                              {anim.perSection ? (
-                                <div className="flex items-center gap-1 p-0.5 rounded bg-[#1a1a1a]">
-                                  <button
-                                    onClick={() => updatePerSectionAnimation(anim.id, -1)}
-                                    className="w-6 h-6 rounded flex items-center justify-center text-xs text-[#a1a1aa] hover:bg-[#262626]"
-                                  >
-                                    -
-                                  </button>
-                                  <span className="w-6 text-center text-xs font-mono text-white">{value as number}</span>
-                                  <button
-                                    onClick={() => updatePerSectionAnimation(anim.id, 1)}
-                                    className="w-6 h-6 rounded flex items-center justify-center text-xs text-[#a1a1aa] hover:bg-[#262626]"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => toggleGlobalAnimation(anim.id)}
-                                  className={`w-10 h-5 rounded-full transition-all ${value ? "bg-[#ec4899]" : "bg-[#262626]"
-                                    }`}
-                                >
-                                  <div
-                                    className={`w-4 h-4 rounded-full bg-white transition-transform ${value ? "translate-x-5" : "translate-x-0.5"
-                                      }`}
-                                  />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* STEP 4: Add-on Services */}
-              <div className="calc-step">
-                <StepHeader step={4} title="บริการเสริม" />
+                <StepHeader step={3} title="บริการเสริม" />
                 <div className="p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {ADDON_SERVICES.map((service) => {
-                      const isActive = state.step4[service.id as keyof typeof state.step4];
+                      const isActive = state.step3[service.id as keyof typeof state.step3];
                       return (
                         <button
                           key={service.id}
@@ -1498,9 +1562,9 @@ export default function PricingSection() {
                 </div>
               </div>
 
-              {/* STEP 5: Requirements Checklist */}
+              {/* STEP 4: Requirements Checklist */}
               <div className="calc-step">
-                <StepHeader step={5} title="สิ่งที่ต้องเตรียมก่อนสั่งงาน" />
+                <StepHeader step={4} title="สิ่งที่ต้องเตรียมก่อนสั่งงาน" />
                 <div className="space-y-4 p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
                   {/* Auto-generated Requirements */}
                   <div>
@@ -1540,9 +1604,9 @@ export default function PricingSection() {
                         เพิ่ม
                       </button>
                     </div>
-                    {state.step5.customItems.length > 0 && (
+                    {state.step4.customItems.length > 0 && (
                       <div className="space-y-2">
-                        {state.step5.customItems.map((item, idx) => (
+                        {state.step4.customItems.map((item, idx) => (
                           <div
                             key={idx}
                             className="flex items-center justify-between p-2 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]"
@@ -1605,43 +1669,43 @@ export default function PricingSection() {
                     </div>
 
                     {/* Pages Horizontal Scroll Container */}
-                    <div className="overflow-x-auto pb-2 -mx-2 px-2">
-                      <div className="flex gap-3" style={{ minWidth: 'min-content' }}>
+                    <div className="overflow-x-auto pb-4 -mx-2 px-2">
+                      <div className="flex gap-6" style={{ minWidth: 'min-content' }}>
                         {/* Main Page */}
-                        <div className="shrink-0 w-[200px]">
-                          <div className="text-center mb-2">
-                            <span className="px-2 py-0.5 rounded-full bg-[#8b5cf6]/20 text-[8px] text-[#8b5cf6] font-medium">
+                        <div className="shrink-0 w-[550px]">
+                          <div className="text-center mb-4">
+                            <span className="px-4 py-1 rounded-full bg-[#8b5cf6]/20 text-sm text-[#8b5cf6] font-medium">
                               หน้าหลัก ({state.step2.mainSections.length} sec)
                             </span>
                           </div>
-                          <div className="rounded-xl bg-[#0a0a0a] border border-[#8b5cf6]/30 overflow-hidden">
+                          <div className="rounded-2xl bg-[#0a0a0a] border border-[#8b5cf6]/30 overflow-hidden">
                             {/* Browser Chrome */}
-                            <div className="flex items-center gap-1 px-2 py-1.5 bg-[#141414] border-b border-[#1f1f1f]">
-                              <div className="w-2 h-2 rounded-full bg-[#ec4899]" />
-                              <div className="w-2 h-2 rounded-full bg-[#f97316]" />
-                              <div className="w-2 h-2 rounded-full bg-[#10b981]" />
+                            <div className="flex items-center gap-2 px-4 py-3 bg-[#141414] border-b border-[#1f1f1f]">
+                              <div className="w-4 h-4 rounded-full bg-[#ec4899]" />
+                              <div className="w-4 h-4 rounded-full bg-[#f97316]" />
+                              <div className="w-4 h-4 rounded-full bg-[#10b981]" />
                             </div>
 
                             {/* Page Content */}
-                            <div className="p-2 space-y-1.5">
+                            <div className="p-4 space-y-3">
                               {/* Navbar */}
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
                                 <div
                                   ref={previewNavbarRef}
-                                  className={`flex-1 flex items-center justify-between p-1.5 rounded bg-[#1a1a1a] transition-all ${state.step1.navbar !== "basic" ? "ring-1 ring-[#06b6d4]/50" : ""
+                                  className={`flex-1 flex items-center justify-between p-3 rounded-lg bg-[#1a1a1a] transition-all ${state.step1.navbar !== "basic" ? "ring-2 ring-[#06b6d4]/50" : ""
                                     } ${getNavbarPreviewClasses}`}
                                 >
-                                  <div className="w-8 h-2 rounded bg-[#262626]" />
-                                  <div className="flex gap-1">
+                                  <div className="w-16 h-4 rounded bg-[#262626]" />
+                                  <div className="flex gap-2">
                                     {[1, 2, 3].map((i) => (
-                                      <div key={i} className="w-4 h-1.5 rounded bg-[#262626]" />
+                                      <div key={i} className="w-8 h-3 rounded bg-[#262626]" />
                                     ))}
                                   </div>
                                 </div>
                                 {state.step1.navbar === "animated" && (
                                   <button
                                     onClick={playNavbarAnimation}
-                                    className="p-1 rounded bg-[#06b6d4]/20 text-[#06b6d4] text-[6px] hover:bg-[#06b6d4]/30"
+                                    className="p-2 rounded-lg bg-[#06b6d4]/20 text-[#06b6d4] text-xs hover:bg-[#06b6d4]/30"
                                   >
                                     ▶
                                   </button>
@@ -1649,67 +1713,87 @@ export default function PricingSection() {
                               </div>
 
                               {/* Main Sections - Vertical Scroll */}
-                              <div className="max-h-[100px] overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                              <div className="max-h-[200px] overflow-y-auto space-y-2 custom-scrollbar pr-2">
                                 {state.step2.mainSections.map((section: SectionItem) => {
                                   const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                                  const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
                                   return (
-                                    <div key={section.id} className="relative p-1.5 rounded bg-[#1a1a1a] border border-[#262626] group">
+                                    <div
+                                      key={section.id}
+                                      id={`preview-main-${section.id}`}
+                                      className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${
+                                        section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
+                                      }`}
+                                    >
                                       {section.layout === "hero" && (
-                                        <div className="p-1 rounded bg-linear-to-br from-[#262626] to-[#1a1a1a]">
-                                          <div className="w-10 h-1.5 rounded bg-[#333]" />
+                                        <div className="p-2 rounded-lg bg-linear-to-br from-[#262626] to-[#1a1a1a]">
+                                          <div className="w-20 h-3 rounded bg-[#333]" />
                                         </div>
                                       )}
                                       {section.layout === "text-image" && (
-                                        <div className="flex gap-1">
-                                          <div className="flex-1 h-1.5 rounded bg-[#333]" />
-                                          <div className="w-5 h-5 rounded bg-[#262626]" />
+                                        <div className="flex gap-2">
+                                          <div className="flex-1 h-3 rounded bg-[#333]" />
+                                          <div className="w-10 h-10 rounded bg-[#262626]" />
                                         </div>
                                       )}
                                       {section.layout === "image-text" && (
-                                        <div className="flex gap-1">
-                                          <div className="w-5 h-5 rounded bg-[#262626]" />
-                                          <div className="flex-1 h-1.5 rounded bg-[#333]" />
+                                        <div className="flex gap-2">
+                                          <div className="w-10 h-10 rounded bg-[#262626]" />
+                                          <div className="flex-1 h-3 rounded bg-[#333]" />
                                         </div>
                                       )}
                                       {section.layout === "three-cols" && (
-                                        <div className="grid grid-cols-3 gap-0.5">
+                                        <div className="grid grid-cols-3 gap-1">
                                           {[1, 2, 3].map((i) => (
-                                            <div key={i} className="h-4 rounded bg-[#262626]" />
+                                            <div key={i} className="h-8 rounded bg-[#262626]" />
                                           ))}
                                         </div>
                                       )}
                                       {section.layout === "four-cols" && (
-                                        <div className="grid grid-cols-4 gap-0.5">
+                                        <div className="grid grid-cols-4 gap-1">
                                           {[1, 2, 3, 4].map((i) => (
-                                            <div key={i} className="h-4 rounded bg-[#262626]" />
+                                            <div key={i} className="h-8 rounded bg-[#262626]" />
                                           ))}
                                         </div>
                                       )}
                                       {(section.layout === "gallery" || section.layout === "cta" ||
                                         section.layout === "testimonial" || section.layout === "faq" ||
                                         section.layout === "stats") && (
-                                          <div className="h-4 rounded bg-[#262626]" />
+                                          <div className="h-8 rounded bg-[#262626]" />
                                         )}
-                                      <div className="absolute top-0 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span className="text-[6px] text-[#52525b]">{layout?.icon}</span>
+                                      {/* Layout icon */}
+                                      <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="text-xs text-[#52525b]">{layout?.icon}</span>
                                       </div>
+                                      {/* Animation badge & play button */}
+                                      {section.animation && animInfo && (
+                                        <div className="absolute top-1 right-1 flex items-center gap-1">
+                                          <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">{animInfo.icon}</span>
+                                          <button
+                                            onClick={() => playSectionAnimation(`preview-main-${section.id}`, section.animation!)}
+                                            className="p-1 rounded bg-[#ec4899]/20 text-[#ec4899] text-[10px] hover:bg-[#ec4899]/30 transition-colors"
+                                          >
+                                            ▶
+                                          </button>
+                                        </div>
+                                      )}
                                     </div>
                                   );
                                 })}
                               </div>
 
                               {/* Footer */}
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
                                 <div
                                   ref={previewFooterRef}
-                                  className={`flex-1 p-1.5 rounded bg-[#1a1a1a] transition-all ${state.step1.footer !== "basic" ? "ring-1 ring-[#10b981]/50" : ""
+                                  className={`flex-1 p-3 rounded-lg bg-[#1a1a1a] transition-all ${state.step1.footer !== "basic" ? "ring-2 ring-[#10b981]/50" : ""
                                     } ${getFooterPreviewClasses}`}
                                 >
                                   <div className="flex justify-between">
-                                    <div className="w-6 h-1.5 rounded bg-[#262626]" />
-                                    <div className="flex gap-0.5">
+                                    <div className="w-12 h-3 rounded bg-[#262626]" />
+                                    <div className="flex gap-1">
                                       {[1, 2, 3].map((i) => (
-                                        <div key={i} className="w-2 h-2 rounded-full bg-[#262626]" />
+                                        <div key={i} className="w-4 h-4 rounded-full bg-[#262626]" />
                                       ))}
                                     </div>
                                   </div>
@@ -1717,7 +1801,7 @@ export default function PricingSection() {
                                 {state.step1.footer === "animated" && (
                                   <button
                                     onClick={playFooterAnimation}
-                                    className="p-1 rounded bg-[#10b981]/20 text-[#10b981] text-[6px] hover:bg-[#10b981]/30"
+                                    className="p-2 rounded-lg bg-[#10b981]/20 text-[#10b981] text-xs hover:bg-[#10b981]/30"
                                   >
                                     ▶
                                   </button>
@@ -1726,107 +1810,123 @@ export default function PricingSection() {
                             </div>
 
                             {/* Section Count */}
-                            <div className="px-2 py-1 bg-[#141414] border-t border-[#1f1f1f] text-center">
-                              <span className="text-[8px] text-[#8b5cf6]">{state.step2.mainSections.length} sections</span>
+                            <div className="px-4 py-2 bg-[#141414] border-t border-[#1f1f1f] text-center">
+                              <span className="text-sm text-[#8b5cf6]">{state.step2.mainSections.length} sections</span>
                             </div>
                           </div>
                         </div>
 
                         {/* Added Pages */}
                         {state.step2.pages.map((page) => (
-                          <div key={page.id} className="shrink-0 w-[200px]">
-                            <div className="text-center mb-2">
-                              <span className="px-2 py-0.5 rounded-full bg-[#ec4899]/20 text-[8px] text-[#ec4899] font-medium">
+                          <div key={page.id} className="shrink-0 w-[550px]">
+                            <div className="text-center mb-4">
+                              <span className="px-4 py-1 rounded-full bg-[#ec4899]/20 text-sm text-[#ec4899] font-medium">
                                 {page.name}
                               </span>
                             </div>
-                            <div className="rounded-xl bg-[#0a0a0a] border border-[#ec4899]/30 overflow-hidden">
+                            <div className="rounded-2xl bg-[#0a0a0a] border border-[#ec4899]/30 overflow-hidden">
                               {/* Browser Chrome */}
-                              <div className="flex items-center gap-1 px-2 py-1.5 bg-[#141414] border-b border-[#1f1f1f]">
-                                <div className="w-2 h-2 rounded-full bg-[#ec4899]" />
-                                <div className="w-2 h-2 rounded-full bg-[#f97316]" />
-                                <div className="w-2 h-2 rounded-full bg-[#10b981]" />
+                              <div className="flex items-center gap-2 px-4 py-3 bg-[#141414] border-b border-[#1f1f1f]">
+                                <div className="w-4 h-4 rounded-full bg-[#ec4899]" />
+                                <div className="w-4 h-4 rounded-full bg-[#f97316]" />
+                                <div className="w-4 h-4 rounded-full bg-[#10b981]" />
                               </div>
 
                               {/* Page Sections - Vertical Scroll */}
-                              <div className="p-2">
-                                <div className="max-h-[140px] overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                              <div className="p-4">
+                                <div className="max-h-[280px] overflow-y-auto space-y-2 custom-scrollbar pr-2">
                                   {page.sections.map((section) => {
                                     const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                                    const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
                                     return (
                                       <div
                                         key={section.id}
-                                        className="relative p-1.5 rounded bg-[#1a1a1a] border border-[#262626] group"
+                                        id={`preview-page-${page.id}-${section.id}`}
+                                        className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${
+                                          section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
+                                        }`}
                                       >
                                         {/* Layout Preview Based on Type */}
                                         {section.layout === "hero" && (
-                                          <div className="p-1 rounded bg-linear-to-br from-[#262626] to-[#1a1a1a]">
-                                            <div className="w-10 h-1.5 rounded bg-[#333]" />
+                                          <div className="p-2 rounded-lg bg-linear-to-br from-[#262626] to-[#1a1a1a]">
+                                            <div className="w-20 h-3 rounded bg-[#333]" />
                                           </div>
                                         )}
                                         {section.layout === "text-image" && (
-                                          <div className="flex gap-1">
-                                            <div className="flex-1 h-1.5 rounded bg-[#333]" />
-                                            <div className="w-5 h-5 rounded bg-[#262626]" />
+                                          <div className="flex gap-2">
+                                            <div className="flex-1 h-3 rounded bg-[#333]" />
+                                            <div className="w-10 h-10 rounded bg-[#262626]" />
                                           </div>
                                         )}
                                         {section.layout === "image-text" && (
-                                          <div className="flex gap-1">
-                                            <div className="w-5 h-5 rounded bg-[#262626]" />
-                                            <div className="flex-1 h-1.5 rounded bg-[#333]" />
+                                          <div className="flex gap-2">
+                                            <div className="w-10 h-10 rounded bg-[#262626]" />
+                                            <div className="flex-1 h-3 rounded bg-[#333]" />
                                           </div>
                                         )}
                                         {section.layout === "three-cols" && (
-                                          <div className="grid grid-cols-3 gap-0.5">
+                                          <div className="grid grid-cols-3 gap-1">
                                             {[1, 2, 3].map((i) => (
-                                              <div key={i} className="h-4 rounded bg-[#262626]" />
+                                              <div key={i} className="h-8 rounded bg-[#262626]" />
                                             ))}
                                           </div>
                                         )}
                                         {section.layout === "four-cols" && (
-                                          <div className="grid grid-cols-4 gap-0.5">
+                                          <div className="grid grid-cols-4 gap-1">
                                             {[1, 2, 3, 4].map((i) => (
-                                              <div key={i} className="h-4 rounded bg-[#262626]" />
+                                              <div key={i} className="h-8 rounded bg-[#262626]" />
                                             ))}
                                           </div>
                                         )}
                                         {section.layout === "gallery" && (
-                                          <div className="grid grid-cols-3 gap-0.5">
+                                          <div className="grid grid-cols-3 gap-1">
                                             {[1, 2, 3, 4, 5, 6].map((i) => (
-                                              <div key={i} className="h-2.5 rounded-sm bg-[#262626]" />
+                                              <div key={i} className="h-5 rounded bg-[#262626]" />
                                             ))}
                                           </div>
                                         )}
                                         {section.layout === "cta" && (
-                                          <div className="text-center py-0.5">
-                                            <div className="w-8 h-2 rounded bg-[#ec4899]/30 mx-auto" />
+                                          <div className="text-center py-1">
+                                            <div className="w-16 h-4 rounded bg-[#ec4899]/30 mx-auto" />
                                           </div>
                                         )}
                                         {section.layout === "testimonial" && (
-                                          <div className="flex items-center gap-1">
-                                            <div className="w-4 h-4 rounded-full bg-[#262626]" />
-                                            <div className="flex-1 h-1.5 rounded bg-[#333]" />
+                                          <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-full bg-[#262626]" />
+                                            <div className="flex-1 h-3 rounded bg-[#333]" />
                                           </div>
                                         )}
                                         {section.layout === "faq" && (
-                                          <div className="space-y-0.5">
+                                          <div className="space-y-1">
                                             {[1, 2].map((i) => (
-                                              <div key={i} className="h-1.5 rounded bg-[#333]" />
-                                            ))}
-                                          </div>
-                                        )}
-                                        {section.layout === "stats" && (
-                                          <div className="grid grid-cols-4 gap-0.5">
-                                            {[1, 2, 3, 4].map((i) => (
                                               <div key={i} className="h-3 rounded bg-[#333]" />
                                             ))}
                                           </div>
                                         )}
+                                        {section.layout === "stats" && (
+                                          <div className="grid grid-cols-4 gap-1">
+                                            {[1, 2, 3, 4].map((i) => (
+                                              <div key={i} className="h-6 rounded bg-[#333]" />
+                                            ))}
+                                          </div>
+                                        )}
 
-                                        {/* Section Label */}
-                                        <div className="absolute top-0 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <span className="text-[6px] text-[#52525b]">{layout?.icon}</span>
+                                        {/* Layout icon */}
+                                        <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <span className="text-xs text-[#52525b]">{layout?.icon}</span>
                                         </div>
+                                        {/* Animation badge & play button */}
+                                        {section.animation && animInfo && (
+                                          <div className="absolute top-1 right-1 flex items-center gap-1">
+                                            <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">{animInfo.icon}</span>
+                                            <button
+                                              onClick={() => playSectionAnimation(`preview-page-${page.id}-${section.id}`, section.animation!)}
+                                              className="p-1 rounded bg-[#ec4899]/20 text-[#ec4899] text-[10px] hover:bg-[#ec4899]/30 transition-colors"
+                                            >
+                                              ▶
+                                            </button>
+                                          </div>
+                                        )}
                                       </div>
                                     );
                                   })}
@@ -1834,10 +1934,10 @@ export default function PricingSection() {
                               </div>
 
                               {/* Section Count */}
-                              <div className="px-2 py-1 bg-[#141414] border-t border-[#1f1f1f] text-center">
-                                <span className="text-[8px] text-[#ec4899]">{page.sections.length} sections</span>
-                                {page.animation !== "none" && (
-                                  <span className="ml-1 text-[8px] text-[#8b5cf6]">✨</span>
+                              <div className="px-4 py-2 bg-[#141414] border-t border-[#1f1f1f] text-center">
+                                <span className="text-sm text-[#ec4899]">{page.sections.length} sections</span>
+                                {page.sections.some((s) => s.animation) && (
+                                  <span className="ml-2 text-sm text-[#ec4899]">✨</span>
                                 )}
                               </div>
                             </div>
@@ -1869,9 +1969,9 @@ export default function PricingSection() {
                           </div>
                           {/* Service Icons */}
                           <div className="flex gap-1 ml-2">
-                            {state.step4.seo && <span className="text-[10px]">📊</span>}
-                            {state.step4.bilingual && <span className="text-[10px]">🌐</span>}
-                            {state.step4.cms && <span className="text-[10px]">⚙️</span>}
+                            {state.step3.seo && <span className="text-[10px]">📊</span>}
+                            {state.step3.bilingual && <span className="text-[10px]">🌐</span>}
+                            {state.step3.cms && <span className="text-[10px]">⚙️</span>}
                           </div>
                         </div>
                       </div>
