@@ -10,7 +10,9 @@ gsap.registerPlugin(ScrollTrigger);
 interface SectionItem {
   id: string;
   layout: string;
+  customLayout: string | null; // สำหรับ layout แบบกำหนดเอง
   animation: string | null;
+  customAnimation: string | null; // สำหรับ animation แบบกำหนดเอง
 }
 
 interface PageItem {
@@ -218,6 +220,13 @@ const SECTION_LAYOUTS = [
     icon: "📊",
     preview: "stats",
   },
+  {
+    id: "custom",
+    label: "กำหนดเอง",
+    description: "กำหนด Section เอง",
+    icon: "✏️",
+    preview: "custom",
+  },
 ];
 
 const SECTION_ANIMATION_PRICE = 150; // ราคาต่อ animation ที่เพิ่ม
@@ -287,7 +296,16 @@ const SECTION_ANIMATIONS: Record<string, { id: string; label: string; icon: stri
     { id: "flip-number", label: "Flip Number", icon: "↻", description: "พลิกตัวเลข" },
     { id: "pop-scale", label: "Pop Scale", icon: "⊡", description: "ตัวเลขป็อปขึ้นมา" },
   ],
+  custom: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
+    { id: "scale-in", label: "Scale In", icon: "⊡", description: "ขยายจากเล็กไปใหญ่" },
+    { id: "slide-left", label: "Slide Left", icon: "←", description: "เนื้อหาเลื่อนเข้าจากซ้าย" },
+    { id: "slide-right", label: "Slide Right", icon: "→", description: "เนื้อหาเลื่อนเข้าจากขวา" },
+  ],
 };
+
+// Custom animation option ที่จะใช้กับทุก layout
+const CUSTOM_ANIMATION_OPTION = { id: "custom", label: "กำหนดเอง", icon: "✏️", description: "ระบุ animation ที่ต้องการ" };
 
 const ADDON_SERVICES = [
   { id: "seo", label: "SEO Setup เต็มรูปแบบ", price: 1000, icon: "📊" },
@@ -330,7 +348,9 @@ export default function PricingSection() {
     return Array.from({ length: INITIAL_SECTIONS }, (_, i) => ({
       id: generateId(),
       layout: i === 0 ? "hero" : i === 1 ? "text-image" : "three-cols",
+      customLayout: null,
       animation: null,
+      customAnimation: null,
     }));
   };
 
@@ -381,8 +401,8 @@ export default function PricingSection() {
       items.push({ label: `Footer ${footer.label}`, price: footer.price, category: "footer" });
     }
 
-    // Main section animations
-    const mainSectionAnims = state.step2.mainSections.filter((s) => s.animation).length;
+    // Main section animations (including custom animations)
+    const mainSectionAnims = state.step2.mainSections.filter((s) => s.animation || s.customAnimation).length;
     if (mainSectionAnims > 0) {
       items.push({
         label: `Animation หน้าหลัก ×${mainSectionAnims}`,
@@ -391,10 +411,10 @@ export default function PricingSection() {
       });
     }
 
-    // STEP 2: Added Pages with sections
+    // STEP 2: Added Pages with sections (including custom animations)
     state.step2.pages.forEach((page) => {
       const sectionCount = page.sections.length;
-      const pageAnimations = page.sections.filter((s) => s.animation).length;
+      const pageAnimations = page.sections.filter((s) => s.animation || s.customAnimation).length;
       const sectionPrice = sectionCount * SECTION_PRICE;
       const animPrice = pageAnimations * SECTION_ANIMATION_PRICE;
       items.push({
@@ -508,7 +528,7 @@ export default function PricingSection() {
         ...prev.step2,
         mainSections: [
           ...prev.step2.mainSections,
-          { id: generateId(), layout: "text-image", animation: null },
+          { id: generateId(), layout: "text-image", customLayout: null, animation: null, customAnimation: null },
         ],
       },
     }));
@@ -532,7 +552,33 @@ export default function PricingSection() {
       step2: {
         ...prev.step2,
         mainSections: prev.step2.mainSections.map((section) =>
-          section.id === sectionId ? { ...section, layout, animation: null } : section
+          section.id === sectionId ? { ...section, layout, customLayout: layout === "custom" ? section.customLayout : null, animation: null, customAnimation: null } : section
+        ),
+      },
+    }));
+  }, []);
+
+  // Update main section custom layout
+  const updateMainSectionCustomLayout = useCallback((sectionId: string, customLayout: string) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        mainSections: prev.step2.mainSections.map((section) =>
+          section.id === sectionId ? { ...section, customLayout } : section
+        ),
+      },
+    }));
+  }, []);
+
+  // Update main section custom animation
+  const updateMainSectionCustomAnimation = useCallback((sectionId: string, customAnimation: string) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        mainSections: prev.step2.mainSections.map((section) =>
+          section.id === sectionId ? { ...section, customAnimation } : section
         ),
       },
     }));
@@ -571,48 +617,173 @@ export default function PricingSection() {
     }));
   }, []);
 
+  // เพิ่มหลังจาก state declarations
+  const previewRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map());
+
+  // Helper function to set ref
+  const setPreviewRef = useCallback((key: string, element: HTMLDivElement | null) => {
+    if (element) {
+      previewRefsMap.current.set(key, element);
+    } else {
+      previewRefsMap.current.delete(key);
+    }
+  }, []);
+
+  // Helper function to get ref
+  const getPreviewRef = useCallback((key: string): HTMLDivElement | null => {
+    return previewRefsMap.current.get(key) || null;
+  }, []);
+
   // GSAP Animation Preview for sections
-  const playSectionAnimation = useCallback((elementId: string, animationType: string) => {
-    const element = document.getElementById(elementId);
+  const playSectionAnimation = useCallback((refKey: string, animationType: string) => {
+    const element = getPreviewRef(refKey); // ✅ ใช้ ref แทน document.getElementById(elementId)
+    console.log("refKey", refKey);
+    console.log("element", element);
+    console.log("animationType", animationType);
     if (!element) return;
 
     // Reset any existing animations
     gsap.killTweensOf(element);
     gsap.set(element, { clearProps: "all" });
 
+    // Get children for stagger animations
+    const children = element.children;
+
     // Execute animation based on type
     switch (animationType) {
+      // === HERO ANIMATIONS ===
       case "fade-up":
         gsap.fromTo(element, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
         break;
       case "scale-in":
         gsap.fromTo(element, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" });
         break;
+      case "parallax-bg":
+        gsap.fromTo(element, { backgroundPositionY: "100%" }, { backgroundPositionY: "0%", duration: 1, ease: "power2.out" });
+        gsap.fromTo(element, { opacity: 0 }, { opacity: 1, duration: 0.5 });
+        break;
+      case "text-reveal":
+        gsap.fromTo(element, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.8, ease: "power3.out" });
+        break;
+      case "split-reveal":
+        gsap.fromTo(element, { clipPath: "inset(0 50% 0 50%)" }, { clipPath: "inset(0 0% 0 0%)", duration: 0.6, ease: "power2.out" });
+        break;
+
+      // === TEXT-IMAGE / IMAGE-TEXT ANIMATIONS ===
       case "slide-left":
         gsap.fromTo(element, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" });
         break;
       case "slide-right":
         gsap.fromTo(element, { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" });
         break;
+      case "fade-stagger":
+        gsap.fromTo(children, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.15, ease: "power2.out" });
+        break;
+      case "reveal-mask":
+        gsap.fromTo(element, { clipPath: "polygon(0 0, 0 0, 0 100%, 0 100%)" }, { clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)", duration: 0.7, ease: "power3.inOut" });
+        break;
+      case "zoom-img":
+        gsap.fromTo(element, { opacity: 0, scale: 1.2 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" });
+        break;
+
+      // === COLUMN ANIMATIONS (3-cols, 4-cols) ===
       case "stagger-up":
-        const children = element.children;
         gsap.fromTo(children, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, ease: "power2.out" });
         break;
+      case "flip-in":
+        gsap.fromTo(children, { opacity: 0, rotationY: -90 }, { opacity: 1, rotationY: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" });
+        break;
+      case "scale-stagger":
+        gsap.fromTo(children, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, stagger: 0.1, ease: "back.out(1.5)" });
+        break;
+      case "fade-cascade":
+        gsap.fromTo(children, { opacity: 0 }, { opacity: 1, duration: 0.3, stagger: 0.08, ease: "power1.out" });
+        break;
+      case "wave-in":
+        gsap.fromTo(children, { opacity: 0, y: 20, rotation: -5 }, { opacity: 1, y: 0, rotation: 0, duration: 0.5, stagger: 0.08, ease: "power2.out" });
+        break;
+      case "rotate-in":
+        gsap.fromTo(children, { opacity: 0, rotation: -180, scale: 0.5 }, { opacity: 1, rotation: 0, scale: 1, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)" });
+        break;
+
+      // === GALLERY ANIMATIONS ===
+      case "masonry-fade":
+        gsap.fromTo(children, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, stagger: { each: 0.05, from: "random" }, ease: "power2.out" });
+        break;
+      case "zoom-hover":
+        gsap.fromTo(element, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" });
+        break;
+      case "lightbox":
+        gsap.fromTo(element, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" });
+        break;
+      case "grid-reveal":
+        gsap.fromTo(children, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.05, ease: "back.out(1.5)" });
+        break;
+
+      // === CTA ANIMATIONS ===
       case "pulse":
         gsap.to(element, { scale: 1.05, duration: 0.3, yoyo: true, repeat: 3, ease: "power1.inOut" });
         break;
       case "glow":
-        gsap.to(element, { boxShadow: "0 0 20px rgba(139, 92, 246, 0.6)", duration: 0.3, yoyo: true, repeat: 1 });
+        gsap.to(element, { boxShadow: "0 0 20px rgba(236, 72, 153, 0.6)", duration: 0.3, yoyo: true, repeat: 2 });
         break;
       case "bounce":
         gsap.to(element, { y: -10, duration: 0.2, yoyo: true, repeat: 3, ease: "power1.out" });
         break;
-      case "counter":
-        gsap.fromTo(element, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" });
+      case "shake":
+        gsap.to(element, { x: 5, duration: 0.08, yoyo: true, repeat: 5, ease: "power1.inOut" });
         break;
+      case "ripple":
+        gsap.fromTo(element, { boxShadow: "0 0 0 0 rgba(236, 72, 153, 0.4)" }, { boxShadow: "0 0 0 15px rgba(236, 72, 153, 0)", duration: 0.6, repeat: 2 });
+        break;
+
+      // === TESTIMONIAL ANIMATIONS ===
+      case "slide-quote":
+        gsap.fromTo(element, { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" });
+        break;
+      case "fade-rotate":
+        gsap.fromTo(element, { opacity: 0, rotationY: 90 }, { opacity: 1, rotationY: 0, duration: 0.6, ease: "power2.out" });
+        break;
+      case "typewriter":
+        gsap.fromTo(element, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 1.2, ease: "steps(20)" });
+        break;
+      case "card-flip":
+        gsap.fromTo(element, { opacity: 0, rotationY: -180 }, { opacity: 1, rotationY: 0, duration: 0.6, ease: "power2.out" });
+        break;
+
+      // === FAQ ANIMATIONS ===
       case "accordion":
         gsap.fromTo(element, { height: 0, opacity: 0 }, { height: "auto", opacity: 1, duration: 0.4, ease: "power2.out" });
         break;
+      case "slide-expand":
+        gsap.fromTo(element, { scaleY: 0, transformOrigin: "top" }, { scaleY: 1, duration: 0.4, ease: "power2.out" });
+        break;
+      case "fade-content":
+        gsap.fromTo(children, { opacity: 0, y: 5 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.1, ease: "power1.out" });
+        break;
+      case "highlight":
+        gsap.to(element, { backgroundColor: "rgba(236, 72, 153, 0.1)", duration: 0.3, yoyo: true, repeat: 1 });
+        break;
+
+      // === STATS ANIMATIONS ===
+      case "counter":
+        gsap.fromTo(element, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" });
+        break;
+      case "bar-grow":
+        gsap.fromTo(children, { scaleX: 0, transformOrigin: "left" }, { scaleX: 1, duration: 0.6, stagger: 0.1, ease: "power2.out" });
+        break;
+      case "flip-number":
+        gsap.fromTo(element, { opacity: 0, rotationX: -90 }, { opacity: 1, rotationX: 0, duration: 0.5, ease: "power2.out" });
+        break;
+      case "pop-scale":
+        gsap.fromTo(children, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.4, stagger: 0.08, ease: "back.out(2)" });
+        break;
+
+      // === CUSTOM - ใช้ animation ทั่วไป ===
+      case "custom":
+        gsap.fromTo(element, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
+        break;
+
       default:
         // Default fade animation
         gsap.fromTo(element, { opacity: 0 }, { opacity: 1, duration: 0.5 });
@@ -633,7 +804,7 @@ export default function PricingSection() {
               id: generateId(),
               name: `หน้า ${pageNum}`,
               animation: "none",
-              sections: [{ id: generateId(), layout: "hero", animation: null }],
+              sections: [{ id: generateId(), layout: "hero", customLayout: null, animation: null, customAnimation: null }],
             },
           ],
         },
@@ -659,7 +830,47 @@ export default function PricingSection() {
             ? {
               ...page,
               sections: page.sections.map((section) =>
-                section.id === sectionId ? { ...section, layout } : section
+                section.id === sectionId ? { ...section, layout, customLayout: layout === "custom" ? section.customLayout : null, animation: null, customAnimation: null } : section
+              ),
+            }
+            : page
+        ),
+      },
+    }));
+  }, []);
+
+  // Update page section custom layout
+  const updatePageSectionCustomLayout = useCallback((pageId: string, sectionId: string, customLayout: string) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        pages: prev.step2.pages.map((page) =>
+          page.id === pageId
+            ? {
+              ...page,
+              sections: page.sections.map((section) =>
+                section.id === sectionId ? { ...section, customLayout } : section
+              ),
+            }
+            : page
+        ),
+      },
+    }));
+  }, []);
+
+  // Update page section custom animation
+  const updatePageSectionCustomAnimation = useCallback((pageId: string, sectionId: string, customAnimation: string) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        pages: prev.step2.pages.map((page) =>
+          page.id === pageId
+            ? {
+              ...page,
+              sections: page.sections.map((section) =>
+                section.id === sectionId ? { ...section, customAnimation } : section
               ),
             }
             : page
@@ -677,7 +888,7 @@ export default function PricingSection() {
           page.id === pageId
             ? {
               ...page,
-              sections: [...page.sections, { id: generateId(), layout: "text-image", animation: null }],
+              sections: [...page.sections, { id: generateId(), layout: "text-image", customLayout: null, animation: null, customAnimation: null }],
             }
             : page
         ),
@@ -1267,9 +1478,8 @@ export default function PricingSection() {
                           return (
                             <div
                               key={section.id}
-                              className={`p-3 rounded-xl bg-[#1a1a1a] border transition-all ${
-                                section.animation ? "border-[#ec4899]/40 bg-[#ec4899]/5" : isFreeSection ? "border-[#262626]" : "border-[#8b5cf6]/30"
-                              }`}
+                              className={`p-3 rounded-xl bg-[#1a1a1a] border transition-all ${section.animation ? "border-[#ec4899]/40 bg-[#ec4899]/5" : isFreeSection ? "border-[#262626]" : "border-[#8b5cf6]/30"
+                                }`}
                             >
                               {/* Section Header Row */}
                               <div className="flex items-center gap-3 mb-2">
@@ -1302,7 +1512,7 @@ export default function PricingSection() {
                                   ) : (
                                     <span className="text-[8px] text-[#f97316] px-1.5 py-0.5 rounded bg-[#f97316]/10">+{formatPrice(SECTION_PRICE)}</span>
                                   )}
-                                  {section.animation && (
+                                  {(section.animation || section.customAnimation) && (
                                     <span className="text-[8px] text-[#ec4899] px-1.5 py-0.5 rounded bg-[#ec4899]/10">+{formatPrice(SECTION_ANIMATION_PRICE)}</span>
                                   )}
                                 </div>
@@ -1320,15 +1530,38 @@ export default function PricingSection() {
                                 )}
                               </div>
 
+                              {/* Custom Layout Input */}
+                              {section.layout === "custom" && (
+                                <div className="pl-7 pb-2">
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="text"
+                                      placeholder="ระบุชื่อ Section ที่ต้องการ..."
+                                      value={section.customLayout || ""}
+                                      onChange={(e) => updateMainSectionCustomLayout(section.id, e.target.value)}
+                                      className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#8b5cf6]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#8b5cf6] transition-colors"
+                                    />
+                                    {section.customLayout && (
+                                      <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
+                                        ✓
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
                               {/* Animation Selection Row */}
                               {availableAnims.length > 0 && (
                                 <div className="pl-7 pt-2 border-t border-[#262626]/50">
                                   <div className="flex items-center gap-2 mb-2">
                                     <span className="text-[10px] text-[#ec4899]">✦</span>
                                     <span className="text-[10px] text-[#71717a]">เลือก Animation</span>
-                                    {section.animation && (
+                                    {(section.animation || section.customAnimation) && (
                                       <button
-                                        onClick={() => updateMainSectionAnimation(section.id, null)}
+                                        onClick={() => {
+                                          updateMainSectionAnimation(section.id, null);
+                                          updateMainSectionCustomAnimation(section.id, "");
+                                        }}
                                         className="ml-auto text-[8px] text-[#71717a] hover:text-[#ec4899] transition-colors"
                                       >
                                         ยกเลิก
@@ -1339,21 +1572,56 @@ export default function PricingSection() {
                                     {availableAnims.map((anim) => (
                                       <button
                                         key={anim.id}
-                                        onClick={() => updateMainSectionAnimation(section.id, section.animation === anim.id ? null : anim.id)}
-                                        className={`group/anim relative px-2 py-1 rounded-md text-[10px] transition-all ${
-                                          section.animation === anim.id
-                                            ? "bg-[#ec4899] text-white"
-                                            : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
-                                        }`}
+                                        onClick={() => {
+                                          updateMainSectionAnimation(section.id, section.animation === anim.id ? null : anim.id);
+                                          if (section.animation !== anim.id) updateMainSectionCustomAnimation(section.id, "");
+                                        }}
+                                        className={`group/anim relative px-2 py-1 rounded-md text-[10px] transition-all ${section.animation === anim.id
+                                          ? "bg-[#ec4899] text-white"
+                                          : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                          }`}
                                         title={anim.description}
                                       >
                                         <span className="mr-1">{anim.icon}</span>
                                         {anim.label}
                                       </button>
                                     ))}
+                                    {/* Custom Animation Button */}
+                                    <button
+                                      onClick={() => {
+                                        updateMainSectionAnimation(section.id, section.animation === "custom" ? null : "custom");
+                                      }}
+                                      className={`group/anim relative px-2 py-1 rounded-md text-[10px] transition-all ${section.animation === "custom"
+                                        ? "bg-[#ec4899] text-white"
+                                        : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                        }`}
+                                      title={CUSTOM_ANIMATION_OPTION.description}
+                                    >
+                                      <span className="mr-1">{CUSTOM_ANIMATION_OPTION.icon}</span>
+                                      {CUSTOM_ANIMATION_OPTION.label}
+                                    </button>
                                   </div>
                                   {selectedAnim && (
                                     <p className="mt-1.5 text-[9px] text-[#52525b] italic">{selectedAnim.description}</p>
+                                  )}
+                                  {/* Custom Animation Input */}
+                                  {section.animation === "custom" && (
+                                    <div className="mt-2">
+                                      <div className="flex gap-2">
+                                        <input
+                                          type="text"
+                                          placeholder="ระบุ Animation ที่ต้องการ..."
+                                          value={section.customAnimation || ""}
+                                          onChange={(e) => updateMainSectionCustomAnimation(section.id, e.target.value)}
+                                          className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors"
+                                        />
+                                        {section.customAnimation && (
+                                          <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
+                                            ✓
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
                               )}
@@ -1428,9 +1696,8 @@ export default function PricingSection() {
                               return (
                                 <div
                                   key={section.id}
-                                  className={`p-3 rounded-xl bg-[#1a1a1a] border transition-all ${
-                                    section.animation ? "border-[#ec4899]/40 bg-[#ec4899]/5" : "border-[#262626]"
-                                  }`}
+                                  className={`p-3 rounded-xl bg-[#1a1a1a] border transition-all ${(section.animation || section.customAnimation) ? "border-[#ec4899]/40 bg-[#ec4899]/5" : "border-[#262626]"
+                                    }`}
                                 >
                                   {/* Section Header */}
                                   <div className="flex items-center gap-3 mb-2">
@@ -1457,7 +1724,7 @@ export default function PricingSection() {
                                     </div>
 
                                     {/* Price Badge */}
-                                    {section.animation && (
+                                    {(section.animation || section.customAnimation) && (
                                       <span className="text-[8px] text-[#ec4899] px-1.5 py-0.5 rounded bg-[#ec4899]/10 shrink-0">+{formatPrice(SECTION_ANIMATION_PRICE)}</span>
                                     )}
 
@@ -1474,15 +1741,38 @@ export default function PricingSection() {
                                     )}
                                   </div>
 
+                                  {/* Custom Layout Input */}
+                                  {section.layout === "custom" && (
+                                    <div className="pl-7 pb-2">
+                                      <div className="flex gap-2">
+                                        <input
+                                          type="text"
+                                          placeholder="ระบุชื่อ Section ที่ต้องการ..."
+                                          value={section.customLayout || ""}
+                                          onChange={(e) => updatePageSectionCustomLayout(page.id, section.id, e.target.value)}
+                                          className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors"
+                                        />
+                                        {section.customLayout && (
+                                          <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
+                                            ✓
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
                                   {/* Animation Selection */}
                                   {availableAnims.length > 0 && (
                                     <div className="pl-7 pt-2 border-t border-[#262626]/50">
                                       <div className="flex items-center gap-2 mb-2">
                                         <span className="text-[10px] text-[#ec4899]">✦</span>
                                         <span className="text-[10px] text-[#71717a]">Animation</span>
-                                        {section.animation && (
+                                        {(section.animation || section.customAnimation) && (
                                           <button
-                                            onClick={() => updatePageSectionAnimation(page.id, section.id, null)}
+                                            onClick={() => {
+                                              updatePageSectionAnimation(page.id, section.id, null);
+                                              updatePageSectionCustomAnimation(page.id, section.id, "");
+                                            }}
                                             className="ml-auto text-[8px] text-[#71717a] hover:text-[#ec4899] transition-colors"
                                           >
                                             ยกเลิก
@@ -1493,21 +1783,56 @@ export default function PricingSection() {
                                         {availableAnims.map((anim) => (
                                           <button
                                             key={anim.id}
-                                            onClick={() => updatePageSectionAnimation(page.id, section.id, section.animation === anim.id ? null : anim.id)}
-                                            className={`px-2 py-1 rounded-md text-[10px] transition-all ${
-                                              section.animation === anim.id
-                                                ? "bg-[#ec4899] text-white"
-                                                : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
-                                            }`}
+                                            onClick={() => {
+                                              updatePageSectionAnimation(page.id, section.id, section.animation === anim.id ? null : anim.id);
+                                              if (section.animation !== anim.id) updatePageSectionCustomAnimation(page.id, section.id, "");
+                                            }}
+                                            className={`px-2 py-1 rounded-md text-[10px] transition-all ${section.animation === anim.id
+                                              ? "bg-[#ec4899] text-white"
+                                              : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                              }`}
                                             title={anim.description}
                                           >
                                             <span className="mr-1">{anim.icon}</span>
                                             {anim.label}
                                           </button>
                                         ))}
+                                        {/* Custom Animation Button */}
+                                        <button
+                                          onClick={() => {
+                                            updatePageSectionAnimation(page.id, section.id, section.animation === "custom" ? null : "custom");
+                                          }}
+                                          className={`px-2 py-1 rounded-md text-[10px] transition-all ${section.animation === "custom"
+                                            ? "bg-[#ec4899] text-white"
+                                            : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                            }`}
+                                          title={CUSTOM_ANIMATION_OPTION.description}
+                                        >
+                                          <span className="mr-1">{CUSTOM_ANIMATION_OPTION.icon}</span>
+                                          {CUSTOM_ANIMATION_OPTION.label}
+                                        </button>
                                       </div>
                                       {selectedAnim && (
                                         <p className="mt-1.5 text-[9px] text-[#52525b] italic">{selectedAnim.description}</p>
+                                      )}
+                                      {/* Custom Animation Input */}
+                                      {section.animation === "custom" && (
+                                        <div className="mt-2">
+                                          <div className="flex gap-2">
+                                            <input
+                                              type="text"
+                                              placeholder="ระบุ Animation ที่ต้องการ..."
+                                              value={section.customAnimation || ""}
+                                              onChange={(e) => updatePageSectionCustomAnimation(page.id, section.id, e.target.value)}
+                                              className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors"
+                                            />
+                                            {section.customAnimation && (
+                                              <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
+                                                ✓
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
                                       )}
                                     </div>
                                   )}
@@ -1717,13 +2042,16 @@ export default function PricingSection() {
                                 {state.step2.mainSections.map((section: SectionItem) => {
                                   const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                   const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
+
+                                  const refKey = `preview-main-${section.id}`;
+
                                   return (
                                     <div
                                       key={section.id}
-                                      id={`preview-main-${section.id}`}
-                                      className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${
-                                        section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
-                                      }`}
+                                      // id={`preview-main-${section.id}`}
+                                      ref={(el) => setPreviewRef(refKey, el)}  // ✅ ใช้ ref callback
+                                      className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
+                                        }`}
                                     >
                                       {section.layout === "hero" && (
                                         <div className="p-2 rounded-lg bg-linear-to-br from-[#262626] to-[#1a1a1a]">
@@ -1761,16 +2089,24 @@ export default function PricingSection() {
                                         section.layout === "stats") && (
                                           <div className="h-8 rounded bg-[#262626]" />
                                         )}
+                                      {/* Custom Layout */}
+                                      {section.layout === "custom" && (
+                                        <div className="h-8 rounded bg-[#f97316]/20 border border-dashed border-[#f97316]/40 flex items-center justify-center">
+                                          <span className="text-[8px] text-[#f97316]">✏️ {section.customLayout || "Custom"}</span>
+                                        </div>
+                                      )}
                                       {/* Layout icon */}
                                       <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <span className="text-xs text-[#52525b]">{layout?.icon}</span>
                                       </div>
                                       {/* Animation badge & play button */}
-                                      {section.animation && animInfo && (
+                                      {section.animation && (
                                         <div className="absolute top-1 right-1 flex items-center gap-1">
-                                          <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">{animInfo.icon}</span>
+                                          <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">
+                                            {section.animation === "custom" ? "✏️" : (animInfo?.icon || "✦")}
+                                          </span>
                                           <button
-                                            onClick={() => playSectionAnimation(`preview-main-${section.id}`, section.animation!)}
+                                            onClick={() => playSectionAnimation(refKey, section.animation!)}
                                             className="p-1 rounded bg-[#ec4899]/20 text-[#ec4899] text-[10px] hover:bg-[#ec4899]/30 transition-colors"
                                           >
                                             ▶
@@ -1838,13 +2174,16 @@ export default function PricingSection() {
                                   {page.sections.map((section) => {
                                     const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                     const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
+
+                                    const refKey = `preview-page-${page.id}-${section.id}`;
+
                                     return (
                                       <div
                                         key={section.id}
-                                        id={`preview-page-${page.id}-${section.id}`}
-                                        className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${
-                                          section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
-                                        }`}
+                                        // id={`preview-page-${page.id}-${section.id}`}
+                                        ref={(el) => setPreviewRef(refKey, el)}  // ✅ ใช้ ref callback
+                                        className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
+                                          }`}
                                       >
                                         {/* Layout Preview Based on Type */}
                                         {section.layout === "hero" && (
@@ -1910,17 +2249,25 @@ export default function PricingSection() {
                                             ))}
                                           </div>
                                         )}
+                                        {/* Custom Layout */}
+                                        {section.layout === "custom" && (
+                                          <div className="h-8 rounded bg-[#f97316]/20 border border-dashed border-[#f97316]/40 flex items-center justify-center">
+                                            <span className="text-[8px] text-[#f97316]">✏️ {section.customLayout || "Custom"}</span>
+                                          </div>
+                                        )}
 
                                         {/* Layout icon */}
                                         <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                           <span className="text-xs text-[#52525b]">{layout?.icon}</span>
                                         </div>
                                         {/* Animation badge & play button */}
-                                        {section.animation && animInfo && (
+                                        {section.animation && (
                                           <div className="absolute top-1 right-1 flex items-center gap-1">
-                                            <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">{animInfo.icon}</span>
+                                            <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">
+                                              {section.animation === "custom" ? "✏️" : (animInfo?.icon || "✦")}
+                                            </span>
                                             <button
-                                              onClick={() => playSectionAnimation(`preview-page-${page.id}-${section.id}`, section.animation!)}
+                                              onClick={() => playSectionAnimation(refKey, section.animation!)}
                                               className="p-1 rounded bg-[#ec4899]/20 text-[#ec4899] text-[10px] hover:bg-[#ec4899]/30 transition-colors"
                                             >
                                               ▶
@@ -1975,6 +2322,95 @@ export default function PricingSection() {
                           </div>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Section Details Summary */}
+                    <div className="mt-3 p-4 rounded-xl bg-[#0d0d0d] border border-[#262626]">
+                      <p className="text-[10px] text-[#52525b] mb-3 font-mono uppercase tracking-wider">📋 สรุป Sections</p>
+
+                      {/* Main Page Sections */}
+                      <div className="mb-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-2 py-0.5 rounded bg-[#8b5cf6]/20 text-[10px] text-[#8b5cf6] font-medium">หน้าหลัก</span>
+                          <span className="text-[10px] text-[#52525b]">{state.step2.mainSections.length} sections</span>
+                        </div>
+                        <div className="space-y-1.5 pl-2 border-l-2 border-[#8b5cf6]/30">
+                          {state.step2.mainSections.map((section, idx) => {
+                            const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                            const animInfo = section.animation && section.animation !== "custom"
+                              ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation)
+                              : null;
+                            return (
+                              <div key={section.id} className="flex items-center gap-2 py-1 px-2 rounded bg-[#1a1a1a]/50 text-[10px]">
+                                <span className="font-mono text-[#8b5cf6] w-4">{idx + 1}</span>
+                                <span className="text-[#52525b]">|</span>
+                                <span className="text-white">
+                                  {section.layout === "custom" ? (
+                                    <span className="text-[#f97316]">✏️ {section.customLayout || "กำหนดเอง"}</span>
+                                  ) : (
+                                    <span>{layoutInfo?.icon} {layoutInfo?.label}</span>
+                                  )}
+                                </span>
+                                {(section.animation || section.customAnimation) && (
+                                  <>
+                                    <span className="text-[#52525b]">|</span>
+                                    <span className="text-[#ec4899]">
+                                      {section.animation === "custom" ? (
+                                        <span>✏️ {section.customAnimation || "กำหนดเอง"}</span>
+                                      ) : animInfo ? (
+                                        <span>{animInfo.icon} {animInfo.label}</span>
+                                      ) : null}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Added Pages Sections */}
+                      {state.step2.pages.map((page) => (
+                        <div key={page.id} className="mb-4 last:mb-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-0.5 rounded bg-[#ec4899]/20 text-[10px] text-[#ec4899] font-medium">{page.name}</span>
+                            <span className="text-[10px] text-[#52525b]">{page.sections.length} sections</span>
+                          </div>
+                          <div className="space-y-1.5 pl-2 border-l-2 border-[#ec4899]/30">
+                            {page.sections.map((section, idx) => {
+                              const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                              const animInfo = section.animation && section.animation !== "custom"
+                                ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation)
+                                : null;
+                              return (
+                                <div key={section.id} className="flex items-center gap-2 py-1 px-2 rounded bg-[#1a1a1a]/50 text-[10px]">
+                                  <span className="font-mono text-[#ec4899] w-4">{idx + 1}</span>
+                                  <span className="text-[#52525b]">|</span>
+                                  <span className="text-white">
+                                    {section.layout === "custom" ? (
+                                      <span className="text-[#f97316]">✏️ {section.customLayout || "กำหนดเอง"}</span>
+                                    ) : (
+                                      <span>{layoutInfo?.icon} {layoutInfo?.label}</span>
+                                    )}
+                                  </span>
+                                  {(section.animation || section.customAnimation) && (
+                                    <>
+                                      <span className="text-[#52525b]">|</span>
+                                      <span className="text-[#ec4899]">
+                                        {section.animation === "custom" ? (
+                                          <span>✏️ {section.customAnimation || "กำหนดเอง"}</span>
+                                        ) : animInfo ? (
+                                          <span>{animInfo.icon} {animInfo.label}</span>
+                                        ) : null}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     {/* Animation Details */}
