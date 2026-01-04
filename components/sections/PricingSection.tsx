@@ -7,6 +7,76 @@ import LayoutModal from "@/components/ui/LayoutModal";
 
 gsap.registerPlugin(ScrollTrigger);
 
+
+
+// ==================== ราคาเริ่มต้น ====================
+// Base Pricing
+const BASE_PRICE = 1500; // ราคาเริ่มต้น
+const SECTION_PRICE = 200; // ราคาต่อ section ที่เพิ่ม (นับจาก section ที่ 4 เป็นต้นไป)
+const INITIAL_SECTIONS = 3; // จำนวน section เริ่มต้น (ฟรี)
+const SECTION_ANIMATION_PRICE = 200; // ราคาต่อ animation ที่เพิ่ม
+
+// Navbar & Footer Options
+const NAVBAR_OPTIONS = [
+  { id: "basic" as const, label: "พื้นฐาน", price: 0 },
+  { id: "animated" as const, label: "+ Animation", price: 400 },
+];
+
+const FOOTER_OPTIONS = [
+  { id: "basic" as const, label: "พื้นฐาน", price: 0 },
+  { id: "animated" as const, label: "+ Animation", price: 300 },
+];
+
+// Addon Services
+const ADDON_SERVICES = [
+  { id: "seo", label: "SEO Setup เต็มรูปแบบ", price: 1000, icon: "📊" },
+  { id: "bilingual", label: "รองรับ 2 ภาษา (TH/EN)", price: 1200, icon: "🌐" },
+  { id: "light-dark", label: "Theme (Dark/Light)", price: 1500, icon: "🌙/🌞" },
+  { id: "mobile-responsive", label: "Mobile Responsive", price: 1000, icon: "📱" },
+];
+
+// Mobile Responsive Dynamic Pricing
+// Base: 1000
+// +200 if navbar is animated
+// +300 if footer is animated
+// +100 per section animation (main sections + page sections)
+const MOBILE_RESPONSIVE_BASE_PRICE = 1000;
+const MOBILE_RESPONSIVE_NAVBAR_ANIMATED_PRICE = 200;
+const MOBILE_RESPONSIVE_FOOTER_ANIMATED_PRICE = 300;
+const MOBILE_RESPONSIVE_SECTION_ANIMATION_PRICE = 100;
+
+// Function to calculate Mobile Responsive price dynamically
+function calculateMobileResponsivePrice(params: {
+  navbar: "basic" | "animated";
+  footer: "basic" | "animated";
+  mainSections: Array<{ animation: string | null; customAnimation: string | null }>;
+  pages: Array<{ sections: Array<{ animation: string | null; customAnimation: string | null }> }>;
+}): number {
+  let mobilePrice = MOBILE_RESPONSIVE_BASE_PRICE;
+  
+  // +200 if navbar is animated
+  if (params.navbar === "animated") {
+    mobilePrice += MOBILE_RESPONSIVE_NAVBAR_ANIMATED_PRICE;
+  }
+  
+  // +300 if footer is animated
+  if (params.footer === "animated") {
+    mobilePrice += MOBILE_RESPONSIVE_FOOTER_ANIMATED_PRICE;
+  }
+  
+  // +100 per section animation (main sections + page sections)
+  const mainSectionAnims = params.mainSections.filter((s) => s.animation || s.customAnimation).length;
+  const pageSectionAnims = params.pages.reduce(
+    (sum, page) => sum + page.sections.filter((s) => s.animation || s.customAnimation).length,
+    0
+  );
+  const totalSectionAnims = mainSectionAnims + pageSectionAnims;
+  mobilePrice += totalSectionAnims * MOBILE_RESPONSIVE_SECTION_ANIMATION_PRICE;
+  
+  return mobilePrice;
+}
+
+
 // ==================== TYPES ====================
 interface SectionItem {
   id: string;
@@ -55,20 +125,6 @@ interface CalculatorState {
   };
 }
 
-// ==================== PRICING DATA ====================
-const BASE_PRICE = 1500; // ราคาเริ่มต้น
-const SECTION_PRICE = 200; // ราคาต่อ section ที่เพิ่ม (นับจาก section ที่ 4 เป็นต้นไป)
-const INITIAL_SECTIONS = 3; // จำนวน section เริ่มต้น (ฟรี)
-
-const NAVBAR_OPTIONS = [
-  { id: "basic" as const, label: "พื้นฐาน", price: 0 },
-  { id: "animated" as const, label: "+ Animation", price: 400 },
-];
-
-const FOOTER_OPTIONS = [
-  { id: "basic" as const, label: "พื้นฐาน", price: 0 },
-  { id: "animated" as const, label: "+ Animation", price: 300 },
-];
 
 // ==================== ANIMATION TYPES DATA ====================
 const NAVBAR_ANIMATION_TYPES = [
@@ -230,8 +286,6 @@ const SECTION_LAYOUTS = [
   },
 ];
 
-const SECTION_ANIMATION_PRICE = 150; // ราคาต่อ animation ที่เพิ่ม
-
 // ==================== SECTION ANIMATIONS MAPPING ====================
 // วิเคราะห์ Animation ที่เหมาะสมกับแต่ละ Layout Type
 const SECTION_ANIMATIONS: Record<string, { id: string; label: string; icon: string; description: string }[]> = {
@@ -307,13 +361,6 @@ const SECTION_ANIMATIONS: Record<string, { id: string; label: string; icon: stri
 
 // Custom animation option ที่จะใช้กับทุก layout
 const CUSTOM_ANIMATION_OPTION = { id: "custom", label: "กำหนดเอง", icon: "✏️", description: "ระบุ animation ที่ต้องการ" };
-
-const ADDON_SERVICES = [
-  { id: "seo", label: "SEO Setup เต็มรูปแบบ", price: 1000, icon: "📊" },
-  { id: "bilingual", label: "รองรับ 2 ภาษา (TH/EN)", price: 1500, icon: "🌐" },
-  { id: "cms", label: "Admin Panel / CMS พื้นฐาน", price: 3000, icon: "⚙️" },
-  { id: "extendedSupport", label: "Support เพิ่ม 30 วัน", price: 1000, icon: "🛡️" },
-];
 
 // ==================== HELPER FUNCTIONS ====================
 function generateId() {
@@ -429,13 +476,39 @@ export default function PricingSection() {
     // STEP 4: Addons
     ADDON_SERVICES.forEach((service) => {
       if (state.step3[service.id as keyof typeof state.step3]) {
-        items.push({ label: service.label, price: service.price, category: "addons" });
+        // Special calculation for mobile-responsive
+        if (service.id === "mobile-responsive") {
+          const mobilePrice = calculateMobileResponsivePrice({
+            navbar: state.step1.navbar,
+            footer: state.step1.footer,
+            mainSections: state.step2.mainSections,
+            pages: state.step2.pages,
+          });
+          
+          items.push({ 
+            label: service.label, 
+            price: mobilePrice, 
+            category: "addons" 
+          });
+        } else {
+          items.push({ label: service.label, price: service.price, category: "addons" });
+        }
       }
     });
 
     const total = items.reduce((sum, item) => sum + item.price, 0);
 
     return { items, total };
+  }, [state]);
+
+  // Calculate Mobile Responsive price dynamically
+  const mobileResponsivePrice = useMemo(() => {
+    return calculateMobileResponsivePrice({
+      navbar: state.step1.navbar,
+      footer: state.step1.footer,
+      mainSections: state.step2.mainSections,
+      pages: state.step2.pages,
+    });
   }, [state]);
 
   // ==================== HANDLERS ====================
@@ -1943,6 +2016,8 @@ export default function PricingSection() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {ADDON_SERVICES.map((service) => {
                       const isActive = state.step3[service.id as keyof typeof state.step3];
+                      // Use dynamic price for mobile-responsive, otherwise use service.price
+                      const displayPrice = service.id === "mobile-responsive" ? mobileResponsivePrice : service.price;
                       return (
                         <button
                           key={service.id}
@@ -1957,7 +2032,7 @@ export default function PricingSection() {
                             <span className="text-sm text-[#a1a1aa]">{service.label}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-[#10b981]">+{formatPrice(service.price)}</span>
+                            <span className="text-xs font-mono text-[#10b981]">+{formatPrice(displayPrice)}</span>
                             <div
                               className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isActive ? "bg-[#10b981] border-[#10b981]" : "border-[#333]"
                                 }`}
