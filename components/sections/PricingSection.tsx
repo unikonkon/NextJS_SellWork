@@ -7,10 +7,16 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 
 // ==================== TYPES ====================
+interface SectionItem {
+  id: string;
+  layout: string;
+}
+
 interface PageItem {
   id: string;
-  type: "small" | "medium" | "large";
+  name: string;
   animation: "none" | "basic" | "complex";
+  sections: SectionItem[];
 }
 
 interface CustomAnimItem {
@@ -21,7 +27,6 @@ interface CustomAnimItem {
 
 interface CalculatorState {
   step1: {
-    package: "starter" | "basic" | "standard" | "premium";
     navbar: "basic" | "animated";
     footer: "basic" | "animated";
     selectedNavbarAnim: string | null;
@@ -32,8 +37,8 @@ interface CalculatorState {
     customFooterInput: string;
   };
   step2: {
+    mainSections: SectionItem[];
     pages: PageItem[];
-    extraSections: number;
   };
   step3: {
     sectionAnimation: "none" | "basic" | "complex";
@@ -61,53 +66,9 @@ interface CalculatorState {
 }
 
 // ==================== PRICING DATA ====================
-const PACKAGES = [
-  {
-    id: "starter" as const,
-    name: "Starter",
-    price: 1500,
-    duration: "3 วัน",
-    pages: "1 หน้า",
-    sections: "3-4",
-    animation: "พื้นฐาน",
-    color: "cyan",
-    icon: "M13 10V3L4 14h7v7l9-11h-7z",
-  },
-  {
-    id: "basic" as const,
-    name: "Basic",
-    price: 3500,
-    duration: "5 วัน",
-    pages: "1-2 หน้า",
-    sections: "5-8",
-    animation: "Scroll + Hover",
-    color: "green",
-    icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
-  },
-  {
-    id: "standard" as const,
-    name: "Standard",
-    price: 8000,
-    duration: "10 วัน",
-    pages: "3-5 หน้า",
-    sections: "15-25",
-    animation: "Page Trans",
-    color: "purple",
-    popular: true,
-    icon: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
-  },
-  {
-    id: "premium" as const,
-    name: "Premium",
-    price: 20000,
-    duration: "15-20 วัน",
-    pages: "5+ หน้า",
-    sections: "ไม่จำกัด",
-    animation: "Full Custom",
-    color: "pink",
-    icon: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z",
-  },
-];
+const BASE_PRICE = 1500; // ราคาเริ่มต้น
+const SECTION_PRICE = 200; // ราคาต่อ section ที่เพิ่ม (นับจาก section ที่ 4 เป็นต้นไป)
+const INITIAL_SECTIONS = 3; // จำนวน section เริ่มต้น (ฟรี)
 
 const NAVBAR_OPTIONS = [
   { id: "basic" as const, label: "พื้นฐาน", price: 0 },
@@ -198,10 +159,78 @@ const FOOTER_ANIMATION_TYPES = [
   },
 ];
 
-const PAGE_TYPES = [
-  { type: "small" as const, label: "หน้าเล็ก", sections: "2-3", prices: { none: 500, basic: 800, complex: 1100 } },
-  { type: "medium" as const, label: "หน้ากลาง", sections: "4-5", prices: { none: 800, basic: 1200, complex: 1600 } },
-  { type: "large" as const, label: "หน้าใหญ่", sections: "6-8", prices: { none: 1200, basic: 1800, complex: 2500 } },
+// ==================== SECTION LAYOUTS ====================
+const SECTION_LAYOUTS = [
+  {
+    id: "hero",
+    label: "Hero",
+    description: "ส่วนหัวขนาดใหญ่พร้อมรูปภาพหรือวิดีโอ",
+    icon: "▣",
+    preview: "full",
+  },
+  {
+    id: "text-image",
+    label: "Text + Image",
+    description: "ข้อความด้านซ้าย รูปภาพด้านขวา",
+    icon: "◧",
+    preview: "split",
+  },
+  {
+    id: "image-text",
+    label: "Image + Text",
+    description: "รูปภาพด้านซ้าย ข้อความด้านขวา",
+    icon: "◨",
+    preview: "split-reverse",
+  },
+  {
+    id: "three-cols",
+    label: "3 Columns",
+    description: "แบ่งเป็น 3 คอลัมน์เท่ากัน",
+    icon: "⫿",
+    preview: "cols-3",
+  },
+  {
+    id: "four-cols",
+    label: "4 Columns",
+    description: "แบ่งเป็น 4 คอลัมน์เท่ากัน",
+    icon: "▦",
+    preview: "cols-4",
+  },
+  {
+    id: "gallery",
+    label: "Gallery",
+    description: "แกลเลอรี่รูปภาพแบบ Grid",
+    icon: "▤",
+    preview: "gallery",
+  },
+  {
+    id: "cta",
+    label: "CTA",
+    description: "Call-to-Action พร้อมปุ่ม",
+    icon: "◉",
+    preview: "cta",
+  },
+  {
+    id: "testimonial",
+    label: "Testimonial",
+    description: "รีวิวหรือคำพูดจากลูกค้า",
+    icon: "❝",
+    preview: "testimonial",
+  },
+  {
+    id: "faq",
+    label: "FAQ",
+    description: "คำถามที่พบบ่อย",
+    icon: "❓",
+    preview: "faq",
+  },
+  {
+    id: "stats",
+    label: "Stats",
+    description: "แสดงตัวเลขสถิติ",
+    icon: "📊",
+    preview: "stats",
+  },
 ];
 
 const SECTION_PRICES = { none: 200, basic: 350, complex: 500 };
@@ -225,18 +254,9 @@ const ADDON_SERVICES = [
   { id: "extendedSupport", label: "Support เพิ่ม 30 วัน", price: 1000, icon: "🛡️" },
 ];
 
-// Color mapping
-const colorMap: Record<string, { border: string; bg: string; text: string; glow: string }> = {
-  cyan: { border: "border-[#06b6d4]", bg: "bg-[#06b6d4]", text: "text-[#06b6d4]", glow: "shadow-[0_0_30px_-5px_rgba(6,182,212,0.5)]" },
-  green: { border: "border-[#10b981]", bg: "bg-[#10b981]", text: "text-[#10b981]", glow: "shadow-[0_0_30px_-5px_rgba(16,185,129,0.5)]" },
-  purple: { border: "border-[#8b5cf6]", bg: "bg-[#8b5cf6]", text: "text-[#8b5cf6]", glow: "shadow-[0_0_30px_-5px_rgba(139,92,246,0.5)]" },
-  pink: { border: "border-[#ec4899]", bg: "bg-[#ec4899]", text: "text-[#ec4899]", glow: "shadow-[0_0_30px_-5px_rgba(236,72,153,0.5)]" },
-  orange: { border: "border-[#f97316]", bg: "bg-[#f97316]", text: "text-[#f97316]", glow: "shadow-[0_0_30px_-5px_rgba(249,115,22,0.5)]" },
-};
-
 // ==================== HELPER FUNCTIONS ====================
 function generateId() {
-  return Math.random().toString(36).substr(2, 9);
+  return Math.random().toString(36).substring(2, 11);
 }
 
 function formatPrice(price: number) {
@@ -263,9 +283,16 @@ export default function PricingSection() {
   const [footerAnimating, setFooterAnimating] = useState(false);
 
   // Calculator State
+  // Helper to create initial sections
+  const createInitialSections = (): SectionItem[] => {
+    return Array.from({ length: INITIAL_SECTIONS }, (_, i) => ({
+      id: generateId(),
+      layout: i === 0 ? "hero" : i === 1 ? "text-image" : "three-cols",
+    }));
+  };
+
   const [state, setState] = useState<CalculatorState>({
     step1: {
-      package: "standard",
       navbar: "basic",
       footer: "basic",
       selectedNavbarAnim: null,
@@ -275,7 +302,7 @@ export default function PricingSection() {
       customNavbarInput: "",
       customFooterInput: "",
     },
-    step2: { pages: [], extraSections: 0 },
+    step2: { mainSections: createInitialSections(), pages: [] },
     step3: {
       sectionAnimation: "none",
       globalAnimations: {
@@ -293,9 +320,18 @@ export default function PricingSection() {
   const priceBreakdown = useMemo(() => {
     const items: { label: string; price: number; category: string }[] = [];
 
-    // STEP 1: Package
-    const pkg = PACKAGES.find((p) => p.id === state.step1.package)!;
-    items.push({ label: `แพ็กเกจ ${pkg.name}`, price: pkg.price, category: "package" });
+    // Base Price
+    items.push({ label: "ราคาเริ่มต้น", price: BASE_PRICE, category: "base" });
+
+    // Extra main sections (over INITIAL_SECTIONS)
+    const extraMainSections = Math.max(0, state.step2.mainSections.length - INITIAL_SECTIONS);
+    if (extraMainSections > 0) {
+      items.push({
+        label: `Section เพิ่ม ×${extraMainSections}`,
+        price: extraMainSections * SECTION_PRICE,
+        category: "sections",
+      });
+    }
 
     // Navbar
     const navbar = NAVBAR_OPTIONS.find((n) => n.id === state.step1.navbar)!;
@@ -309,27 +345,20 @@ export default function PricingSection() {
       items.push({ label: `Footer ${footer.label}`, price: footer.price, category: "footer" });
     }
 
-    // STEP 2 + 3: Pages with animation
-    state.step2.pages.forEach((page, idx) => {
-      const pageType = PAGE_TYPES.find((p) => p.type === page.type)!;
-      const price = pageType.prices[page.animation];
+    // STEP 2: Added Pages with sections
+    state.step2.pages.forEach((page) => {
+      const sectionCount = page.sections.length;
+      const basePrice = sectionCount * SECTION_PRICES.none;
+      const animPrice = page.animation !== "none"
+        ? sectionCount * (SECTION_PRICES[page.animation] - SECTION_PRICES.none)
+        : 0;
       const animLabel = page.animation === "none" ? "" : page.animation === "basic" ? " + Anim พื้นฐาน" : " + Anim ซับซ้อน";
       items.push({
-        label: `${pageType.label} #${idx + 1}${animLabel}`,
-        price,
+        label: `${page.name} (${sectionCount} sec)${animLabel}`,
+        price: basePrice + animPrice,
         category: "pages",
       });
     });
-
-    // Extra Sections
-    if (state.step2.extraSections > 0) {
-      const sectionPrice = SECTION_PRICES[state.step3.sectionAnimation];
-      items.push({
-        label: `Section เพิ่ม ×${state.step2.extraSections}`,
-        price: sectionPrice * state.step2.extraSections,
-        category: "sections",
-      });
-    }
 
     // Global Animations
     GLOBAL_ANIMATIONS.forEach((anim) => {
@@ -436,14 +465,64 @@ export default function PricingSection() {
     }));
   }, []);
 
-  const addPage = useCallback((type: "small" | "medium" | "large") => {
+  // Add main section
+  const addMainSection = useCallback(() => {
     setState((prev) => ({
       ...prev,
       step2: {
         ...prev.step2,
-        pages: [...prev.step2.pages, { id: generateId(), type, animation: "none" }],
+        mainSections: [
+          ...prev.step2.mainSections,
+          { id: generateId(), layout: "text-image" },
+        ],
       },
     }));
+  }, []);
+
+  // Remove main section
+  const removeMainSection = useCallback((sectionId: string) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        mainSections: prev.step2.mainSections.filter((s) => s.id !== sectionId),
+      },
+    }));
+  }, []);
+
+  // Update main section layout
+  const updateMainSectionLayout = useCallback((sectionId: string, layout: string) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        mainSections: prev.step2.mainSections.map((section) =>
+          section.id === sectionId ? { ...section, layout } : section
+        ),
+      },
+    }));
+  }, []);
+
+  // Add new page with 1 section
+  const addPage = useCallback(() => {
+    setState((prev) => {
+      const pageNum = prev.step2.pages.length + 1;
+      return {
+        ...prev,
+        step2: {
+          ...prev.step2,
+          pages: [
+            ...prev.step2.pages,
+            {
+              id: generateId(),
+              name: `หน้า ${pageNum}`,
+              animation: "none",
+              sections: [{ id: generateId(), layout: "hero" }],
+            },
+          ],
+        },
+      };
+    });
   }, []);
 
   const removePage = useCallback((id: string) => {
@@ -463,15 +542,57 @@ export default function PricingSection() {
     }));
   }, []);
 
-  const updateExtraSections = useCallback((delta: number) => {
+  const updateSectionLayout = useCallback((pageId: string, sectionId: string, layout: string) => {
     setState((prev) => ({
       ...prev,
-      step2: { ...prev.step2, extraSections: Math.max(0, prev.step2.extraSections + delta) },
+      step2: {
+        ...prev.step2,
+        pages: prev.step2.pages.map((page) =>
+          page.id === pageId
+            ? {
+              ...page,
+              sections: page.sections.map((section) =>
+                section.id === sectionId ? { ...section, layout } : section
+              ),
+            }
+            : page
+        ),
+      },
     }));
   }, []);
 
-  const updateSectionAnimation = useCallback((value: "none" | "basic" | "complex") => {
-    setState((prev) => ({ ...prev, step3: { ...prev.step3, sectionAnimation: value } }));
+  const addSectionToPage = useCallback((pageId: string) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        pages: prev.step2.pages.map((page) =>
+          page.id === pageId
+            ? {
+              ...page,
+              sections: [...page.sections, { id: generateId(), layout: "text-image" }],
+            }
+            : page
+        ),
+      },
+    }));
+  }, []);
+
+  const removeSectionFromPage = useCallback((pageId: string, sectionId: string) => {
+    setState((prev) => ({
+      ...prev,
+      step2: {
+        ...prev.step2,
+        pages: prev.step2.pages.map((page) =>
+          page.id === pageId
+            ? {
+              ...page,
+              sections: page.sections.filter((s) => s.id !== sectionId),
+            }
+            : page
+        ),
+      },
+    }));
   }, []);
 
   const toggleGlobalAnimation = useCallback((id: string) => {
@@ -599,9 +720,8 @@ export default function PricingSection() {
       "Social Media Links",
     ];
 
-    state.step2.pages.forEach((page, idx) => {
-      const pageType = PAGE_TYPES.find((p) => p.type === page.type)!;
-      reqs.push(`เนื้อหาสำหรับ ${pageType.label} #${idx + 1}`);
+    state.step2.pages.forEach((page) => {
+      reqs.push(`เนื้อหาสำหรับ ${page.name} (${page.sections.length} sec)`);
     });
 
     if (state.step3.globalAnimations.loading) {
@@ -657,16 +777,11 @@ export default function PricingSection() {
       }
     }
 
-    state.step2.pages.forEach((page, idx) => {
+    state.step2.pages.forEach((page) => {
       if (page.animation !== "none") {
-        const pageType = PAGE_TYPES.find((p) => p.type === page.type)!;
-        anims.push(`${pageType.label} #${idx + 1}: ${page.animation === "basic" ? "พื้นฐาน" : "ซับซ้อน"}`);
+        anims.push(`${page.name}: ${page.animation === "basic" ? "พื้นฐาน" : "ซับซ้อน"}`);
       }
     });
-
-    if (state.step3.sectionAnimation !== "none" && state.step2.extraSections > 0) {
-      anims.push(`Section: ${state.step3.sectionAnimation === "basic" ? "พื้นฐาน" : "ซับซ้อน"}`);
-    }
 
     GLOBAL_ANIMATIONS.forEach((anim) => {
       const value = state.step3.globalAnimations[anim.id as keyof typeof state.step3.globalAnimations];
@@ -815,55 +930,22 @@ export default function PricingSection() {
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             {/* ==================== LEFT PANEL - OPTIONS ==================== */}
             <div ref={leftPanelRef} className="flex-1 lg:max-w-[55%] space-y-6">
-              {/* STEP 1: Package Selection */}
+              {/* STEP 1: Base Price & Options */}
               <div className="calc-step">
-                <StepHeader step={1} title="เลือกแพ็กเกจหลัก" />
+                <StepHeader step={1} title="ราคาเริ่มต้น" />
                 <div className="space-y-4 p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
-                  {/* Package Cards */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {PACKAGES.map((pkg) => {
-                      const colors = colorMap[pkg.color];
-                      const isSelected = state.step1.package === pkg.id;
-                      return (
-                        <button
-                          key={pkg.id}
-                          onClick={() => updateStep1("package", pkg.id)}
-                          className={`relative p-4 rounded-xl border-2 text-left transition-all duration-300 ${
-                            isSelected
-                              ? `${colors.border} ${colors.glow} bg-linear-to-b from-[${pkg.color === "purple" ? "#8b5cf6" : pkg.color === "pink" ? "#ec4899" : pkg.color === "cyan" ? "#06b6d4" : "#10b981"}]/10 to-transparent`
-                              : "border-[#262626] bg-[#0d0d0d] hover:border-[#333]"
-                          }`}
-                        >
-                          {pkg.popular && (
-                            <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-linear-to-r from-[#8b5cf6] to-[#ec4899] text-white">
-                                แนะนำ
-                              </span>
-                            </div>
-                          )}
-                          <div className={`text-lg font-bold mb-1 ${isSelected ? colors.text : "text-white"}`}>
-                            {pkg.name}
-                          </div>
-                          <div className="text-xl font-bold text-white mb-2">{formatPrice(pkg.price)}</div>
-                          <div className="space-y-1 text-xs text-[#52525b]">
-                            <div>{pkg.pages}</div>
-                            <div>{pkg.sections} sec</div>
-                          </div>
-                          {/* Selection Indicator */}
-                          <div
-                            className={`absolute bottom-3 right-3 w-4 h-4 rounded-full border-2 transition-all ${
-                              isSelected ? `${colors.border} ${colors.bg}` : "border-[#333]"
-                            }`}
-                          >
-                            {isSelected && (
-                              <svg className="w-full h-full text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
+                  {/* Base Price Card */}
+                  <div className="p-4 rounded-xl border-2 border-[#8b5cf6] bg-linear-to-b from-[#8b5cf6]/10 to-transparent">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm text-[#52525b] mb-1">ราคาเริ่มต้น</div>
+                        <div className="text-2xl font-bold text-white">{formatPrice(BASE_PRICE)}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-[#52525b] mb-1">รวม {INITIAL_SECTIONS} Sections ฟรี</div>
+                        <div className="text-xs text-[#8b5cf6]">+{formatPrice(SECTION_PRICE)}/section เพิ่ม</div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Navbar & Footer Options */}
@@ -878,11 +960,10 @@ export default function PricingSection() {
                           <button
                             key={opt.id}
                             onClick={() => updateStep1("navbar", opt.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                              state.step1.navbar === opt.id
-                                ? "bg-[#06b6d4] text-white"
-                                : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#06b6d4]/50"
-                            }`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${state.step1.navbar === opt.id
+                              ? "bg-[#06b6d4] text-white"
+                              : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#06b6d4]/50"
+                              }`}
                           >
                             {opt.label}
                             {opt.price > 0 && <span className="ml-1 opacity-70">+{formatPrice(opt.price)}</span>}
@@ -899,17 +980,15 @@ export default function PricingSection() {
                               <button
                                 key={anim.id}
                                 onClick={() => selectNavbarAnimation(anim.id)}
-                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${
-                                  state.step1.selectedNavbarAnim === anim.id
-                                    ? "bg-[#06b6d4]/20 border border-[#06b6d4]/50"
-                                    : "bg-[#1a1a1a] border border-[#262626] hover:border-[#06b6d4]/30"
-                                }`}
+                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${state.step1.selectedNavbarAnim === anim.id
+                                  ? "bg-[#06b6d4]/20 border border-[#06b6d4]/50"
+                                  : "bg-[#1a1a1a] border border-[#262626] hover:border-[#06b6d4]/30"
+                                  }`}
                               >
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                                  state.step1.selectedNavbarAnim === anim.id
-                                    ? "border-[#06b6d4] bg-[#06b6d4]"
-                                    : "border-[#333]"
-                                }`}>
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${state.step1.selectedNavbarAnim === anim.id
+                                  ? "border-[#06b6d4] bg-[#06b6d4]"
+                                  : "border-[#333]"
+                                  }`}>
                                   {state.step1.selectedNavbarAnim === anim.id && (
                                     <div className="w-2 h-2 rounded-full bg-white" />
                                   )}
@@ -927,7 +1006,7 @@ export default function PricingSection() {
 
                           {/* Custom Navbar Animation Input */}
                           <div className="pt-3 border-t border-[#262626]">
-                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง:</p>
+                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง หรือใส่รายละเอียดเพิ่มเติม:</p>
                             <div className="flex gap-2">
                               <input
                                 type="text"
@@ -982,11 +1061,10 @@ export default function PricingSection() {
                           <button
                             key={opt.id}
                             onClick={() => updateStep1("footer", opt.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                              state.step1.footer === opt.id
-                                ? "bg-[#10b981] text-white"
-                                : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#10b981]/50"
-                            }`}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${state.step1.footer === opt.id
+                              ? "bg-[#10b981] text-white"
+                              : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#10b981]/50"
+                              }`}
                           >
                             {opt.label}
                             {opt.price > 0 && <span className="ml-1 opacity-70">+{formatPrice(opt.price)}</span>}
@@ -1003,17 +1081,15 @@ export default function PricingSection() {
                               <button
                                 key={anim.id}
                                 onClick={() => selectFooterAnimation(anim.id)}
-                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${
-                                  state.step1.selectedFooterAnim === anim.id
-                                    ? "bg-[#10b981]/20 border border-[#10b981]/50"
-                                    : "bg-[#1a1a1a] border border-[#262626] hover:border-[#10b981]/30"
-                                }`}
+                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${state.step1.selectedFooterAnim === anim.id
+                                  ? "bg-[#10b981]/20 border border-[#10b981]/50"
+                                  : "bg-[#1a1a1a] border border-[#262626] hover:border-[#10b981]/30"
+                                  }`}
                               >
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                                  state.step1.selectedFooterAnim === anim.id
-                                    ? "border-[#10b981] bg-[#10b981]"
-                                    : "border-[#333]"
-                                }`}>
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${state.step1.selectedFooterAnim === anim.id
+                                  ? "border-[#10b981] bg-[#10b981]"
+                                  : "border-[#333]"
+                                  }`}>
                                   {state.step1.selectedFooterAnim === anim.id && (
                                     <div className="w-2 h-2 rounded-full bg-white" />
                                   )}
@@ -1031,7 +1107,7 @@ export default function PricingSection() {
 
                           {/* Custom Footer Animation Input */}
                           <div className="pt-3 border-t border-[#262626]">
-                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง:</p>
+                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง หรือใส่รายละเอียดเพิ่มเติม:</p>
                             <div className="flex gap-2">
                               <input
                                 type="text"
@@ -1081,85 +1157,204 @@ export default function PricingSection() {
 
               {/* STEP 2: Pages & Sections */}
               <div className="calc-step">
-                <StepHeader step={2} title="เพิ่มหน้าหรือเพิ่ม Sections" />
+                <StepHeader step={2} title="จัดการ Sections และหน้าเพิ่ม" />
                 <div className="space-y-4 p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
-                  {/* Add Page Buttons */}
+                  {/* Main Sections */}
                   <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block font-mono text-xs text-[#52525b]">
+                        <span className="text-[#8b5cf6]">{">"}</span> Sections หน้าหลัก
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-full bg-[#262626] text-[10px] text-[#a1a1aa]">
+                          {state.step2.mainSections.length} sections
+                        </span>
+                        <button
+                          onClick={addMainSection}
+                          className="px-2 py-1 rounded-lg bg-[#1a1a1a] border border-[#262626] text-[10px] text-[#a1a1aa] hover:border-[#ec4899]/50 hover:text-[#ec4899] transition-colors"
+                        >
+                          + เพิ่ม Section
+                        </button>
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-[#0d0d0d] border border-[#8b5cf6]/30 overflow-hidden">
+                      <div className="p-3 space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+                        {state.step2.mainSections.map((section: SectionItem, secIdx: number) => {
+                          const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                          const isFreeSection = secIdx < INITIAL_SECTIONS;
+                          return (
+                            <div
+                              key={section.id}
+                              className={`flex items-center gap-3 p-2 rounded-lg bg-[#1a1a1a] border group ${isFreeSection ? "border-[#262626]" : "border-[#8b5cf6]/30"
+                                }`}
+                            >
+                              <span className="font-mono text-[10px] text-[#8b5cf6] w-4">{secIdx + 1}</span>
+
+                              {/* Layout Dropdown */}
+                              <div className="relative flex-1">
+                                <select
+                                  value={section.layout}
+                                  onChange={(e) => updateMainSectionLayout(section.id, e.target.value)}
+                                  className="w-full px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#333] text-xs text-white appearance-none cursor-pointer hover:border-[#8b5cf6]/50 focus:outline-none focus:border-[#8b5cf6] transition-colors"
+                                >
+                                  {SECTION_LAYOUTS.map((l) => (
+                                    <option key={l.id} value={l.id}>
+                                      {l.icon} {l.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#52525b]">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </div>
+                              </div>
+
+                              {/* Layout Description */}
+                              {layout && (
+                                <span className="hidden sm:block text-[10px] text-[#52525b] max-w-[80px] truncate">
+                                  {layout.description}
+                                </span>
+                              )}
+
+                              {/* Price/Free Badge */}
+                              {isFreeSection ? (
+                                <span className="text-[8px] text-[#10b981] px-1.5 py-0.5 rounded bg-[#10b981]/10">ฟรี</span>
+                              ) : (
+                                <span className="text-[8px] text-[#f97316] px-1.5 py-0.5 rounded bg-[#f97316]/10">+{formatPrice(SECTION_PRICE)}</span>
+                              )}
+
+                              {/* Delete Button (only for sections beyond INITIAL_SECTIONS) */}
+                              {state.step2.mainSections.length > 1 && (
+                                <button
+                                  onClick={() => removeMainSection(section.id)}
+                                  className="p-1 rounded text-[#71717a] hover:text-[#ef4444] hover:bg-[#ef4444]/10 transition-colors"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Add Page Button */}
+                  <div className="pt-4 border-t border-[#262626]">
                     <label className="block font-mono text-xs text-[#52525b] mb-3">
                       <span className="text-[#ec4899]">{">"}</span> เพิ่มหน้าเว็บ
                     </label>
-                    <div className="flex flex-wrap gap-2">
-                      {PAGE_TYPES.map((pageType) => (
-                        <button
-                          key={pageType.type}
-                          onClick={() => addPage(pageType.type)}
-                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1a1a1a] border border-[#262626] hover:border-[#ec4899]/50 text-sm transition-all group"
-                        >
-                          <span className="text-[#ec4899] group-hover:scale-110 transition-transform">+</span>
-                          <span className="text-[#a1a1aa]">{pageType.label}</span>
-                          <span className="text-[#52525b]">({pageType.sections} sec)</span>
-                        </button>
-                      ))}
-                    </div>
+                    <button
+                      onClick={addPage}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1a1a1a] border border-[#262626] hover:border-[#ec4899]/50 text-sm transition-all group"
+                    >
+                      <span className="text-[#ec4899] group-hover:scale-110 transition-transform">+</span>
+                      <span className="text-[#a1a1aa]">เพิ่มหน้าใหม่</span>
+                      <span className="text-[10px] text-[#52525b]">(1 section)</span>
+                    </button>
                   </div>
 
                   {/* Added Pages List */}
                   {state.step2.pages.length > 0 && (
-                    <div className="space-y-2 pt-4 border-t border-[#262626]">
-                      <label className="block font-mono text-xs text-[#52525b] mb-2">
+                    <div className="space-y-4 pt-4 border-t border-[#262626]">
+                      <label className="block font-mono text-xs text-[#52525b]">
                         หน้าที่เพิ่ม ({state.step2.pages.length})
                       </label>
-                      {state.step2.pages.map((page, idx) => {
-                        const pageType = PAGE_TYPES.find((p) => p.type === page.type)!;
-                        return (
-                          <div
-                            key={page.id}
-                            className="flex items-center justify-between p-3 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]"
-                          >
+                      {state.step2.pages.map((page, pageIdx) => (
+                        <div
+                          key={page.id}
+                          className="rounded-xl bg-[#0d0d0d] border border-[#ec4899]/30 overflow-hidden"
+                        >
+                          {/* Page Header */}
+                          <div className="flex items-center justify-between p-3 bg-[#141414] border-b border-[#1f1f1f]">
                             <div className="flex items-center gap-3">
-                              <span className="font-mono text-xs text-[#52525b]">#{idx + 1}</span>
-                              <span className="text-sm text-[#a1a1aa]">{pageType.label}</span>
-                              <span className="text-xs text-[#52525b]">({pageType.sections} sec)</span>
+                              <span className="w-6 h-6 rounded-full bg-[#ec4899]/20 flex items-center justify-center font-mono text-xs text-[#ec4899]">
+                                +{pageIdx + 1}
+                              </span>
+                              <span className="text-sm font-medium text-white">{page.name}</span>
+
                             </div>
-                            <button
-                              onClick={() => removePage(page.id)}
-                              className="p-1.5 rounded-lg hover:bg-[#1a1a1a] text-[#52525b] hover:text-[#ec4899] transition-colors"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded-full bg-[#262626] text-[10px] text-[#a1a1aa]">
+                                {page.sections.length} sections
+                              </span>
+                              <button
+                                onClick={() => addSectionToPage(page.id)}
+                                className="px-2 py-1 rounded-lg bg-[#1a1a1a] border border-[#262626] text-[10px] text-[#a1a1aa] hover:border-[#ec4899]/50 hover:text-[#ec4899] transition-colors"
+                              >
+                                + เพิ่ม Section
+                              </button>
+                              <button
+                                onClick={() => removePage(page.id)}
+                                className="p-1.5 rounded-lg hover:bg-[#1a1a1a] text-[#52525b] hover:text-[#ec4899] transition-colors"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
                           </div>
-                        );
-                      })}
+
+                          {/* Sections List */}
+                          <div className="p-3 space-y-2">
+                            {page.sections.map((section, secIdx) => {
+                              const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                              return (
+                                <div
+                                  key={section.id}
+                                  className="flex items-center gap-3 p-2 rounded-lg bg-[#1a1a1a] border border-[#262626] group"
+                                >
+                                  <span className="font-mono text-[10px] text-[#ec4899] w-4">{secIdx + 1}</span>
+
+                                  {/* Layout Dropdown */}
+                                  <div className="relative flex-1">
+                                    <select
+                                      value={section.layout}
+                                      onChange={(e) => updateSectionLayout(page.id, section.id, e.target.value)}
+                                      className="w-full px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#333] text-xs text-white appearance-none cursor-pointer hover:border-[#ec4899]/50 focus:outline-none focus:border-[#ec4899] transition-colors"
+                                    >
+                                      {SECTION_LAYOUTS.map((l) => (
+                                        <option key={l.id} value={l.id}>
+                                          {l.icon} {l.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#52525b]">
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                      </svg>
+                                    </div>
+                                  </div>
+
+                                  {/* Layout Description */}
+                                  {layout && (
+                                    <span className="hidden sm:block text-[10px] text-[#52525b] max-w-[120px] truncate">
+                                      {layout.description}
+                                    </span>
+                                  )}
+
+                                  {/* Remove Section Button */}
+                                  {page.sections.length > 1 && (
+                                    <button
+                                      onClick={() => removeSectionFromPage(page.id, section.id)}
+                                      className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-[#0d0d0d] text-[#52525b] hover:text-[#ec4899] transition-all"
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
-
-                  {/* Extra Sections Counter */}
-                  <div className="pt-4 border-t border-[#262626]">
-                    <label className="block font-mono text-xs text-[#52525b] mb-3">
-                      <span className="text-[#f97316]">{">"}</span> Section เพิ่มเติม
-                    </label>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2 p-1 rounded-lg bg-[#0d0d0d] border border-[#262626]">
-                        <button
-                          onClick={() => updateExtraSections(-1)}
-                          disabled={state.step2.extraSections === 0}
-                          className="w-8 h-8 rounded-md flex items-center justify-center text-[#a1a1aa] hover:bg-[#1a1a1a] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                        >
-                          -
-                        </button>
-                        <span className="w-10 text-center font-mono text-lg text-white">{state.step2.extraSections}</span>
-                        <button
-                          onClick={() => updateExtraSections(1)}
-                          className="w-8 h-8 rounded-md flex items-center justify-center text-[#a1a1aa] hover:bg-[#1a1a1a] transition-all"
-                        >
-                          +
-                        </button>
-                      </div>
-                      <span className="text-xs text-[#52525b]">{formatPrice(SECTION_PRICES.none)}/section</span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -1173,71 +1368,37 @@ export default function PricingSection() {
                       <label className="block font-mono text-xs text-[#52525b]">
                         <span className="text-[#8b5cf6]">{">"}</span> Animation สำหรับหน้าที่เพิ่ม
                       </label>
-                      {state.step2.pages.map((page, idx) => {
-                        const pageType = PAGE_TYPES.find((p) => p.type === page.type)!;
-                        return (
-                          <div key={page.id} className="p-3 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-[#a1a1aa]">
-                                {pageType.label} #{idx + 1}
-                              </span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {(["none", "basic", "complex"] as const).map((anim) => {
-                                const price = pageType.prices[anim];
-                                const labels = { none: "ไม่มี Animation", basic: "+ Animation พื้นฐาน", complex: "+ Animation ซับซ้อน" };
-                                return (
-                                  <button
-                                    key={anim}
-                                    onClick={() => updatePageAnimation(page.id, anim)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
-                                      page.animation === anim
-                                        ? "bg-[#8b5cf6] text-white"
-                                        : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#8b5cf6]/50"
-                                    }`}
-                                  >
-                                    {labels[anim]}
-                                    <span className="ml-1 opacity-70">{formatPrice(price)}</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
+                      {state.step2.pages.map((page) => (
+                        <div key={page.id} className="p-3 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-[#a1a1aa]">
+                              {page.name} ({page.sections.length} sec)
+                            </span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Section Animation Options */}
-                  {state.step2.extraSections > 0 && (
-                    <div className="pt-4 border-t border-[#262626]">
-                      <label className="block font-mono text-xs text-[#52525b] mb-2">
-                        <span className="text-[#f97316]">{">"}</span> Animation สำหรับ Section เพิ่ม (×{state.step2.extraSections})
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {(["none", "basic", "complex"] as const).map((anim) => {
-                          const labels = { none: "ธรรมดา", basic: "+ พื้นฐาน", complex: "+ ซับซ้อน" };
-                          return (
-                            <button
-                              key={anim}
-                              onClick={() => updateSectionAnimation(anim)}
-                              className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
-                                state.step3.sectionAnimation === anim
-                                  ? "bg-[#f97316] text-white"
-                                  : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#f97316]/50"
-                              }`}
-                            >
-                              {labels[anim]}
-                              <span className="ml-1 opacity-70">{formatPrice(SECTION_PRICES[anim])}/sec</span>
-                            </button>
-                          );
-                        })}
-                      </div>
+                          <div className="flex flex-wrap gap-2">
+                            {(["none", "basic", "complex"] as const).map((anim) => {
+                              const labels = { none: "ไม่มี Animation", basic: "+ Animation พื้นฐาน", complex: "+ Animation ซับซ้อน" };
+                              return (
+                                <button
+                                  key={anim}
+                                  onClick={() => updatePageAnimation(page.id, anim)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs transition-all ${page.animation === anim
+                                    ? "bg-[#8b5cf6] text-white"
+                                    : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#8b5cf6]/50"
+                                    }`}
+                                >
+                                  {labels[anim]}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
 
                   {/* Global Animations */}
-                  <div className={state.step2.pages.length > 0 || state.step2.extraSections > 0 ? "pt-4 border-t border-[#262626]" : ""}>
+                  <div className={state.step2.pages.length > 0 ? "pt-4 border-t border-[#262626]" : ""}>
                     <label className="block font-mono text-xs text-[#52525b] mb-3">
                       <span className="text-[#ec4899]">{">"}</span> Animation เพิ่มเติม (Global)
                     </label>
@@ -1248,9 +1409,8 @@ export default function PricingSection() {
                         return (
                           <div
                             key={anim.id}
-                            className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
-                              isActive ? "bg-[#ec4899]/10 border-[#ec4899]/30" : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
-                            }`}
+                            className={`flex items-center justify-between p-3 rounded-lg border transition-all ${isActive ? "bg-[#ec4899]/10 border-[#ec4899]/30" : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
+                              }`}
                           >
                             <div className="flex items-center gap-2">
                               <span className="text-base">{anim.icon}</span>
@@ -1280,14 +1440,12 @@ export default function PricingSection() {
                               ) : (
                                 <button
                                   onClick={() => toggleGlobalAnimation(anim.id)}
-                                  className={`w-10 h-5 rounded-full transition-all ${
-                                    value ? "bg-[#ec4899]" : "bg-[#262626]"
-                                  }`}
+                                  className={`w-10 h-5 rounded-full transition-all ${value ? "bg-[#ec4899]" : "bg-[#262626]"
+                                    }`}
                                 >
                                   <div
-                                    className={`w-4 h-4 rounded-full bg-white transition-transform ${
-                                      value ? "translate-x-5" : "translate-x-0.5"
-                                    }`}
+                                    className={`w-4 h-4 rounded-full bg-white transition-transform ${value ? "translate-x-5" : "translate-x-0.5"
+                                      }`}
                                   />
                                 </button>
                               )}
@@ -1311,11 +1469,10 @@ export default function PricingSection() {
                         <button
                           key={service.id}
                           onClick={() => toggleAddon(service.id)}
-                          className={`flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${
-                            isActive
-                              ? "bg-[#10b981]/10 border-[#10b981]/50"
-                              : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
-                          }`}
+                          className={`flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${isActive
+                            ? "bg-[#10b981]/10 border-[#10b981]/50"
+                            : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
+                            }`}
                         >
                           <div className="flex items-center gap-3">
                             <span className="text-xl">{service.icon}</span>
@@ -1324,9 +1481,8 @@ export default function PricingSection() {
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-mono text-[#10b981]">+{formatPrice(service.price)}</span>
                             <div
-                              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-                                isActive ? "bg-[#10b981] border-[#10b981]" : "border-[#333]"
-                              }`}
+                              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isActive ? "bg-[#10b981] border-[#10b981]" : "border-[#333]"
+                                }`}
                             >
                               {isActive && (
                                 <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1440,6 +1596,7 @@ export default function PricingSection() {
                 <div className={`space-y-4 ${mobilePreviewOpen ? "block" : "hidden lg:block"}`}>
                   {/* Live Preview */}
                   <div className="p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
+                    {/* Header with Summary */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <span className="text-[#8b5cf6]">👁️</span>
@@ -1447,129 +1604,282 @@ export default function PricingSection() {
                       </div>
                     </div>
 
-                    {/* Website Mockup */}
-                    <div className="relative aspect-4/3 rounded-xl bg-[#0a0a0a] border border-[#1f1f1f] overflow-hidden">
-                      {/* Browser Chrome */}
-                      <div className="flex items-center gap-1.5 px-3 py-2 bg-[#141414] border-b border-[#1f1f1f]">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#ec4899]" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#f97316]" />
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#10b981]" />
-                      </div>
-
-                      {/* Page Content */}
-                      <div className="p-3 space-y-2">
-                        {/* Navbar with Play Button */}
-                        <div className="flex items-center gap-2">
-                          <div
-                            ref={previewNavbarRef}
-                            className={`flex-1 flex items-center justify-between p-2 rounded bg-[#1a1a1a] transition-all ${
-                              state.step1.navbar !== "basic" ? "ring-1 ring-[#06b6d4]/50" : ""
-                            } ${getNavbarPreviewClasses}`}
-                          >
-                            <div className="w-12 h-3 rounded bg-[#262626]" />
-                            <div className="flex gap-2">
-                              {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="w-8 h-2 rounded bg-[#262626]" />
-                              ))}
-                            </div>
-                            {state.step1.navbar !== "basic" && (
-                              <span className="text-[8px] text-[#06b6d4]">✨</span>
-                            )}
-                          </div>
-                          {state.step1.navbar === "animated" && (
-                            <button
-                              onClick={playNavbarAnimation}
-                              className="px-1.5 py-1 rounded bg-[#06b6d4]/20 text-[#06b6d4] text-[8px] font-medium hover:bg-[#06b6d4]/30 transition-colors"
-                              title="Play Navbar Animation"
-                            >
-                              ▶
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Hero Section */}
-                        <div className="p-3 rounded bg-linear-to-br from-[#1a1a1a] to-[#0d0d0d]">
-                          <div className="w-20 h-3 rounded bg-[#262626] mb-2" />
-                          <div className="w-16 h-2 rounded bg-[#333]" />
-                        </div>
-
-                        {/* Content Sections */}
-                        <div className="grid grid-cols-3 gap-1.5">
-                          {[1, 2, 3].map((i) => (
-                            <div key={i} className="aspect-square rounded bg-[#1a1a1a]" />
-                          ))}
-                        </div>
-
-                        {/* Extra Sections Indicator */}
-                        {state.step2.extraSections > 0 && (
-                          <div className="p-2 rounded bg-[#f97316]/10 border border-dashed border-[#f97316]/30 text-center">
-                            <span className="text-[10px] text-[#f97316]">
-                              +{state.step2.extraSections} sections
+                    {/* Pages Horizontal Scroll Container */}
+                    <div className="overflow-x-auto pb-2 -mx-2 px-2">
+                      <div className="flex gap-3" style={{ minWidth: 'min-content' }}>
+                        {/* Main Page */}
+                        <div className="shrink-0 w-[200px]">
+                          <div className="text-center mb-2">
+                            <span className="px-2 py-0.5 rounded-full bg-[#8b5cf6]/20 text-[8px] text-[#8b5cf6] font-medium">
+                              หน้าหลัก ({state.step2.mainSections.length} sec)
                             </span>
                           </div>
-                        )}
+                          <div className="rounded-xl bg-[#0a0a0a] border border-[#8b5cf6]/30 overflow-hidden">
+                            {/* Browser Chrome */}
+                            <div className="flex items-center gap-1 px-2 py-1.5 bg-[#141414] border-b border-[#1f1f1f]">
+                              <div className="w-2 h-2 rounded-full bg-[#ec4899]" />
+                              <div className="w-2 h-2 rounded-full bg-[#f97316]" />
+                              <div className="w-2 h-2 rounded-full bg-[#10b981]" />
+                            </div>
 
-                        {/* Footer with Play Button */}
-                        <div className="flex items-center gap-2">
-                          <div
-                            ref={previewFooterRef}
-                            className={`flex-1 p-2 rounded bg-[#1a1a1a] transition-all ${
-                              state.step1.footer !== "basic" ? "ring-1 ring-[#10b981]/50" : ""
-                            } ${getFooterPreviewClasses}`}
-                          >
-                            <div className="flex justify-between">
-                              <div className="w-10 h-2 rounded bg-[#262626]" />
-                              <div className="flex gap-1">
-                                {[1, 2, 3].map((i) => (
-                                  <div key={i} className="w-3 h-3 rounded-full bg-[#262626]" />
-                                ))}
+                            {/* Page Content */}
+                            <div className="p-2 space-y-1.5">
+                              {/* Navbar */}
+                              <div className="flex items-center gap-1">
+                                <div
+                                  ref={previewNavbarRef}
+                                  className={`flex-1 flex items-center justify-between p-1.5 rounded bg-[#1a1a1a] transition-all ${state.step1.navbar !== "basic" ? "ring-1 ring-[#06b6d4]/50" : ""
+                                    } ${getNavbarPreviewClasses}`}
+                                >
+                                  <div className="w-8 h-2 rounded bg-[#262626]" />
+                                  <div className="flex gap-1">
+                                    {[1, 2, 3].map((i) => (
+                                      <div key={i} className="w-4 h-1.5 rounded bg-[#262626]" />
+                                    ))}
+                                  </div>
+                                </div>
+                                {state.step1.navbar === "animated" && (
+                                  <button
+                                    onClick={playNavbarAnimation}
+                                    className="p-1 rounded bg-[#06b6d4]/20 text-[#06b6d4] text-[6px] hover:bg-[#06b6d4]/30"
+                                  >
+                                    ▶
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Main Sections - Vertical Scroll */}
+                              <div className="max-h-[100px] overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                                {state.step2.mainSections.map((section: SectionItem) => {
+                                  const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                                  return (
+                                    <div key={section.id} className="relative p-1.5 rounded bg-[#1a1a1a] border border-[#262626] group">
+                                      {section.layout === "hero" && (
+                                        <div className="p-1 rounded bg-linear-to-br from-[#262626] to-[#1a1a1a]">
+                                          <div className="w-10 h-1.5 rounded bg-[#333]" />
+                                        </div>
+                                      )}
+                                      {section.layout === "text-image" && (
+                                        <div className="flex gap-1">
+                                          <div className="flex-1 h-1.5 rounded bg-[#333]" />
+                                          <div className="w-5 h-5 rounded bg-[#262626]" />
+                                        </div>
+                                      )}
+                                      {section.layout === "image-text" && (
+                                        <div className="flex gap-1">
+                                          <div className="w-5 h-5 rounded bg-[#262626]" />
+                                          <div className="flex-1 h-1.5 rounded bg-[#333]" />
+                                        </div>
+                                      )}
+                                      {section.layout === "three-cols" && (
+                                        <div className="grid grid-cols-3 gap-0.5">
+                                          {[1, 2, 3].map((i) => (
+                                            <div key={i} className="h-4 rounded bg-[#262626]" />
+                                          ))}
+                                        </div>
+                                      )}
+                                      {section.layout === "four-cols" && (
+                                        <div className="grid grid-cols-4 gap-0.5">
+                                          {[1, 2, 3, 4].map((i) => (
+                                            <div key={i} className="h-4 rounded bg-[#262626]" />
+                                          ))}
+                                        </div>
+                                      )}
+                                      {(section.layout === "gallery" || section.layout === "cta" ||
+                                        section.layout === "testimonial" || section.layout === "faq" ||
+                                        section.layout === "stats") && (
+                                          <div className="h-4 rounded bg-[#262626]" />
+                                        )}
+                                      <div className="absolute top-0 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="text-[6px] text-[#52525b]">{layout?.icon}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Footer */}
+                              <div className="flex items-center gap-1">
+                                <div
+                                  ref={previewFooterRef}
+                                  className={`flex-1 p-1.5 rounded bg-[#1a1a1a] transition-all ${state.step1.footer !== "basic" ? "ring-1 ring-[#10b981]/50" : ""
+                                    } ${getFooterPreviewClasses}`}
+                                >
+                                  <div className="flex justify-between">
+                                    <div className="w-6 h-1.5 rounded bg-[#262626]" />
+                                    <div className="flex gap-0.5">
+                                      {[1, 2, 3].map((i) => (
+                                        <div key={i} className="w-2 h-2 rounded-full bg-[#262626]" />
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                                {state.step1.footer === "animated" && (
+                                  <button
+                                    onClick={playFooterAnimation}
+                                    className="p-1 rounded bg-[#10b981]/20 text-[#10b981] text-[6px] hover:bg-[#10b981]/30"
+                                  >
+                                    ▶
+                                  </button>
+                                )}
                               </div>
                             </div>
-                            {state.step1.footer !== "basic" && (
-                              <span className="text-[8px] text-[#10b981]">✨</span>
-                            )}
-                          </div>
-                          {state.step1.footer === "animated" && (
-                            <button
-                              onClick={playFooterAnimation}
-                              className="px-1.5 py-1 rounded bg-[#10b981]/20 text-[#10b981] text-[8px] font-medium hover:bg-[#10b981]/30 transition-colors"
-                              title="Play Footer Animation"
-                            >
-                              ▶
-                            </button>
-                          )}
-                        </div>
-                      </div>
 
-                      {/* Page Tabs */}
-                      {state.step2.pages.length > 0 && (
-                        <div className="absolute top-10 right-2 flex flex-col gap-1">
-                          {state.step2.pages.map((page, idx) => (
-                            <div
-                              key={page.id}
-                              className={`px-1.5 py-0.5 rounded text-[8px] ${
-                                page.animation !== "none"
-                                  ? "bg-[#8b5cf6]/20 text-[#8b5cf6]"
-                                  : "bg-[#262626] text-[#52525b]"
-                              }`}
-                            >
-                              +{idx + 1} {page.animation !== "none" && "✨"}
+                            {/* Section Count */}
+                            <div className="px-2 py-1 bg-[#141414] border-t border-[#1f1f1f] text-center">
+                              <span className="text-[8px] text-[#8b5cf6]">{state.step2.mainSections.length} sections</span>
                             </div>
-                          ))}
+                          </div>
                         </div>
-                      )}
 
-                      {/* Service Icons */}
-                      <div className="absolute bottom-8 right-2 flex gap-1">
-                        {state.step4.seo && <span className="text-[10px]">📊</span>}
-                        {state.step4.bilingual && <span className="text-[10px]">🌐</span>}
-                        {state.step4.cms && <span className="text-[10px]">⚙️</span>}
+                        {/* Added Pages */}
+                        {state.step2.pages.map((page) => (
+                          <div key={page.id} className="shrink-0 w-[200px]">
+                            <div className="text-center mb-2">
+                              <span className="px-2 py-0.5 rounded-full bg-[#ec4899]/20 text-[8px] text-[#ec4899] font-medium">
+                                {page.name}
+                              </span>
+                            </div>
+                            <div className="rounded-xl bg-[#0a0a0a] border border-[#ec4899]/30 overflow-hidden">
+                              {/* Browser Chrome */}
+                              <div className="flex items-center gap-1 px-2 py-1.5 bg-[#141414] border-b border-[#1f1f1f]">
+                                <div className="w-2 h-2 rounded-full bg-[#ec4899]" />
+                                <div className="w-2 h-2 rounded-full bg-[#f97316]" />
+                                <div className="w-2 h-2 rounded-full bg-[#10b981]" />
+                              </div>
+
+                              {/* Page Sections - Vertical Scroll */}
+                              <div className="p-2">
+                                <div className="max-h-[140px] overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                                  {page.sections.map((section) => {
+                                    const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+                                    return (
+                                      <div
+                                        key={section.id}
+                                        className="relative p-1.5 rounded bg-[#1a1a1a] border border-[#262626] group"
+                                      >
+                                        {/* Layout Preview Based on Type */}
+                                        {section.layout === "hero" && (
+                                          <div className="p-1 rounded bg-linear-to-br from-[#262626] to-[#1a1a1a]">
+                                            <div className="w-10 h-1.5 rounded bg-[#333]" />
+                                          </div>
+                                        )}
+                                        {section.layout === "text-image" && (
+                                          <div className="flex gap-1">
+                                            <div className="flex-1 h-1.5 rounded bg-[#333]" />
+                                            <div className="w-5 h-5 rounded bg-[#262626]" />
+                                          </div>
+                                        )}
+                                        {section.layout === "image-text" && (
+                                          <div className="flex gap-1">
+                                            <div className="w-5 h-5 rounded bg-[#262626]" />
+                                            <div className="flex-1 h-1.5 rounded bg-[#333]" />
+                                          </div>
+                                        )}
+                                        {section.layout === "three-cols" && (
+                                          <div className="grid grid-cols-3 gap-0.5">
+                                            {[1, 2, 3].map((i) => (
+                                              <div key={i} className="h-4 rounded bg-[#262626]" />
+                                            ))}
+                                          </div>
+                                        )}
+                                        {section.layout === "four-cols" && (
+                                          <div className="grid grid-cols-4 gap-0.5">
+                                            {[1, 2, 3, 4].map((i) => (
+                                              <div key={i} className="h-4 rounded bg-[#262626]" />
+                                            ))}
+                                          </div>
+                                        )}
+                                        {section.layout === "gallery" && (
+                                          <div className="grid grid-cols-3 gap-0.5">
+                                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                              <div key={i} className="h-2.5 rounded-sm bg-[#262626]" />
+                                            ))}
+                                          </div>
+                                        )}
+                                        {section.layout === "cta" && (
+                                          <div className="text-center py-0.5">
+                                            <div className="w-8 h-2 rounded bg-[#ec4899]/30 mx-auto" />
+                                          </div>
+                                        )}
+                                        {section.layout === "testimonial" && (
+                                          <div className="flex items-center gap-1">
+                                            <div className="w-4 h-4 rounded-full bg-[#262626]" />
+                                            <div className="flex-1 h-1.5 rounded bg-[#333]" />
+                                          </div>
+                                        )}
+                                        {section.layout === "faq" && (
+                                          <div className="space-y-0.5">
+                                            {[1, 2].map((i) => (
+                                              <div key={i} className="h-1.5 rounded bg-[#333]" />
+                                            ))}
+                                          </div>
+                                        )}
+                                        {section.layout === "stats" && (
+                                          <div className="grid grid-cols-4 gap-0.5">
+                                            {[1, 2, 3, 4].map((i) => (
+                                              <div key={i} className="h-3 rounded bg-[#333]" />
+                                            ))}
+                                          </div>
+                                        )}
+
+                                        {/* Section Label */}
+                                        <div className="absolute top-0 right-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <span className="text-[6px] text-[#52525b]">{layout?.icon}</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Section Count */}
+                              <div className="px-2 py-1 bg-[#141414] border-t border-[#1f1f1f] text-center">
+                                <span className="text-[8px] text-[#ec4899]">{page.sections.length} sections</span>
+                                {page.animation !== "none" && (
+                                  <span className="ml-1 text-[8px] text-[#8b5cf6]">✨</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Summary Bar */}
+                    <div className="mt-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#262626]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-[#52525b]">หน้าทั้งหมด:</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-medium text-white">
+                              {1 + state.step2.pages.length}
+                            </span>
+                            <span className="text-[10px] text-[#52525b]">หน้า</span>
+                          </div>
+                          <div className="w-px h-3 bg-[#262626]" />
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-medium text-white">
+                              {(() => {
+                                const addedSections = state.step2.pages.reduce((sum, p) => sum + p.sections.length, 0);
+                                return state.step2.mainSections.length + addedSections;
+                              })()}
+                            </span>
+                            <span className="text-[10px] text-[#52525b]">sections</span>
+                          </div>
+                          {/* Service Icons */}
+                          <div className="flex gap-1 ml-2">
+                            {state.step4.seo && <span className="text-[10px]">📊</span>}
+                            {state.step4.bilingual && <span className="text-[10px]">🌐</span>}
+                            {state.step4.cms && <span className="text-[10px]">⚙️</span>}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Animation Details */}
                     {(state.step1.navbar === "animated" && (state.step1.selectedNavbarAnim || state.step1.navbarCustomAnims.length > 0)) ||
-                    (state.step1.footer === "animated" && (state.step1.selectedFooterAnim || state.step1.footerCustomAnims.length > 0)) ? (
+                      (state.step1.footer === "animated" && (state.step1.selectedFooterAnim || state.step1.footerCustomAnims.length > 0)) ? (
                       <div className="mt-3 p-2 rounded-lg bg-[#0d0d0d] border border-[#262626]">
                         <p className="text-[10px] text-[#52525b] mb-1">Animation ที่เลือก:</p>
                         <div className="flex flex-wrap gap-1">
@@ -1603,7 +1913,7 @@ export default function PricingSection() {
                     <div className="mt-3 flex items-center justify-center gap-2 text-xs text-[#52525b]">
                       <span>หน้าทั้งหมด:</span>
                       <span className="font-mono text-[#8b5cf6]">
-                        {PACKAGES.find((p) => p.id === state.step1.package)?.pages} + {state.step2.pages.length} หน้าเพิ่ม
+                        1 หน้าหลัก + {state.step2.pages.length} หน้าเพิ่ม
                       </span>
                     </div>
                   </div>
