@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 const navItems = [
-  { label: "Home", href: "#home" },
-  { label: "Work", href: "#work" },
-  { label: "About", href: "#about" },
-  { label: "Contact", href: "#contact" },
+  { label: "หน้าแรก", href: "#home" },
+  { label: "คำนวณราคา", href: "#pricing" },
+  { label: "ผลงาน", href: "#work" },
+  { label: "เกี่ยวกับ", href: "#about" },
 ];
 
 export default function Navbar() {
@@ -57,8 +58,13 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
         <a href="#home" className="flex items-center gap-3 group">
-          <div className="relative">
-            <span className="font-mono text-lg font-bold gradient-text-purple">{"<Dev />"}</span>
+          <div className="relative flex items-center gap-2">
+            {/* Logo */}
+           <Image src="/propile.jpg" alt="logo" width={32} height={32} />
+            <div className="hidden sm:block">
+              <span className="font-mono text-sm font-bold text-white">สุเทพ</span>
+              <span className="font-mono text-xs text-[#52525b] ml-1">.dev</span>
+            </div>
           </div>
         </a>
 
@@ -73,16 +79,25 @@ export default function Navbar() {
             >
               <span className="relative z-10">{item.label}</span>
               <span className="absolute inset-0 rounded-lg bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-[#ec4899] to-[#8b5cf6] scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
             </a>
           ))}
         </div>
 
-        {/* Window Controls (Decorative) */}
-        <div className="hidden md:flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-          <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-          <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+        {/* CTA Button + Window Controls */}
+        <div className="hidden md:flex items-center gap-4">
+          <a
+            href="#pricing"
+            className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white text-sm font-medium hover:shadow-lg hover:shadow-[#8b5cf6]/25 transition-all"
+          >
+            สั่งงานเลย
+          </a>
+          {/* Window Controls (Decorative) */}
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+            <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+            <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+          </div>
         </div>
 
         {/* Mobile Menu Button */}
@@ -134,6 +149,14 @@ export default function Navbar() {
               {item.label}
             </a>
           ))}
+          {/* Mobile CTA */}
+          <a
+            href="#pricing"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="mt-2 px-4 py-3 rounded-lg bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white text-center font-medium"
+          >
+            สั่งงานเลย
+          </a>
         </div>
       </div>
     </nav>
