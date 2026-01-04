@@ -2074,7 +2074,7 @@ export default function PricingSection() {
                     </div>
 
                     {/* Pages Horizontal Scroll Container */}
-                    <div className="overflow-x-auto pb-4 -mx-2 px-2">
+                    <div className="overflow-x-auto pb-4 -mx-2 px-3">
                       <div className="flex gap-6" style={{ minWidth: 'min-content' }}>
                         {/* Main Page */}
                         <div className="shrink-0 w-[550px]">
@@ -2110,7 +2110,7 @@ export default function PricingSection() {
                                 {state.step1.navbar === "animated" && (
                                   <button
                                     onClick={playNavbarAnimation}
-                                    className="p-2 rounded-lg bg-[#06b6d4]/20 text-[#06b6d4] text-xs hover:bg-[#06b6d4]/30"
+                                    className="p-2 rounded-lg text-xs bg-[#06b6d4]/20 text-[#06b6d4] hover:bg-[#06b6d4]/30"
                                   >
                                     ▶
                                   </button>
@@ -2118,7 +2118,7 @@ export default function PricingSection() {
                               </div>
 
                               {/* Main Sections - Vertical Scroll */}
-                              <div className="max-h-[200px] overflow-y-auto space-y-2 custom-scrollbar pr-2">
+                              <div className="max-h-[250px] space-y-2 custom-scrollbar">
                                 {state.step2.mainSections.map((section: SectionItem) => {
                                   const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                   const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
@@ -2130,69 +2130,74 @@ export default function PricingSection() {
                                       key={section.id}
                                       // id={`preview-main-${section.id}`}
                                       ref={(el) => setPreviewRef(refKey, el)}  // ✅ ใช้ ref callback
-                                      className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
-                                        }`}
+                                      className="flex items-center gap-2 w-full"
                                     >
-                                      {section.layout === "hero" && (
-                                        <div className="p-2 rounded-lg bg-linear-to-br from-[#262626] to-[#1a1a1a]">
-                                          <div className="w-20 h-3 rounded bg-[#333]" />
-                                        </div>
-                                      )}
-                                      {section.layout === "text-image" && (
-                                        <div className="flex gap-2">
-                                          <div className="flex-1 h-3 rounded bg-[#333]" />
-                                          <div className="w-10 h-10 rounded bg-[#262626]" />
-                                        </div>
-                                      )}
-                                      {section.layout === "image-text" && (
-                                        <div className="flex gap-2">
-                                          <div className="w-10 h-10 rounded bg-[#262626]" />
-                                          <div className="flex-1 h-3 rounded bg-[#333]" />
-                                        </div>
-                                      )}
-                                      {section.layout === "three-cols" && (
-                                        <div className="grid grid-cols-3 gap-1">
-                                          {[1, 2, 3].map((i) => (
-                                            <div key={i} className="h-8 rounded bg-[#262626]" />
-                                          ))}
-                                        </div>
-                                      )}
-                                      {section.layout === "four-cols" && (
-                                        <div className="grid grid-cols-4 gap-1">
-                                          {[1, 2, 3, 4].map((i) => (
-                                            <div key={i} className="h-8 rounded bg-[#262626]" />
-                                          ))}
-                                        </div>
-                                      )}
-                                      {(section.layout === "gallery" || section.layout === "cta" ||
-                                        section.layout === "testimonial" || section.layout === "faq" ||
-                                        section.layout === "stats") && (
-                                          <div className="h-8 rounded bg-[#262626]" />
+                                      <div
+                                        className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
+                                          } w-full`}
+                                      >
+                                        {section.layout === "hero" && (
+                                          <div className="p-2 rounded-lg bg-linear-to-br from-[#262626] to-[#1a1a1a]">
+                                            <div className="w-20 h-3 rounded bg-[#333]" />
+                                          </div>
                                         )}
-                                      {/* Custom Layout */}
-                                      {section.layout === "custom" && (
-                                        <div className="h-8 rounded bg-[#f97316]/20 border border-dashed border-[#f97316]/40 flex items-center justify-center">
-                                          <span className="text-[8px] text-[#f97316]">✏️ {section.customLayout || "Custom"}</span>
+                                        {section.layout === "text-image" && (
+                                          <div className="flex gap-2">
+                                            <div className="flex-1 h-3 rounded bg-[#333]" />
+                                            <div className="w-10 h-10 rounded bg-[#262626]" />
+                                          </div>
+                                        )}
+                                        {section.layout === "image-text" && (
+                                          <div className="flex gap-2">
+                                            <div className="w-10 h-10 rounded bg-[#262626]" />
+                                            <div className="flex-1 h-3 rounded bg-[#333]" />
+                                          </div>
+                                        )}
+                                        {section.layout === "three-cols" && (
+                                          <div className="grid grid-cols-3 gap-1">
+                                            {[1, 2, 3].map((i) => (
+                                              <div key={i} className="h-8 rounded bg-[#262626]" />
+                                            ))}
+                                          </div>
+                                        )}
+                                        {section.layout === "four-cols" && (
+                                          <div className="grid grid-cols-4 gap-1">
+                                            {[1, 2, 3, 4].map((i) => (
+                                              <div key={i} className="h-8 rounded bg-[#262626]" />
+                                            ))}
+                                          </div>
+                                        )}
+                                        {(section.layout === "gallery" || section.layout === "cta" ||
+                                          section.layout === "testimonial" || section.layout === "faq" ||
+                                          section.layout === "stats") && (
+                                            <div className="h-8 rounded bg-[#262626]" />
+                                          )}
+                                        {/* Custom Layout */}
+                                        {section.layout === "custom" && (
+                                          <div className="h-8 rounded bg-[#f97316]/20 border border-dashed border-[#f97316]/40 flex items-center justify-center">
+                                            <span className="text-[8px] text-[#f97316]">✏️ {section.customLayout || "Custom"}</span>
+                                          </div>
+                                        )}
+                                        {/* Layout icon */}
+                                        <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          <span className="text-xs text-[#52525b]">{layout?.icon}</span>
                                         </div>
-                                      )}
-                                      {/* Layout icon */}
-                                      <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span className="text-xs text-[#52525b]">{layout?.icon}</span>
+                                        {/* Animation badge & play button */}
+                                        {section.animation && (
+                                          <div className="absolute top-1 right-1 flex items-center gap-1">
+                                            <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">
+                                              {section.animation === "custom" ? "✏️" : (animInfo?.icon || "✦")}
+                                            </span>
+
+                                          </div>
+                                        )}
                                       </div>
-                                      {/* Animation badge & play button */}
-                                      {section.animation && (
-                                        <div className="absolute top-1 right-1 flex items-center gap-1">
-                                          <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">
-                                            {section.animation === "custom" ? "✏️" : (animInfo?.icon || "✦")}
-                                          </span>
-                                          <button
-                                            onClick={() => playSectionAnimation(refKey, section.animation!)}
-                                            className="p-1 rounded bg-[#ec4899]/20 text-[#ec4899] text-[10px] hover:bg-[#ec4899]/30 transition-colors"
-                                          >
-                                            ▶
-                                          </button>
-                                        </div>
-                                      )}
+                                      <button
+                                        onClick={() => playSectionAnimation(refKey, section.animation!)}
+                                        className="p-2 rounded-lg text-xs bg-[#ec4899]/20 text-[#ec4899] hover:bg-[#ec4899]/30 transition-colors"
+                                      >
+                                        ▶
+                                      </button>
                                     </div>
                                   );
                                 })}
@@ -2249,8 +2254,34 @@ export default function PricingSection() {
                               </div>
 
                               {/* Page Sections - Vertical Scroll */}
-                              <div className="p-4">
-                                <div className="max-h-[280px] overflow-y-auto space-y-2 custom-scrollbar pr-2">
+                              <div className="p-4 space-y-3">
+
+                                {/* Navbar */}
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    ref={previewNavbarRef}
+                                    className={`flex-1 flex items-center justify-between p-3 rounded-lg bg-[#1a1a1a] transition-all ${state.step1.navbar !== "basic" ? "ring-2 ring-[#06b6d4]/50" : ""
+                                      } ${getNavbarPreviewClasses}`}
+                                  >
+                                    <div className="w-16 h-4 rounded bg-[#262626]" />
+                                    <div className="flex gap-2">
+                                      {[1, 2, 3].map((i) => (
+                                        <div key={i} className="w-8 h-3 rounded bg-[#262626]" />
+                                      ))}
+                                    </div>
+                                  </div>
+                                  {state.step1.navbar === "animated" && (
+                                    <button
+                                      onClick={playNavbarAnimation}
+                                      className="p-2 rounded-lg text-xs bg-[#06b6d4]/20 text-[#06b6d4] hover:bg-[#06b6d4]/30"
+                                    >
+                                      ▶
+                                    </button>
+                                  )}
+                                </div>
+
+                                {/* Added Pages Sections - Vertical Scroll */}
+                                <div className="max-h-[250px] space-y-2 custom-scrollbar">
                                   {page.sections.map((section) => {
                                     const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                     const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
@@ -2262,102 +2293,134 @@ export default function PricingSection() {
                                         key={section.id}
                                         // id={`preview-page-${page.id}-${section.id}`}
                                         ref={(el) => setPreviewRef(refKey, el)}  // ✅ ใช้ ref callback
-                                        className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
-                                          }`}
+                                        className="flex items-center gap-2 w-full"
                                       >
-                                        {/* Layout Preview Based on Type */}
-                                        {section.layout === "hero" && (
-                                          <div className="p-2 rounded-lg bg-linear-to-br from-[#262626] to-[#1a1a1a]">
-                                            <div className="w-20 h-3 rounded bg-[#333]" />
-                                          </div>
-                                        )}
-                                        {section.layout === "text-image" && (
-                                          <div className="flex gap-2">
-                                            <div className="flex-1 h-3 rounded bg-[#333]" />
-                                            <div className="w-10 h-10 rounded bg-[#262626]" />
-                                          </div>
-                                        )}
-                                        {section.layout === "image-text" && (
-                                          <div className="flex gap-2">
-                                            <div className="w-10 h-10 rounded bg-[#262626]" />
-                                            <div className="flex-1 h-3 rounded bg-[#333]" />
-                                          </div>
-                                        )}
-                                        {section.layout === "three-cols" && (
-                                          <div className="grid grid-cols-3 gap-1">
-                                            {[1, 2, 3].map((i) => (
-                                              <div key={i} className="h-8 rounded bg-[#262626]" />
-                                            ))}
-                                          </div>
-                                        )}
-                                        {section.layout === "four-cols" && (
-                                          <div className="grid grid-cols-4 gap-1">
-                                            {[1, 2, 3, 4].map((i) => (
-                                              <div key={i} className="h-8 rounded bg-[#262626]" />
-                                            ))}
-                                          </div>
-                                        )}
-                                        {section.layout === "gallery" && (
-                                          <div className="grid grid-cols-3 gap-1">
-                                            {[1, 2, 3, 4, 5, 6].map((i) => (
-                                              <div key={i} className="h-5 rounded bg-[#262626]" />
-                                            ))}
-                                          </div>
-                                        )}
-                                        {section.layout === "cta" && (
-                                          <div className="text-center py-1">
-                                            <div className="w-16 h-4 rounded bg-[#ec4899]/30 mx-auto" />
-                                          </div>
-                                        )}
-                                        {section.layout === "testimonial" && (
-                                          <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-[#262626]" />
-                                            <div className="flex-1 h-3 rounded bg-[#333]" />
-                                          </div>
-                                        )}
-                                        {section.layout === "faq" && (
-                                          <div className="space-y-1">
-                                            {[1, 2].map((i) => (
-                                              <div key={i} className="h-3 rounded bg-[#333]" />
-                                            ))}
-                                          </div>
-                                        )}
-                                        {section.layout === "stats" && (
-                                          <div className="grid grid-cols-4 gap-1">
-                                            {[1, 2, 3, 4].map((i) => (
-                                              <div key={i} className="h-6 rounded bg-[#333]" />
-                                            ))}
-                                          </div>
-                                        )}
-                                        {/* Custom Layout */}
-                                        {section.layout === "custom" && (
-                                          <div className="h-8 rounded bg-[#f97316]/20 border border-dashed border-[#f97316]/40 flex items-center justify-center">
-                                            <span className="text-[8px] text-[#f97316]">✏️ {section.customLayout || "Custom"}</span>
-                                          </div>
-                                        )}
+                                        <div
+                                          className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
+                                            } w-full`}
+                                        >
+                                          {/* Layout Preview Based on Type */}
+                                          {section.layout === "hero" && (
+                                            <div className="p-2 rounded-lg bg-linear-to-br from-[#262626] to-[#1a1a1a]">
+                                              <div className="w-20 h-3 rounded bg-[#333]" />
+                                            </div>
+                                          )}
+                                          {section.layout === "text-image" && (
+                                            <div className="flex gap-2">
+                                              <div className="flex-1 h-3 rounded bg-[#333]" />
+                                              <div className="w-10 h-10 rounded bg-[#262626]" />
+                                            </div>
+                                          )}
+                                          {section.layout === "image-text" && (
+                                            <div className="flex gap-2">
+                                              <div className="w-10 h-10 rounded bg-[#262626]" />
+                                              <div className="flex-1 h-3 rounded bg-[#333]" />
+                                            </div>
+                                          )}
+                                          {section.layout === "three-cols" && (
+                                            <div className="grid grid-cols-3 gap-1">
+                                              {[1, 2, 3].map((i) => (
+                                                <div key={i} className="h-8 rounded bg-[#262626]" />
+                                              ))}
+                                            </div>
+                                          )}
+                                          {section.layout === "four-cols" && (
+                                            <div className="grid grid-cols-4 gap-1">
+                                              {[1, 2, 3, 4].map((i) => (
+                                                <div key={i} className="h-8 rounded bg-[#262626]" />
+                                              ))}
+                                            </div>
+                                          )}
+                                          {section.layout === "gallery" && (
+                                            <div className="grid grid-cols-3 gap-1">
+                                              {[1, 2, 3, 4, 5, 6].map((i) => (
+                                                <div key={i} className="h-5 rounded bg-[#262626]" />
+                                              ))}
+                                            </div>
+                                          )}
+                                          {section.layout === "cta" && (
+                                            <div className="text-center py-1">
+                                              <div className="w-16 h-4 rounded bg-[#ec4899]/30 mx-auto" />
+                                            </div>
+                                          )}
+                                          {section.layout === "testimonial" && (
+                                            <div className="flex items-center gap-2">
+                                              <div className="w-8 h-8 rounded-full bg-[#262626]" />
+                                              <div className="flex-1 h-3 rounded bg-[#333]" />
+                                            </div>
+                                          )}
+                                          {section.layout === "faq" && (
+                                            <div className="space-y-1">
+                                              {[1, 2].map((i) => (
+                                                <div key={i} className="h-3 rounded bg-[#333]" />
+                                              ))}
+                                            </div>
+                                          )}
+                                          {section.layout === "stats" && (
+                                            <div className="grid grid-cols-4 gap-1">
+                                              {[1, 2, 3, 4].map((i) => (
+                                                <div key={i} className="h-6 rounded bg-[#333]" />
+                                              ))}
+                                            </div>
+                                          )}
+                                          {/* Custom Layout */}
+                                          {section.layout === "custom" && (
+                                            <div className="h-8 rounded bg-[#f97316]/20 border border-dashed border-[#f97316]/40 flex items-center justify-center">
+                                              <span className="text-[8px] text-[#f97316]">✏️ {section.customLayout || "Custom"}</span>
+                                            </div>
+                                          )}
 
-                                        {/* Layout icon */}
-                                        <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <span className="text-xs text-[#52525b]">{layout?.icon}</span>
-                                        </div>
-                                        {/* Animation badge & play button */}
-                                        {section.animation && (
-                                          <div className="absolute top-1 right-1 flex items-center gap-1">
-                                            <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">
-                                              {section.animation === "custom" ? "✏️" : (animInfo?.icon || "✦")}
-                                            </span>
-                                            <button
-                                              onClick={() => playSectionAnimation(refKey, section.animation!)}
-                                              className="p-1 rounded bg-[#ec4899]/20 text-[#ec4899] text-[10px] hover:bg-[#ec4899]/30 transition-colors"
-                                            >
-                                              ▶
-                                            </button>
+                                          {/* Layout icon */}
+                                          <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="text-xs text-[#52525b]">{layout?.icon}</span>
                                           </div>
-                                        )}
+                                          {/* Animation badge & play button */}
+                                          {section.animation && (
+                                            <div className="absolute top-1 right-1 flex items-center gap-1">
+                                              <span className="text-[10px] text-[#ec4899] bg-[#ec4899]/20 px-2 rounded">
+                                                {section.animation === "custom" ? "✏️" : (animInfo?.icon || "✦")}
+                                              </span>
+
+                                            </div>
+                                          )}
+                                        </div>
+                                        <button
+                                          onClick={() => playSectionAnimation(refKey, section.animation!)}
+                                          className="p-2 rounded-lg text-xs bg-[#ec4899]/20 text-[#ec4899] hover:bg-[#ec4899]/30 transition-colors"
+                                        >
+                                          ▶
+                                        </button>
                                       </div>
                                     );
                                   })}
                                 </div>
+
+                                {/* Footer */}
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    ref={previewFooterRef}
+                                    className={`flex-1 p-3 rounded-lg bg-[#1a1a1a] transition-all ${state.step1.footer !== "basic" ? "ring-2 ring-[#10b981]/50" : ""
+                                      } ${getFooterPreviewClasses}`}
+                                  >
+                                    <div className="flex justify-between">
+                                      <div className="w-12 h-3 rounded bg-[#262626]" />
+                                      <div className="flex gap-1">
+                                        {[1, 2, 3].map((i) => (
+                                          <div key={i} className="w-4 h-4 rounded-full bg-[#262626]" />
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  {state.step1.footer === "animated" && (
+                                    <button
+                                      onClick={playFooterAnimation}
+                                      className="p-2 rounded-lg bg-[#10b981]/20 text-[#10b981] text-xs hover:bg-[#10b981]/30"
+                                    >
+                                      ▶
+                                    </button>
+                                  )}
+                                </div>
+
                               </div>
 
                               {/* Section Count */}
