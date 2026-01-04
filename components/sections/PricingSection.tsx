@@ -951,9 +951,50 @@ export default function PricingSection() {
       `${"รวมทั้งหมด".padEnd(30)} ${formatPrice(priceBreakdown.total)}`,
       `${"ระยะเวลาโดยประมาณ".padEnd(30)} ${getEstimatedDays(priceBreakdown.total)}`,
       "══════════════════════════════════",
+      "",
+      "📋 สรุป Sections",
+      "──────────────────────────────────",
+      "",
+      `🏠 หน้าหลัก (${state.step2.mainSections.length} sections)`,
+      ...state.step2.mainSections.map((section, idx) => {
+        const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+        const animInfo = section.animation && section.animation !== "custom"
+          ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation)
+          : null;
+        const layoutText = section.layout === "custom"
+          ? `✏️ ${section.customLayout || "กำหนดเอง"}`
+          : `${layoutInfo?.icon || ""} ${layoutInfo?.label || section.layout}`;
+        const animText = section.animation === "custom"
+          ? `✏️ ${section.customAnimation || "กำหนดเอง"}`
+          : animInfo
+            ? `${animInfo.icon || ""} ${animInfo.label}`
+            : "";
+        return `   ${idx + 1}. ${layoutText}${animText ? ` | ${animText}` : ""}`;
+      }),
+      ...state.step2.pages.flatMap((page) => [
+        "",
+        `📄 ${page.name} (${page.sections.length} sections)`,
+        ...page.sections.map((section, idx) => {
+          const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+          const animInfo = section.animation && section.animation !== "custom"
+            ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation)
+            : null;
+          const layoutText = section.layout === "custom"
+            ? `✏️ ${section.customLayout || "กำหนดเอง"}`
+            : `${layoutInfo?.icon || ""} ${layoutInfo?.label || section.layout}`;
+          const animText = section.animation === "custom"
+            ? `✏️ ${section.customAnimation || "กำหนดเอง"}`
+            : animInfo
+              ? `${animInfo.icon || ""} ${animInfo.label}`
+              : "";
+          return `   ${idx + 1}. ${layoutText}${animText ? ` | ${animText}` : ""}`;
+        }),
+      ]),
+      "",
+      "══════════════════════════════════",
     ];
     return lines.join("\n");
-  }, [priceBreakdown]);
+  }, [priceBreakdown, state.step2.mainSections, state.step2.pages]);
 
   const copyQuote = useCallback(async () => {
     await navigator.clipboard.writeText(generateQuote());
@@ -1984,7 +2025,7 @@ export default function PricingSection() {
 
                 <div className={`space-y-4 ${mobilePreviewOpen ? "block" : "hidden lg:block"}`}>
                   {/* Live Preview */}
-                  <div className="p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
+                  <div className="p-3 rounded-2xl bg-[#141414]/80 border border-[#262626]">
                     {/* Header with Summary */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
@@ -2005,10 +2046,10 @@ export default function PricingSection() {
                           </div>
                           <div className="rounded-2xl bg-[#0a0a0a] border border-[#8b5cf6]/30 overflow-hidden">
                             {/* Browser Chrome */}
-                            <div className="flex items-center gap-2 px-4 py-3 bg-[#141414] border-b border-[#1f1f1f]">
-                              <div className="w-4 h-4 rounded-full bg-[#ec4899]" />
-                              <div className="w-4 h-4 rounded-full bg-[#f97316]" />
-                              <div className="w-4 h-4 rounded-full bg-[#10b981]" />
+                            <div className="flex items-center gap-2 px-4 py-2 bg-[#141414] border-b border-[#1f1f1f]">
+                              <div className="w-2.5 h-2.5 rounded-full bg-[#ec4899]" />
+                              <div className="w-2.5 h-2.5 rounded-full bg-[#f97316]" />
+                              <div className="w-2.5 h-2.5 rounded-full bg-[#10b981]" />
                             </div>
 
                             {/* Page Content */}
@@ -2162,10 +2203,10 @@ export default function PricingSection() {
                             </div>
                             <div className="rounded-2xl bg-[#0a0a0a] border border-[#ec4899]/30 overflow-hidden">
                               {/* Browser Chrome */}
-                              <div className="flex items-center gap-2 px-4 py-3 bg-[#141414] border-b border-[#1f1f1f]">
-                                <div className="w-4 h-4 rounded-full bg-[#ec4899]" />
-                                <div className="w-4 h-4 rounded-full bg-[#f97316]" />
-                                <div className="w-4 h-4 rounded-full bg-[#10b981]" />
+                              <div className="flex items-center gap-2 px-4 py-2 bg-[#141414] border-b border-[#1f1f1f]">
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#ec4899]" />
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#f97316]" />
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#10b981]" />
                               </div>
 
                               {/* Page Sections - Vertical Scroll */}
@@ -2324,6 +2365,39 @@ export default function PricingSection() {
                       </div>
                     </div>
 
+
+                    {/* Animation Details */}
+                    {(state.step1.navbar === "animated" && (state.step1.selectedNavbarAnim || state.step1.navbarCustomAnims.length > 0)) ||
+                      (state.step1.footer === "animated" && (state.step1.selectedFooterAnim || state.step1.footerCustomAnims.length > 0)) ? (
+                      <div className="mt-3 p-2 rounded-lg bg-[#0d0d0d] border border-[#262626]">
+                        <p className="text-[10px] text-[#52525b] mb-1">Animation ที่เลือก (Navbar & Footer) :</p>
+                        <div className="flex flex-wrap gap-1">
+                          {state.step1.selectedNavbarAnim && (
+                            <span className="px-1.5 py-0.5 rounded bg-[#06b6d4]/20 text-[8px] text-[#06b6d4]">
+                              Navbar : {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim)?.icon}{" "}
+                              {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim)?.label}
+                            </span>
+                          )}
+                          {state.step1.navbarCustomAnims.map((anim) => (
+                            <span key={anim.id} className="px-1.5 py-0.5 rounded bg-[#06b6d4]/20 text-[8px] text-[#06b6d4]">
+                              Navbar : ✦ {anim.label}
+                            </span>
+                          ))}
+                          {state.step1.selectedFooterAnim && (
+                            <span className="px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[8px] text-[#10b981]">
+                              Footer : {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim)?.icon}{" "}
+                              {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim)?.label}
+                            </span>
+                          )}
+                          {state.step1.footerCustomAnims.map((anim) => (
+                            <span key={anim.id} className="px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[8px] text-[#10b981]">
+                              Footer : ✦ {anim.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
                     {/* Section Details Summary */}
                     <div className="mt-3 p-4 rounded-xl bg-[#0d0d0d] border border-[#262626]">
                       <p className="text-[10px] text-[#52525b] mb-3 font-mono uppercase tracking-wider">📋 สรุป Sections</p>
@@ -2413,38 +2487,6 @@ export default function PricingSection() {
                       ))}
                     </div>
 
-                    {/* Animation Details */}
-                    {(state.step1.navbar === "animated" && (state.step1.selectedNavbarAnim || state.step1.navbarCustomAnims.length > 0)) ||
-                      (state.step1.footer === "animated" && (state.step1.selectedFooterAnim || state.step1.footerCustomAnims.length > 0)) ? (
-                      <div className="mt-3 p-2 rounded-lg bg-[#0d0d0d] border border-[#262626]">
-                        <p className="text-[10px] text-[#52525b] mb-1">Animation ที่เลือก:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {state.step1.selectedNavbarAnim && (
-                            <span className="px-1.5 py-0.5 rounded bg-[#06b6d4]/20 text-[8px] text-[#06b6d4]">
-                              {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim)?.icon}{" "}
-                              {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim)?.label}
-                            </span>
-                          )}
-                          {state.step1.navbarCustomAnims.map((anim) => (
-                            <span key={anim.id} className="px-1.5 py-0.5 rounded bg-[#06b6d4]/20 text-[8px] text-[#06b6d4]">
-                              ✦ {anim.label}
-                            </span>
-                          ))}
-                          {state.step1.selectedFooterAnim && (
-                            <span className="px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[8px] text-[#10b981]">
-                              {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim)?.icon}{" "}
-                              {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim)?.label}
-                            </span>
-                          )}
-                          {state.step1.footerCustomAnims.map((anim) => (
-                            <span key={anim.id} className="px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[8px] text-[#10b981]">
-                              ✦ {anim.label}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-
                     {/* Page Count */}
                     <div className="mt-3 flex items-center justify-center gap-2 text-xs text-[#52525b]">
                       <span>หน้าทั้งหมด:</span>
@@ -2453,28 +2495,6 @@ export default function PricingSection() {
                       </span>
                     </div>
                   </div>
-
-                  {/* Selected Animations */}
-                  {selectedAnimations.length > 0 && (
-                    <div className="p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[#ec4899]">✨</span>
-                        <span className="font-mono text-xs uppercase tracking-wider text-[#52525b]">
-                          ANIMATION ({selectedAnimations.length})
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedAnimations.map((anim, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2 py-1 rounded-lg bg-[#ec4899]/10 border border-[#ec4899]/20 text-xs text-[#ec4899]"
-                          >
-                            ✓ {anim}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Price Summary */}
                   <div className="p-5 rounded-2xl bg-linear-to-b from-[#1a1a1a] to-[#141414] border border-[#262626]">
@@ -2491,6 +2511,25 @@ export default function PricingSection() {
                           <span className="font-mono text-[#52525b] whitespace-nowrap">{formatPrice(item.price)}</span>
                         </div>
                       ))}
+                    </div>
+
+                    {/* Compact Section Summary */}
+                    <div className="mb-4 p-3 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]">
+                      <p className="text-[9px] text-[#52525b] mb-2 font-mono uppercase tracking-wider">📋 สรุป Sections</p>
+                      <div className="space-y-1.5 text-[10px] max-h-[100px] overflow-y-auto">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[#8b5cf6]">🏠</span>
+                          <span className="text-[#a1a1aa]">หน้าหลัก:</span>
+                          <span className="text-white">{state.step2.mainSections.length} sections</span>
+                        </div>
+                        {state.step2.pages.map((page) => (
+                          <div key={page.id} className="flex items-center gap-1.5">
+                            <span className="text-[#ec4899]">📄</span>
+                            <span className="text-[#a1a1aa]">{page.name}:</span>
+                            <span className="text-white">{page.sections.length} sections</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="pt-4 border-t border-[#262626]">
