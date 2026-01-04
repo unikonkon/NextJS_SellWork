@@ -938,6 +938,32 @@ export default function PricingSection() {
     }));
   }, []);
 
+  // ==================== AUTO-GENERATED REQUIREMENTS ====================
+  const autoRequirements = useMemo(() => {
+    const reqs: string[] = [
+      "Logo (PNG/SVG format)",
+      "ข้อความ/เนื้อหาทุกหน้า",
+      "รูปภาพสำหรับเว็บ (Hero, Banner)",
+      "ข้อมูลติดต่อ (โทร, อีเมล, ที่อยู่)",
+      "Social Media Links",
+    ];
+
+    state.step2.pages.forEach((page) => {
+      reqs.push(`เนื้อหาสำหรับ ${page.name} (${page.sections.length} sec)`);
+    });
+
+    if (state.step3.seo) {
+      reqs.push("Keywords หลักสำหรับ SEO");
+      reqs.push("Meta Description ที่ต้องการ");
+    }
+
+    if (state.step3.bilingual) {
+      reqs.push("เนื้อหาภาษาอังกฤษทั้งหมด");
+    }
+
+    return reqs;
+  }, [state]);
+
   // Generate Quote
   const generateQuote = useCallback(() => {
     const lines = [
@@ -992,14 +1018,35 @@ export default function PricingSection() {
       ]),
       "",
       "══════════════════════════════════",
+      "",
+      "📝 STEP 4: สิ่งที่ต้องเตรียมก่อนสั่งงาน",
+      "──────────────────────────────────",
+      "",
+      ...autoRequirements.map((req, idx) => `   ${idx + 1}. ${req}`),
+      "",
+      "══════════════════════════════════",
     ];
     return lines.join("\n");
-  }, [priceBreakdown, state.step2.mainSections, state.step2.pages]);
+  }, [priceBreakdown, state.step2.mainSections, state.step2.pages, autoRequirements]);
 
   const copyQuote = useCallback(async () => {
     await navigator.clipboard.writeText(generateQuote());
     setCopiedQuote(true);
     setTimeout(() => setCopiedQuote(false), 2000);
+  }, [generateQuote]);
+
+  const downloadQuote = useCallback(() => {
+    const quoteText = generateQuote();
+    const blob = new Blob([quoteText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const timestamp = new Date().toISOString().slice(0, 10);
+    link.download = `quote-${timestamp}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }, [generateQuote]);
 
   // ==================== PREVIEW ANIMATION TRIGGERS ====================
@@ -1040,32 +1087,6 @@ export default function PricingSection() {
 
     return () => ctx.revert();
   }, []);
-
-  // ==================== AUTO-GENERATED REQUIREMENTS ====================
-  const autoRequirements = useMemo(() => {
-    const reqs: string[] = [
-      "Logo (PNG/SVG format)",
-      "ข้อความ/เนื้อหาทุกหน้า",
-      "รูปภาพสำหรับเว็บ (Hero, Banner)",
-      "ข้อมูลติดต่อ (โทร, อีเมล, ที่อยู่)",
-      "Social Media Links",
-    ];
-
-    state.step2.pages.forEach((page) => {
-      reqs.push(`เนื้อหาสำหรับ ${page.name} (${page.sections.length} sec)`);
-    });
-
-    if (state.step3.seo) {
-      reqs.push("Keywords หลักสำหรับ SEO");
-      reqs.push("Meta Description ที่ต้องการ");
-    }
-
-    if (state.step3.bilingual) {
-      reqs.push("เนื้อหาภาษาอังกฤษทั้งหมด");
-    }
-
-    return reqs;
-  }, [state]);
 
   // ==================== SELECTED ANIMATIONS LIST ====================
   const selectedAnimations = useMemo(() => {
@@ -1549,12 +1570,12 @@ export default function PricingSection() {
                                 {/* Price Badges */}
                                 <div className="flex items-center gap-1 shrink-0">
                                   {isFreeSection ? (
-                                    <span className="text-[8px] text-[#10b981] px-1.5 py-0.5 rounded bg-[#10b981]/10">ฟรี</span>
+                                    <span className="text-[10px] text-[#10b981] px-1.5 py-0.5 rounded bg-[#10b981]/10">ฟรี</span>
                                   ) : (
-                                    <span className="text-[8px] text-[#f97316] px-1.5 py-0.5 rounded bg-[#f97316]/10">+{formatPrice(SECTION_PRICE)}</span>
+                                    <span className="text-[10px] text-[#f97316] px-1.5 py-0.5 rounded bg-[#f97316]/10">+{formatPrice(SECTION_PRICE)}</span>
                                   )}
                                   {(section.animation || section.customAnimation) && (
-                                    <span className="text-[8px] text-[#ec4899] px-1.5 py-0.5 rounded bg-[#ec4899]/10">+{formatPrice(SECTION_ANIMATION_PRICE)}</span>
+                                    <span className="text-[10px] text-[#ec4899] px-1.5 py-0.5 rounded bg-[#ec4899]/10">+{formatPrice(SECTION_ANIMATION_PRICE)}</span>
                                   )}
                                 </div>
 
@@ -1570,6 +1591,15 @@ export default function PricingSection() {
                                   </button>
                                 )}
                               </div>
+
+                              {/* Layout Description */}
+                              {section.layout !== "custom" && (
+                                <div className="pl-7 py-1">
+                                  <p className="text-[12px] text-[#52525b] italic">
+                                    {SECTION_LAYOUTS.find((l) => l.id === section.layout)?.description}
+                                  </p>
+                                </div>
+                              )}
 
                               {/* Custom Layout Input */}
                               {section.layout === "custom" && (
@@ -1595,15 +1625,15 @@ export default function PricingSection() {
                               {availableAnims.length > 0 && (
                                 <div className="pl-7 pt-2 border-t border-[#262626]/50">
                                   <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-[10px] text-[#ec4899]">✦</span>
-                                    <span className="text-[10px] text-[#71717a]">เลือก Animation</span>
+                                    <span className="text-[12px] text-[#ec4899]">✦</span>
+                                    <span className="text-[12px] text-[#71717a]">เลือก Animation</span>
                                     {(section.animation || section.customAnimation) && (
                                       <button
                                         onClick={() => {
                                           updateMainSectionAnimation(section.id, null);
                                           updateMainSectionCustomAnimation(section.id, "");
                                         }}
-                                        className="ml-auto text-[8px] text-[#71717a] hover:text-[#ec4899] transition-colors"
+                                        className="ml-auto text-[10px] text-[#71717a] hover:text-[#ec4899] transition-colors"
                                       >
                                         ยกเลิก
                                       </button>
@@ -1617,7 +1647,7 @@ export default function PricingSection() {
                                           updateMainSectionAnimation(section.id, section.animation === anim.id ? null : anim.id);
                                           if (section.animation !== anim.id) updateMainSectionCustomAnimation(section.id, "");
                                         }}
-                                        className={`group/anim relative px-2 py-1 rounded-md text-[10px] transition-all ${section.animation === anim.id
+                                        className={`group/anim relative px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === anim.id
                                           ? "bg-[#ec4899] text-white"
                                           : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
                                           }`}
@@ -1632,7 +1662,7 @@ export default function PricingSection() {
                                       onClick={() => {
                                         updateMainSectionAnimation(section.id, section.animation === "custom" ? null : "custom");
                                       }}
-                                      className={`group/anim relative px-2 py-1 rounded-md text-[10px] transition-all ${section.animation === "custom"
+                                      className={`group/anim relative px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === "custom"
                                         ? "bg-[#ec4899] text-white"
                                         : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
                                         }`}
@@ -1643,7 +1673,7 @@ export default function PricingSection() {
                                     </button>
                                   </div>
                                   {selectedAnim && (
-                                    <p className="mt-1.5 text-[9px] text-[#52525b] italic">{selectedAnim.description}</p>
+                                    <p className="mt-1.5 text-[12px] text-[#52525b] italic">{selectedAnim.description}</p>
                                   )}
                                   {/* Custom Animation Input */}
                                   {section.animation === "custom" && (
@@ -1766,7 +1796,7 @@ export default function PricingSection() {
 
                                     {/* Price Badge */}
                                     {(section.animation || section.customAnimation) && (
-                                      <span className="text-[8px] text-[#ec4899] px-1.5 py-0.5 rounded bg-[#ec4899]/10 shrink-0">+{formatPrice(SECTION_ANIMATION_PRICE)}</span>
+                                      <span className="text-[10px] text-[#ec4899] px-1.5 py-0.5 rounded bg-[#ec4899]/10 shrink-0">+{formatPrice(SECTION_ANIMATION_PRICE)}</span>
                                     )}
 
                                     {/* Remove Section Button */}
@@ -1781,6 +1811,15 @@ export default function PricingSection() {
                                       </button>
                                     )}
                                   </div>
+
+                                  {/* Layout Description */}
+                                  {section.layout !== "custom" && (
+                                    <div className="pl-7 py-1">
+                                      <p className="text-[12px] text-[#52525b] italic">
+                                        {SECTION_LAYOUTS.find((l) => l.id === section.layout)?.description}
+                                      </p>
+                                    </div>
+                                  )}
 
                                   {/* Custom Layout Input */}
                                   {section.layout === "custom" && (
@@ -1806,15 +1845,15 @@ export default function PricingSection() {
                                   {availableAnims.length > 0 && (
                                     <div className="pl-7 pt-2 border-t border-[#262626]/50">
                                       <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-[10px] text-[#ec4899]">✦</span>
-                                        <span className="text-[10px] text-[#71717a]">Animation</span>
+                                        <span className="text-[12px] text-[#ec4899]">✦</span>
+                                        <span className="text-[12px] text-[#71717a]">Animation</span>
                                         {(section.animation || section.customAnimation) && (
                                           <button
                                             onClick={() => {
                                               updatePageSectionAnimation(page.id, section.id, null);
                                               updatePageSectionCustomAnimation(page.id, section.id, "");
                                             }}
-                                            className="ml-auto text-[8px] text-[#71717a] hover:text-[#ec4899] transition-colors"
+                                            className="ml-auto text-[10px] text-[#71717a] hover:text-[#ec4899] transition-colors"
                                           >
                                             ยกเลิก
                                           </button>
@@ -1828,7 +1867,7 @@ export default function PricingSection() {
                                               updatePageSectionAnimation(page.id, section.id, section.animation === anim.id ? null : anim.id);
                                               if (section.animation !== anim.id) updatePageSectionCustomAnimation(page.id, section.id, "");
                                             }}
-                                            className={`px-2 py-1 rounded-md text-[10px] transition-all ${section.animation === anim.id
+                                            className={`px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === anim.id
                                               ? "bg-[#ec4899] text-white"
                                               : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
                                               }`}
@@ -1843,18 +1882,18 @@ export default function PricingSection() {
                                           onClick={() => {
                                             updatePageSectionAnimation(page.id, section.id, section.animation === "custom" ? null : "custom");
                                           }}
-                                          className={`px-2 py-1 rounded-md text-[10px] transition-all ${section.animation === "custom"
+                                          className={`px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === "custom"
                                             ? "bg-[#ec4899] text-white"
                                             : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
                                             }`}
                                           title={CUSTOM_ANIMATION_OPTION.description}
                                         >
-                                          <span className="mr-1">{CUSTOM_ANIMATION_OPTION.icon}</span>
+                                          <span className="mr-1 text-[12px]">{CUSTOM_ANIMATION_OPTION.icon}</span>
                                           {CUSTOM_ANIMATION_OPTION.label}
                                         </button>
                                       </div>
                                       {selectedAnim && (
-                                        <p className="mt-1.5 text-[9px] text-[#52525b] italic">{selectedAnim.description}</p>
+                                        <p className="mt-1.5 text-[12px] text-[#52525b] italic">{selectedAnim.description}</p>
                                       )}
                                       {/* Custom Animation Input */}
                                       {section.animation === "custom" && (
@@ -2572,13 +2611,15 @@ export default function PricingSection() {
                             </>
                           )}
                         </button>
-                        <a
-                          href="#contact"
+                        <button
+                          onClick={downloadQuote}
                           className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-linear-to-r from-[#8b5cf6] to-[#ec4899] text-white text-sm font-medium hover:shadow-lg hover:shadow-[#8b5cf6]/25 transition-all"
                         >
-                          <span>💬</span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
                           <span>ขอใบเสนอราคา</span>
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
