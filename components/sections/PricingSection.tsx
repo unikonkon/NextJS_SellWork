@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import LayoutModal from "@/components/ui/LayoutModal";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -1575,24 +1576,14 @@ export default function PricingSection() {
                               <div className="flex items-center gap-3 mb-2">
                                 <span className="font-mono text-[10px] text-[#8b5cf6] w-4 shrink-0">{secIdx + 1}</span>
 
-                                {/* Layout Dropdown */}
+                                {/* Layout Modal */}
                                 <div className="relative flex-1 min-w-0">
-                                  <select
+                                  <LayoutModal
                                     value={section.layout}
-                                    onChange={(e) => updateMainSectionLayout(section.id, e.target.value)}
-                                    className="w-full px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#333] text-xs text-white appearance-none cursor-pointer hover:border-[#8b5cf6]/50 focus:outline-none focus:border-[#8b5cf6] transition-colors"
-                                  >
-                                    {SECTION_LAYOUTS.map((l) => (
-                                      <option key={l.id} value={l.id}>
-                                        {l.icon} {l.label}
-                                      </option>
-                                    ))}
-                                  </select>
-                                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#52525b]">
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                  </div>
+                                    onChange={(value) => updateMainSectionLayout(section.id, value)}
+                                    options={SECTION_LAYOUTS}
+                                    triggerColor="purple"
+                                  />
                                 </div>
 
                                 {/* Price Badges */}
@@ -1802,24 +1793,14 @@ export default function PricingSection() {
                                   <div className="flex items-center gap-3 mb-2">
                                     <span className="font-mono text-[10px] text-[#ec4899] w-4 shrink-0">{secIdx + 1}</span>
 
-                                    {/* Layout Dropdown */}
+                                    {/* Layout Modal */}
                                     <div className="relative flex-1 min-w-0">
-                                      <select
+                                      <LayoutModal
                                         value={section.layout}
-                                        onChange={(e) => updateSectionLayout(page.id, section.id, e.target.value)}
-                                        className="w-full px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#333] text-xs text-white appearance-none cursor-pointer hover:border-[#ec4899]/50 focus:outline-none focus:border-[#ec4899] transition-colors"
-                                      >
-                                        {SECTION_LAYOUTS.map((l) => (
-                                          <option key={l.id} value={l.id}>
-                                            {l.icon} {l.label}
-                                          </option>
-                                        ))}
-                                      </select>
-                                      <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[#52525b]">
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                      </div>
+                                        onChange={(value) => updateSectionLayout(page.id, section.id, value)}
+                                        options={SECTION_LAYOUTS}
+                                        triggerColor="pink"
+                                      />
                                     </div>
 
                                     {/* Price Badge */}
@@ -2154,7 +2135,7 @@ export default function PricingSection() {
                               </div>
 
                               {/* Main Sections - Vertical Scroll */}
-                              <div className="max-h-[250px] space-y-2 custom-scrollbar">
+                              <div className="max-h-[250px] space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar ">
                                 {state.step2.mainSections.map((section: SectionItem) => {
                                   const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                   const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
@@ -2317,7 +2298,7 @@ export default function PricingSection() {
                                 </div>
 
                                 {/* Added Pages Sections - Vertical Scroll */}
-                                <div className="max-h-[250px] space-y-2 custom-scrollbar">
+                                <div className="max-h-[250px] space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                   {page.sections.map((section) => {
                                     const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                     const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;

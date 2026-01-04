@@ -135,7 +135,7 @@ export default function HeroSection() {
                   GSAP
                 </span>
                 <span className="px-3 py-1 rounded-full bg-[#ec4899]/10 text-[#ec4899] border border-[#ec4899]/20">
-                  Three.js
+                  Motion.dev
                 </span>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function HeroSection() {
                     <span className="text-[#6b7280] select-none mr-4">2</span>
                     <span className="text-[#60a5fa] ml-4">name</span>
                     <span className="text-white">:</span>{" "}
-                    <span className="text-[#a5f3fc]">&quot;สุเทพ จันทวี&quot;</span>
+                    <span className="text-[#a5f3fc]">&quot;SUTEP JANTHAWEE&quot;</span>
                     <span className="text-white">,</span>
                   </div>
                   <div className="code-line">

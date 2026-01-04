@@ -34,15 +34,15 @@ export default function Home() {
             <div className="flex items-center justify-center gap-4 mb-6">
               <span className="h-px w-12 bg-gradient-to-r from-transparent to-[#06b6d4]" />
               <span className="font-mono text-xs uppercase tracking-[0.3em] text-[#06b6d4]">
-                เกี่ยวกับ
+                ABOUT
               </span>
               <span className="h-px w-12 bg-gradient-to-l from-transparent to-[#06b6d4]" />
             </div>
 
             {/* Title */}
             <h2 className="text-section mb-8">
-              <span className="text-white">เกี่ยวกับ </span>
-              <span className="gradient-text-cyan italic">ฉัน</span>
+              <span className="text-white">ABOUT </span>
+              <span className="gradient-text-cyan italic">ME</span>
             </h2>
 
             {/* Content */}
@@ -62,7 +62,7 @@ export default function Home() {
                   </div>
                   <div>
                     <span className="text-[#a1a1aa]">focus:</span>{" "}
-                    <span className="text-[#10b981]">&quot;การพัฒนาเว็บไซต์และการผสาน AI&quot;</span>,
+                    <span className="text-[#10b981]">&quot;การพัฒนาเว็บไซต์&quot;</span>,
                   </div>
                   <div>
                     <span className="text-[#a1a1aa]">skills:</span>{" "}
@@ -173,26 +173,6 @@ export default function Home() {
                       </div>
                       <span className="text-[#06b6d4]">{"}"}</span>,
                     </div>
-                    <div>
-                      <span className="text-[#a1a1aa]">aiTools:</span>{" "}
-                      <span className="text-[#06b6d4]">{"{"}</span>
-                      <div className="pl-4 text-[#10b981]">
-                        &quot;Cursor&quot;: <span className="text-[#f59e0b]">&quot;ขั้นสูง&quot;</span>,
-                        <br />
-                        &quot;ChatGPT&quot;: <span className="text-[#f59e0b]">&quot;ขั้นสูง&quot;</span>,
-                        <br />
-                        &quot;Claude Code&quot;: <span className="text-[#f59e0b]">&quot;ขั้นสูง&quot;</span>,
-                        <br />
-                        &quot;Blackbox.AI&quot;: <span className="text-[#f59e0b]">&quot;ปานกลาง&quot;</span>,
-                        <br />
-                        &quot;Gemini&quot;: <span className="text-[#f59e0b]">&quot;ปานกลาง&quot;</span>,
-                        <br />
-                        &quot;v0.dev&quot;: <span className="text-[#f59e0b]">&quot;ปานกลาง&quot;</span>,
-                        <br />
-                        &quot;lovable.dev&quot;: <span className="text-[#f59e0b]">&quot;ปานกลาง&quot;</span>
-                      </div>
-                      <span className="text-[#06b6d4]">{"}"}</span>
-                    </div>
                   </div>
                   <div>
                     <span className="text-[#06b6d4]">{"}"}</span>,
@@ -211,7 +191,6 @@ export default function Home() {
                 ฉันเป็นนักพัฒนาที่มีความหลงใหลในการสร้างแอปพลิเคชันเว็บสมัยใหม่ด้วยเทคโนโลยีที่ล้ำสมัย
                 ความเชี่ยวชาญของฉันครอบคลุมตั้งแต่การพัฒนา Frontend ด้วย React และ Next.js
                 ไปจนถึงโซลูชัน Backend ด้วย Node.js
-                ฉันสนใจเป็นพิเศษในการผสาน AI และการสร้างเครื่องมือที่ทำให้ชีวิตของผู้คนง่ายขึ้น
               </p>
             </div>
           </div>

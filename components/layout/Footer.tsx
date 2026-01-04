@@ -157,7 +157,7 @@ export default function Footer() {
             {/* Copyright */}
             <div className="font-mono text-xs text-[#52525b]">
               <span className="text-[#10b981]">{"// "}</span>
-              &copy; 2025 สุเทพ จันทวี - All rights reserved
+              &copy; 2025 SUTEP JANTHAWEE - All rights reserved
             </div>
 
             {/* Built with */}

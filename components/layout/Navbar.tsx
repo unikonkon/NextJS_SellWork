@@ -62,7 +62,7 @@ export default function Navbar() {
             {/* Logo */}
            <Image src="/propile.jpg" alt="logo" width={32} height={32} />
             <div className="hidden sm:block">
-              <span className="font-mono text-sm font-bold text-white">สุเทพ</span>
+              <span className="font-mono text-sm font-bold text-white">SUTEP</span>
               <span className="font-mono text-xs text-[#52525b] ml-1">.dev</span>
             </div>
           </div>
