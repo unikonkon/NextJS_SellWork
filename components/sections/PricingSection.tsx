@@ -4,6 +4,7 @@ import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import LayoutModal from "@/components/ui/LayoutModal";
+import LayoutPreview from "@/components/ui/LayoutPreview";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -378,6 +379,7 @@ function getEstimatedDays(total: number): string {
   if (total <= 25000) return "15-20 วัน";
   return "20-30 วัน";
 }
+
 
 // ==================== MAIN COMPONENT ====================
 export default function PricingSection() {
@@ -2210,12 +2212,13 @@ export default function PricingSection() {
                               </div>
 
                               {/* Main Sections - Vertical Scroll */}
-                              <div className="max-h-[250px] space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar ">
+                              <div className="max-h-[300px] space-y-3 pr-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                 {state.step2.mainSections.map((section: SectionItem) => {
                                   const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                   const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
 
                                   const refKey = `preview-main-${section.id}`;
+                                  const previewType = layout?.preview || "custom";
 
                                   return (
                                     <div
@@ -2225,51 +2228,12 @@ export default function PricingSection() {
                                       className="flex items-center gap-2 w-full"
                                     >
                                       <div
-                                        className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
+                                        className={`relative p-2 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
                                           } w-full`}
                                       >
-                                        {section.layout === "hero" && (
-                                          <div className="p-2 rounded-lg bg-linear-to-br from-[#262626] to-[#1a1a1a]">
-                                            <div className="w-20 h-3 rounded bg-[#333]" />
-                                          </div>
-                                        )}
-                                        {section.layout === "text-image" && (
-                                          <div className="flex gap-2">
-                                            <div className="flex-1 h-3 rounded bg-[#333]" />
-                                            <div className="w-10 h-10 rounded bg-[#262626]" />
-                                          </div>
-                                        )}
-                                        {section.layout === "image-text" && (
-                                          <div className="flex gap-2">
-                                            <div className="w-10 h-10 rounded bg-[#262626]" />
-                                            <div className="flex-1 h-3 rounded bg-[#333]" />
-                                          </div>
-                                        )}
-                                        {section.layout === "three-cols" && (
-                                          <div className="grid grid-cols-3 gap-1">
-                                            {[1, 2, 3].map((i) => (
-                                              <div key={i} className="h-8 rounded bg-[#262626]" />
-                                            ))}
-                                          </div>
-                                        )}
-                                        {section.layout === "four-cols" && (
-                                          <div className="grid grid-cols-4 gap-1">
-                                            {[1, 2, 3, 4].map((i) => (
-                                              <div key={i} className="h-8 rounded bg-[#262626]" />
-                                            ))}
-                                          </div>
-                                        )}
-                                        {(section.layout === "gallery" || section.layout === "cta" ||
-                                          section.layout === "testimonial" || section.layout === "faq" ||
-                                          section.layout === "stats") && (
-                                            <div className="h-8 rounded bg-[#262626]" />
-                                          )}
-                                        {/* Custom Layout */}
-                                        {section.layout === "custom" && (
-                                          <div className="h-8 rounded bg-[#f97316]/20 border border-dashed border-[#f97316]/40 flex items-center justify-center">
-                                            <span className="text-[8px] text-[#f97316]">✏️ {section.customLayout || "Custom"}</span>
-                                          </div>
-                                        )}
+                                        {/* Layout Preview from LayoutModal */}
+                                        <LayoutPreview preview={previewType} customLabel={section.customLayout || null} size="small" />
+                                        
                                         {/* Layout icon */}
                                         <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                           <span className="text-xs text-[#52525b]">{layout?.icon}</span>
@@ -2373,12 +2337,13 @@ export default function PricingSection() {
                                 </div>
 
                                 {/* Added Pages Sections - Vertical Scroll */}
-                                <div className="max-h-[250px] space-y-2 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                                <div className="max-h-[300px] space-y-3 pr-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                   {page.sections.map((section) => {
                                     const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                     const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
 
                                     const refKey = `preview-page-${page.id}-${section.id}`;
+                                    const previewType = layout?.preview || "custom";
 
                                     return (
                                       <div
@@ -2388,79 +2353,11 @@ export default function PricingSection() {
                                         className="flex items-center gap-2 w-full"
                                       >
                                         <div
-                                          className={`relative p-3 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
+                                          className={`relative p-2 rounded-lg bg-[#1a1a1a] border group ${section.animation ? "border-[#ec4899]/40" : "border-[#262626]"
                                             } w-full`}
                                         >
-                                          {/* Layout Preview Based on Type */}
-                                          {section.layout === "hero" && (
-                                            <div className="p-2 rounded-lg bg-linear-to-br from-[#262626] to-[#1a1a1a]">
-                                              <div className="w-20 h-3 rounded bg-[#333]" />
-                                            </div>
-                                          )}
-                                          {section.layout === "text-image" && (
-                                            <div className="flex gap-2">
-                                              <div className="flex-1 h-3 rounded bg-[#333]" />
-                                              <div className="w-10 h-10 rounded bg-[#262626]" />
-                                            </div>
-                                          )}
-                                          {section.layout === "image-text" && (
-                                            <div className="flex gap-2">
-                                              <div className="w-10 h-10 rounded bg-[#262626]" />
-                                              <div className="flex-1 h-3 rounded bg-[#333]" />
-                                            </div>
-                                          )}
-                                          {section.layout === "three-cols" && (
-                                            <div className="grid grid-cols-3 gap-1">
-                                              {[1, 2, 3].map((i) => (
-                                                <div key={i} className="h-8 rounded bg-[#262626]" />
-                                              ))}
-                                            </div>
-                                          )}
-                                          {section.layout === "four-cols" && (
-                                            <div className="grid grid-cols-4 gap-1">
-                                              {[1, 2, 3, 4].map((i) => (
-                                                <div key={i} className="h-8 rounded bg-[#262626]" />
-                                              ))}
-                                            </div>
-                                          )}
-                                          {section.layout === "gallery" && (
-                                            <div className="grid grid-cols-3 gap-1">
-                                              {[1, 2, 3, 4, 5, 6].map((i) => (
-                                                <div key={i} className="h-5 rounded bg-[#262626]" />
-                                              ))}
-                                            </div>
-                                          )}
-                                          {section.layout === "cta" && (
-                                            <div className="text-center py-1">
-                                              <div className="w-16 h-4 rounded bg-[#ec4899]/30 mx-auto" />
-                                            </div>
-                                          )}
-                                          {section.layout === "testimonial" && (
-                                            <div className="flex items-center gap-2">
-                                              <div className="w-8 h-8 rounded-full bg-[#262626]" />
-                                              <div className="flex-1 h-3 rounded bg-[#333]" />
-                                            </div>
-                                          )}
-                                          {section.layout === "faq" && (
-                                            <div className="space-y-1">
-                                              {[1, 2].map((i) => (
-                                                <div key={i} className="h-3 rounded bg-[#333]" />
-                                              ))}
-                                            </div>
-                                          )}
-                                          {section.layout === "stats" && (
-                                            <div className="grid grid-cols-4 gap-1">
-                                              {[1, 2, 3, 4].map((i) => (
-                                                <div key={i} className="h-6 rounded bg-[#333]" />
-                                              ))}
-                                            </div>
-                                          )}
-                                          {/* Custom Layout */}
-                                          {section.layout === "custom" && (
-                                            <div className="h-8 rounded bg-[#f97316]/20 border border-dashed border-[#f97316]/40 flex items-center justify-center">
-                                              <span className="text-[8px] text-[#f97316]">✏️ {section.customLayout || "Custom"}</span>
-                                            </div>
-                                          )}
+                                          {/* Layout Preview from LayoutModal */}
+                                          <LayoutPreview preview={previewType} customLabel={section.customLayout || null} size="small" />
 
                                           {/* Layout icon */}
                                           <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
