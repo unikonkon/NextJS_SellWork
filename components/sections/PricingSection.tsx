@@ -5,6 +5,13 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import LayoutModal from "@/components/ui/LayoutModal";
 import LayoutPreview from "@/components/ui/LayoutPreview";
+import {
+  NAVBAR_ANIMATION_TYPES,
+  FOOTER_ANIMATION_TYPES,
+  SECTION_LAYOUTS,
+  SECTION_ANIMATIONS,
+} from "@/components/sections/PricingSectionAnimation/landing-page-animations";
+import executeAnimation, { killAnimations, refreshScrollTrigger } from "@/components/sections/PricingSectionAnimation/gsap-animation-executor";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -128,237 +135,7 @@ interface CalculatorState {
 
 
 // ==================== ANIMATION TYPES DATA ====================
-const NAVBAR_ANIMATION_TYPES = [
-  {
-    id: "sticky-fade",
-    label: "Sticky + Fade",
-    description: "Navbar จะลอยอยู่ด้านบนเสมอ และจะ fade in/out เมื่อ scroll",
-    icon: "◐",
-  },
-  {
-    id: "slide-down",
-    label: "Slide Down",
-    description: "Navbar จะเลื่อนลงมาจากด้านบนเมื่อ scroll ขึ้น",
-    icon: "↓",
-  },
-  {
-    id: "color-change",
-    label: "Color Change",
-    description: "สีพื้นหลัง Navbar จะเปลี่ยนเมื่อ scroll ผ่านจุดที่กำหนด",
-    icon: "◑",
-  },
-  {
-    id: "shrink",
-    label: "Shrink Effect",
-    description: "Navbar จะหดเล็กลงเมื่อ scroll ลง ขยายกลับเมื่อ scroll ขึ้น",
-    icon: "⊡",
-  },
-  {
-    id: "blur-glass",
-    label: "Glass Blur",
-    description: "เอฟเฟกต์กระจกฝ้าแบบ Glassmorphism",
-    icon: "◇",
-  },
-  {
-    id: "menu-reveal",
-    label: "Menu Reveal",
-    description: "เมนูจะ reveal ทีละรายการด้วย stagger animation",
-    icon: "≡",
-  },
-];
-
-const FOOTER_ANIMATION_TYPES = [
-  {
-    id: "fade-in",
-    label: "Fade In",
-    description: "Footer จะค่อยๆ ปรากฏเมื่อ scroll ถึง",
-    icon: "◔",
-  },
-  {
-    id: "slide-up",
-    label: "Slide Up",
-    description: "Footer จะเลื่อนขึ้นมาจากด้านล่างเมื่อ scroll ถึง",
-    icon: "↑",
-  },
-  {
-    id: "parallax",
-    label: "Parallax",
-    description: "องค์ประกอบต่างๆ ใน Footer จะเคลื่อนที่ความเร็วต่างกัน",
-    icon: "≋",
-  },
-  {
-    id: "hover-links",
-    label: "Hover Links",
-    description: "ลิงก์ใน Footer มีเอฟเฟกต์พิเศษเมื่อ hover",
-    icon: "◉",
-  },
-  {
-    id: "wave-bg",
-    label: "Wave Background",
-    description: "พื้นหลังแบบคลื่นเคลื่อนไหว",
-    icon: "∿",
-  },
-  {
-    id: "stagger-cols",
-    label: "Stagger Columns",
-    description: "คอลัมน์ต่างๆ จะปรากฏทีละอันตามลำดับ",
-    icon: "⊞",
-  },
-];
-
-// ==================== SECTION LAYOUTS ====================
-const SECTION_LAYOUTS = [
-  {
-    id: "hero",
-    label: "Hero",
-    description: "ส่วนหัวขนาดใหญ่พร้อมรูปภาพหรือวิดีโอ",
-    icon: "▣",
-    preview: "full",
-  },
-  {
-    id: "text-image",
-    label: "Text + Image",
-    description: "ข้อความด้านซ้าย รูปภาพด้านขวา",
-    icon: "◧",
-    preview: "split",
-  },
-  {
-    id: "image-text",
-    label: "Image + Text",
-    description: "รูปภาพด้านซ้าย ข้อความด้านขวา",
-    icon: "◨",
-    preview: "split-reverse",
-  },
-  {
-    id: "three-cols",
-    label: "3 Columns",
-    description: "แบ่งเป็น 3 คอลัมน์เท่ากัน",
-    icon: "⫿",
-    preview: "cols-3",
-  },
-  {
-    id: "four-cols",
-    label: "4 Columns",
-    description: "แบ่งเป็น 4 คอลัมน์เท่ากัน",
-    icon: "▦",
-    preview: "cols-4",
-  },
-  {
-    id: "gallery",
-    label: "Gallery",
-    description: "แกลเลอรี่รูปภาพแบบ Grid",
-    icon: "▤",
-    preview: "gallery",
-  },
-  {
-    id: "cta",
-    label: "CTA",
-    description: "Call-to-Action พร้อมปุ่ม",
-    icon: "◉",
-    preview: "cta",
-  },
-  {
-    id: "testimonial",
-    label: "Testimonial",
-    description: "รีวิวหรือคำพูดจากลูกค้า",
-    icon: "❝",
-    preview: "testimonial",
-  },
-  {
-    id: "faq",
-    label: "FAQ",
-    description: "คำถามที่พบบ่อย",
-    icon: "❓",
-    preview: "faq",
-  },
-  {
-    id: "stats",
-    label: "Stats",
-    description: "แสดงตัวเลขสถิติ",
-    icon: "📊",
-    preview: "stats",
-  },
-  {
-    id: "custom",
-    label: "กำหนดเอง",
-    description: "กำหนด Section เอง",
-    icon: "✏️",
-    preview: "custom",
-  },
-];
-
-// ==================== SECTION ANIMATIONS MAPPING ====================
-// วิเคราะห์ Animation ที่เหมาะสมกับแต่ละ Layout Type
-const SECTION_ANIMATIONS: Record<string, { id: string; label: string; icon: string; description: string }[]> = {
-  hero: [
-    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
-    { id: "scale-in", label: "Scale In", icon: "⊡", description: "ขยายจากเล็กไปใหญ่" },
-    { id: "parallax-bg", label: "Parallax BG", icon: "≋", description: "พื้นหลังเคลื่อนที่ช้ากว่าเนื้อหา" },
-    { id: "text-reveal", label: "Text Reveal", icon: "Aa", description: "ตัวอักษรปรากฏทีละตัว" },
-    { id: "split-reveal", label: "Split Reveal", icon: "◰", description: "แยกเปิดจากกลาง" },
-  ],
-  "text-image": [
-    { id: "slide-left", label: "Slide Left", icon: "←", description: "เนื้อหาเลื่อนเข้าจากซ้าย" },
-    { id: "slide-right", label: "Slide Right", icon: "→", description: "รูปเลื่อนเข้าจากขวา" },
-    { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละส่วน" },
-    { id: "reveal-mask", label: "Reveal Mask", icon: "▣", description: "เปิดเผยด้วย mask effect" },
-  ],
-  "image-text": [
-    { id: "slide-right", label: "Slide Right", icon: "→", description: "รูปเลื่อนเข้าจากขวา" },
-    { id: "slide-left", label: "Slide Left", icon: "←", description: "เนื้อหาเลื่อนเข้าจากซ้าย" },
-    { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละส่วน" },
-    { id: "zoom-img", label: "Zoom Image", icon: "⊕", description: "รูปซูมเข้าเมื่อ scroll ถึง" },
-  ],
-  "three-cols": [
-    { id: "stagger-up", label: "Stagger Up", icon: "↑↑↑", description: "คอลัมน์ปรากฏทีละอัน" },
-    { id: "flip-in", label: "Flip In", icon: "◰", description: "พลิกเข้ามาทีละคอลัมน์" },
-    { id: "scale-stagger", label: "Scale Stagger", icon: "⊡⊡⊡", description: "ขยายขึ้นทีละอัน" },
-    { id: "fade-cascade", label: "Fade Cascade", icon: "◔◔◔", description: "ค่อยๆ ปรากฏต่อเนื่อง" },
-  ],
-  "four-cols": [
-    { id: "stagger-up", label: "Stagger Up", icon: "↑↑↑↑", description: "คอลัมน์ปรากฏทีละอัน" },
-    { id: "wave-in", label: "Wave In", icon: "∿", description: "เคลื่อนเข้ามาเป็นคลื่น" },
-    { id: "scale-stagger", label: "Scale Stagger", icon: "⊡⊡⊡⊡", description: "ขยายขึ้นทีละอัน" },
-    { id: "rotate-in", label: "Rotate In", icon: "↻", description: "หมุนเข้ามาทีละอัน" },
-  ],
-  gallery: [
-    { id: "masonry-fade", label: "Masonry Fade", icon: "▤", description: "รูปปรากฏแบบสุ่ม" },
-    { id: "zoom-hover", label: "Zoom Hover", icon: "⊕", description: "ซูมเมื่อ hover" },
-    { id: "lightbox", label: "Lightbox", icon: "◳", description: "เปิดดูเต็มจอเมื่อคลิก" },
-    { id: "grid-reveal", label: "Grid Reveal", icon: "▦", description: "เปิดเผยทีละช่อง" },
-  ],
-  cta: [
-    { id: "pulse", label: "Pulse", icon: "◉", description: "ปุ่มเต้นเป็นจังหวะ" },
-    { id: "glow", label: "Glow Effect", icon: "✦", description: "เรืองแสงเมื่อ hover" },
-    { id: "bounce", label: "Bounce", icon: "⤴", description: "เด้งขึ้นลง" },
-    { id: "shake", label: "Shake", icon: "↔", description: "สั่นเรียกความสนใจ" },
-    { id: "ripple", label: "Ripple", icon: "◎", description: "คลื่นกระจายเมื่อคลิก" },
-  ],
-  testimonial: [
-    { id: "slide-quote", label: "Slide Quote", icon: "❝", description: "คำพูดเลื่อนเข้ามา" },
-    { id: "fade-rotate", label: "Fade Rotate", icon: "↻", description: "หมุนสลับรีวิว" },
-    { id: "typewriter", label: "Typewriter", icon: "Aa", description: "พิมพ์ทีละตัวอักษร" },
-    { id: "card-flip", label: "Card Flip", icon: "◰", description: "พลิกการ์ดเปลี่ยนรีวิว" },
-  ],
-  faq: [
-    { id: "accordion", label: "Accordion", icon: "≡", description: "พับ/กางแบบ accordion" },
-    { id: "slide-expand", label: "Slide Expand", icon: "↕", description: "เลื่อนขยายเมื่อคลิก" },
-    { id: "fade-content", label: "Fade Content", icon: "◔", description: "เนื้อหาค่อยๆ ปรากฏ" },
-    { id: "highlight", label: "Highlight", icon: "◐", description: "ไฮไลท์คำถามที่เปิด" },
-  ],
-  stats: [
-    { id: "counter", label: "Counter", icon: "123", description: "ตัวเลขนับขึ้น" },
-    { id: "bar-grow", label: "Bar Grow", icon: "▐", description: "แท่งกราฟขยาย" },
-    { id: "flip-number", label: "Flip Number", icon: "↻", description: "พลิกตัวเลข" },
-    { id: "pop-scale", label: "Pop Scale", icon: "⊡", description: "ตัวเลขป็อปขึ้นมา" },
-  ],
-  custom: [
-    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
-    { id: "scale-in", label: "Scale In", icon: "⊡", description: "ขยายจากเล็กไปใหญ่" },
-    { id: "slide-left", label: "Slide Left", icon: "←", description: "เนื้อหาเลื่อนเข้าจากซ้าย" },
-    { id: "slide-right", label: "Slide Right", icon: "→", description: "เนื้อหาเลื่อนเข้าจากขวา" },
-  ],
-};
+// Imported from: @/components/sections/PricingSectionAnimation/landing-page-animations
 
 // Custom animation option ที่จะใช้กับทุก layout
 const CUSTOM_ANIMATION_OPTION = { id: "custom", label: "กำหนดเอง", icon: "✏️", description: "ระบุ animation ที่ต้องการ" };
@@ -712,159 +489,46 @@ export default function PricingSection() {
 
   // GSAP Animation Preview for sections
   const playSectionAnimation = useCallback((refKey: string, animationType: string) => {
-    const element = getPreviewRef(refKey); // ✅ ใช้ ref แทน document.getElementById(elementId)
+    const containerElement = getPreviewRef(refKey); // ✅ ใช้ ref แทน document.getElementById(elementId)
     console.log("refKey", refKey);
-    console.log("element", element);
+    console.log("containerElement", containerElement);
     console.log("animationType", animationType);
-    if (!element) return;
+    if (!containerElement) return;
+
+    // Find the actual animation target element inside LayoutPreview
+    // Look for element with data-animation-target attribute
+    const animationTarget = containerElement.querySelector('[data-animation-target]') as HTMLElement | null;
+    const element = animationTarget || containerElement;
+
+    console.log("animationTarget found:", animationTarget);
 
     // Reset any existing animations
-    gsap.killTweensOf(element);
+    killAnimations(element);
     gsap.set(element, { clearProps: "all" });
 
     // Get children for stagger animations
-    const children = element.children;
+    // For stagger animations, look for children with data-animation-child attribute
+    // or fallback to direct children of the animation target
+    const animationChildren = element.querySelectorAll('[data-animation-child]');
+    const children = animationChildren.length > 0 
+      ? Array.from(animationChildren) as HTMLElement[]
+      : Array.from(element.children) as HTMLElement[];
 
-    // Execute animation based on type
-    switch (animationType) {
-      // === HERO ANIMATIONS ===
-      case "fade-up":
-        gsap.fromTo(element, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" });
-        break;
-      case "scale-in":
-        gsap.fromTo(element, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" });
-        break;
-      case "parallax-bg":
-        gsap.fromTo(element, { backgroundPositionY: "100%" }, { backgroundPositionY: "0%", duration: 1, ease: "power2.out" });
-        gsap.fromTo(element, { opacity: 0 }, { opacity: 1, duration: 0.5 });
-        break;
-      case "text-reveal":
-        gsap.fromTo(element, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.8, ease: "power3.out" });
-        break;
-      case "split-reveal":
-        gsap.fromTo(element, { clipPath: "inset(0 50% 0 50%)" }, { clipPath: "inset(0 0% 0 0%)", duration: 0.6, ease: "power2.out" });
-        break;
+    // Also reset children animations
+    children.forEach(child => {
+      killAnimations(child);
+      gsap.set(child, { clearProps: "all" });
+    });
 
-      // === TEXT-IMAGE / IMAGE-TEXT ANIMATIONS ===
-      case "slide-left":
-        gsap.fromTo(element, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" });
-        break;
-      case "slide-right":
-        gsap.fromTo(element, { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" });
-        break;
-      case "fade-stagger":
-        gsap.fromTo(children, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.15, ease: "power2.out" });
-        break;
-      case "reveal-mask":
-        gsap.fromTo(element, { clipPath: "polygon(0 0, 0 0, 0 100%, 0 100%)" }, { clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)", duration: 0.7, ease: "power3.inOut" });
-        break;
-      case "zoom-img":
-        gsap.fromTo(element, { opacity: 0, scale: 1.2 }, { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" });
-        break;
-
-      // === COLUMN ANIMATIONS (3-cols, 4-cols) ===
-      case "stagger-up":
-        gsap.fromTo(children, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, ease: "power2.out" });
-        break;
-      case "flip-in":
-        gsap.fromTo(children, { opacity: 0, rotationY: -90 }, { opacity: 1, rotationY: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" });
-        break;
-      case "scale-stagger":
-        gsap.fromTo(children, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, stagger: 0.1, ease: "back.out(1.5)" });
-        break;
-      case "fade-cascade":
-        gsap.fromTo(children, { opacity: 0 }, { opacity: 1, duration: 0.3, stagger: 0.08, ease: "power1.out" });
-        break;
-      case "wave-in":
-        gsap.fromTo(children, { opacity: 0, y: 20, rotation: -5 }, { opacity: 1, y: 0, rotation: 0, duration: 0.5, stagger: 0.08, ease: "power2.out" });
-        break;
-      case "rotate-in":
-        gsap.fromTo(children, { opacity: 0, rotation: -180, scale: 0.5 }, { opacity: 1, rotation: 0, scale: 1, duration: 0.5, stagger: 0.1, ease: "back.out(1.2)" });
-        break;
-
-      // === GALLERY ANIMATIONS ===
-      case "masonry-fade":
-        gsap.fromTo(children, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, stagger: { each: 0.05, from: "random" }, ease: "power2.out" });
-        break;
-      case "zoom-hover":
-        gsap.fromTo(element, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" });
-        break;
-      case "lightbox":
-        gsap.fromTo(element, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" });
-        break;
-      case "grid-reveal":
-        gsap.fromTo(children, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.05, ease: "back.out(1.5)" });
-        break;
-
-      // === CTA ANIMATIONS ===
-      case "pulse":
-        gsap.to(element, { scale: 1.05, duration: 0.3, yoyo: true, repeat: 3, ease: "power1.inOut" });
-        break;
-      case "glow":
-        gsap.to(element, { boxShadow: "0 0 20px rgba(236, 72, 153, 0.6)", duration: 0.3, yoyo: true, repeat: 2 });
-        break;
-      case "bounce":
-        gsap.to(element, { y: -10, duration: 0.2, yoyo: true, repeat: 3, ease: "power1.out" });
-        break;
-      case "shake":
-        gsap.to(element, { x: 5, duration: 0.08, yoyo: true, repeat: 5, ease: "power1.inOut" });
-        break;
-      case "ripple":
-        gsap.fromTo(element, { boxShadow: "0 0 0 0 rgba(236, 72, 153, 0.4)" }, { boxShadow: "0 0 0 15px rgba(236, 72, 153, 0)", duration: 0.6, repeat: 2 });
-        break;
-
-      // === TESTIMONIAL ANIMATIONS ===
-      case "slide-quote":
-        gsap.fromTo(element, { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" });
-        break;
-      case "fade-rotate":
-        gsap.fromTo(element, { opacity: 0, rotationY: 90 }, { opacity: 1, rotationY: 0, duration: 0.6, ease: "power2.out" });
-        break;
-      case "typewriter":
-        gsap.fromTo(element, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 1.2, ease: "steps(20)" });
-        break;
-      case "card-flip":
-        gsap.fromTo(element, { opacity: 0, rotationY: -180 }, { opacity: 1, rotationY: 0, duration: 0.6, ease: "power2.out" });
-        break;
-
-      // === FAQ ANIMATIONS ===
-      case "accordion":
-        gsap.fromTo(element, { height: 0, opacity: 0 }, { height: "auto", opacity: 1, duration: 0.4, ease: "power2.out" });
-        break;
-      case "slide-expand":
-        gsap.fromTo(element, { scaleY: 0, transformOrigin: "top" }, { scaleY: 1, duration: 0.4, ease: "power2.out" });
-        break;
-      case "fade-content":
-        gsap.fromTo(children, { opacity: 0, y: 5 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.1, ease: "power1.out" });
-        break;
-      case "highlight":
-        gsap.to(element, { backgroundColor: "rgba(236, 72, 153, 0.1)", duration: 0.3, yoyo: true, repeat: 1 });
-        break;
-
-      // === STATS ANIMATIONS ===
-      case "counter":
-        gsap.fromTo(element, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" });
-        break;
-      case "bar-grow":
-        gsap.fromTo(children, { scaleX: 0, transformOrigin: "left" }, { scaleX: 1, duration: 0.6, stagger: 0.1, ease: "power2.out" });
-        break;
-      case "flip-number":
-        gsap.fromTo(element, { opacity: 0, rotationX: -90 }, { opacity: 1, rotationX: 0, duration: 0.5, ease: "power2.out" });
-        break;
-      case "pop-scale":
-        gsap.fromTo(children, { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.4, stagger: 0.08, ease: "back.out(2)" });
-        break;
-
-      // === CUSTOM - ใช้ animation ทั่วไป ===
-      case "custom":
-        gsap.fromTo(element, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
-        break;
-
-      default:
-        // Default fade animation
-        gsap.fromTo(element, { opacity: 0 }, { opacity: 1, duration: 0.5 });
-    }
-  }, []);
+    // Execute animation using executeAnimation function
+    // Disable scrollTrigger for preview mode (we want immediate animation)
+    executeAnimation({
+      element,
+      animationType,
+      children,
+      scrollTrigger: false, // Disable scroll trigger for preview
+    });
+  }, [getPreviewRef]);
 
   // Add new page with 1 section
   const addPage = useCallback(() => {

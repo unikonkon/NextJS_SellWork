@@ -79,7 +79,7 @@ export default function Navbar() {
             >
               <span className="relative z-10">{item.label}</span>
               <span className="absolute inset-0 rounded-lg bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <span className="absolute bottom-1 left-4 right-4 h-px bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
+              <span className="absolute bottom-1 left-4 right-4 h-px bg-linear-to-r from-[#8b5cf6] to-[#ec4899] scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
             </a>
           ))}
         </div>
@@ -88,7 +88,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-4">
           <a
             href="#pricing"
-            className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white text-sm font-medium hover:shadow-lg hover:shadow-[#8b5cf6]/25 transition-all"
+            className="px-4 py-2 rounded-lg bg-linear-to-r from-[#8b5cf6] to-[#ec4899] text-white text-sm font-medium hover:shadow-lg hover:shadow-[#8b5cf6]/25 transition-all"
           >
             สั่งงานเลย
           </a>
@@ -153,7 +153,7 @@ export default function Navbar() {
           <a
             href="#pricing"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="mt-2 px-4 py-3 rounded-lg bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white text-center font-medium"
+            className="mt-2 px-4 py-3 rounded-lg bg-linear-to-r from-[#8b5cf6] to-[#ec4899] text-white text-center font-medium"
           >
             สั่งงานเลย
           </a>

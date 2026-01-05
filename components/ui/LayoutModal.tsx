@@ -130,8 +130,8 @@ export default function LayoutModal({
                 {/* Hover glow effect */}
                 <div
                     className={`absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${triggerColor === "pink"
-                        ? "bg-gradient-to-r from-[#ec4899]/5 to-transparent"
-                        : "bg-gradient-to-r from-[#8b5cf6]/5 to-transparent"
+                        ? "bg-linear-to-r from-[#ec4899]/5 to-transparent"
+                        : "bg-linear-to-r from-[#8b5cf6]/5 to-transparent"
                         }`}
                 />
             </button>

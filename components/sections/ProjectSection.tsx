@@ -74,17 +74,17 @@ export default function ProjectSection() {
       <div ref={headerRef} className="max-w-6xl mx-auto mb-20 text-center relative z-10">
         {/* Label */}
         <div className="flex items-center justify-center gap-4 mb-6">
-          <span className="h-px w-16 bg-gradient-to-r from-transparent to-[#8b5cf6]" />
+          <span className="h-px w-16 bg-linear-to-r from-transparent to-[#8b5cf6]" />
           <span className="font-mono text-xs uppercase tracking-[0.3em] text-[#8b5cf6]">
             SELECTED WORKS
           </span>
-          <span className="h-px w-16 bg-gradient-to-l from-transparent to-[#8b5cf6]" />
+          <span className="h-px w-16 bg-linear-to-l from-transparent to-[#8b5cf6]" />
         </div>
 
         {/* Title */}
         <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold">
           <span className="text-white">Featured </span>
-          <span className="bg-gradient-to-r from-[#ec4899] to-[#8b5cf6] bg-clip-text text-transparent italic">Projects</span>
+          <span className="bg-linear-to-r from-[#ec4899] to-[#8b5cf6] bg-clip-text text-transparent italic">Projects</span>
         </h2>
 
         {/* Subtitle */}
@@ -98,7 +98,7 @@ export default function ProjectSection() {
         {featuredProjects.map((project, index) => (
           <div
             key={project.id}
-            className={`project-card group relative rounded-3xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-[#262626] overflow-hidden transition-all duration-500 hover:border-[#8b5cf6]/40 hover:shadow-[0_0_60px_-15px_rgba(139,92,246,0.3)]`}
+            className={`project-card group relative rounded-3xl bg-linear-to-br from-[#1a1a1a] to-[#0f0f0f] border border-[#262626] overflow-hidden transition-all duration-500 hover:border-[#8b5cf6]/40 hover:shadow-[0_0_60px_-15px_rgba(139,92,246,0.3)]`}
           >
             <div className={`flex flex-col ${index % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'}`}>
               {/* Image Section */}
@@ -136,7 +136,7 @@ export default function ProjectSection() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-[#ec4899] group-hover:to-[#8b5cf6] group-hover:bg-clip-text transition-all duration-300">
+                <h3 className="text-3xl md:text-4xl font-bold text-white mb-4 group-hover:text-transparent group-hover:bg-linear-to-r group-hover:from-[#ec4899] group-hover:to-[#8b5cf6] group-hover:bg-clip-text transition-all duration-300">
                   {project.title}
                 </h3>
 
@@ -168,8 +168,8 @@ export default function ProjectSection() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`group/btn flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 ${project.colorScheme === 'orange'
-                          ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-[0_0_30px_-5px_rgba(249,115,22,0.5)]'
-                          : 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:shadow-[0_0_30px_-5px_rgba(99,102,241,0.5)]'
+                          ? 'bg-linear-to-r from-orange-500 to-amber-500 text-white hover:shadow-[0_0_30px_-5px_rgba(249,115,22,0.5)]'
+                          : 'bg-linear-to-r from-indigo-500 to-purple-500 text-white hover:shadow-[0_0_30px_-5px_rgba(99,102,241,0.5)]'
                         }`}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

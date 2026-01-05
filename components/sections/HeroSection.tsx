@@ -242,7 +242,7 @@ export default function HeroSection() {
               </div>
 
               {/* Floating Badge */}
-              <div className="absolute -top-3 -right-3 px-4 py-2 rounded-full bg-gradient-to-r from-[#8b5cf6] to-[#ec4899] text-white text-xs font-bold shadow-lg shadow-[#8b5cf6]/30">
+              <div className="absolute -top-3 -right-3 px-4 py-2 rounded-full bg-linear-to-r from-[#8b5cf6] to-[#ec4899] text-white text-xs font-bold shadow-lg shadow-[#8b5cf6]/30">
                 🚀 พร้อมรับงาน
               </div>
 

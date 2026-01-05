@@ -32,11 +32,11 @@ export default function Home() {
           <div className="max-w-4xl mx-auto text-center">
             {/* Label */}
             <div className="flex items-center justify-center gap-4 mb-6">
-              <span className="h-px w-12 bg-gradient-to-r from-transparent to-[#06b6d4]" />
+              <span className="h-px w-12 bg-linear-to-r from-transparent to-[#06b6d4]" />
               <span className="font-mono text-xs uppercase tracking-[0.3em] text-[#06b6d4]">
                 ABOUT
               </span>
-              <span className="h-px w-12 bg-gradient-to-l from-transparent to-[#06b6d4]" />
+              <span className="h-px w-12 bg-linear-to-l from-transparent to-[#06b6d4]" />
             </div>
 
             {/* Title */}
