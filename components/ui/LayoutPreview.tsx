@@ -6,22 +6,45 @@ interface LayoutPreviewProps {
   preview: string;
   customLabel?: string | null;
   size?: "small" | "medium";
+  themeColor?: string; // Theme color from STEP 1
 }
 
 // Preview component for different layout types - centered with realistic web section structure
-export default function LayoutPreview({ preview, customLabel, size = "medium" }: LayoutPreviewProps) {
+export default function LayoutPreview({ preview, customLabel, size = "medium", themeColor }: LayoutPreviewProps) {
   const heightClass = size === "small" ? "h-16" : "h-20";
+
+  // Use theme color if provided, otherwise use default purple
+  const primaryColor = themeColor || "#8b5cf6";
+  const secondaryColor = themeColor || "#ec4899";
+
+  // Helper function to create color with opacity
+  const withOpacity = (color: string, opacity: number) => {
+    if (color.startsWith("#")) {
+      const hex = color.slice(1);
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+    return color;
+  };
 
   const previewStyles: Record<string, React.JSX.Element> = {
     full: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
         {/* Hero section preview - full width with centered content */}
-        <div className="absolute inset-0 bg-linear-to-r from-[#8b5cf6]/10 via-[#ec4899]/10 to-[#8b5cf6]/10 opacity-50" />
+        <div
+          className="absolute inset-0 opacity-50"
+          style={{ background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.1)}, ${withOpacity(secondaryColor, 0.1)}, ${withOpacity(primaryColor, 0.1)})` }}
+        />
         <div data-animation-child className="relative z-10 flex flex-col items-center gap-2">
           <div className={`${size === "small" ? "text-xs" : "text-sm"} text-[#18a3fa] font-medium typewriter-text`}>
             Preview Text @full
           </div>
-          <div className={`${size === "small" ? "w-14" : "w-16"} h-1.5 bg-[#ec4899]/20 rounded-full`} />
+          <div
+            className={`${size === "small" ? "w-14" : "w-16"} h-1.5 rounded-full`}
+            style={{ backgroundColor: withOpacity(secondaryColor, 0.2) }}
+          />
         </div>
       </div>
     ),
@@ -29,25 +52,51 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
         {/* Text + Image - Left text, right image */}
         <div data-animation-child className="flex-1 flex flex-col gap-1.5 justify-center p-2 bg-[#1a1a1a]/50 rounded border border-[#333]">
-          <div className="w-full h-1 bg-[#8b5cf6]/20 rounded" />
-          <div className="w-3/4 h-1 bg-[#8b5cf6]/15 rounded" />
-          <div className="w-1/2 h-1 bg-[#8b5cf6]/10 rounded" />
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+          <div className="w-1/2 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.1) }} />
         </div>
-        <div data-animation-child className="flex-1 bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 rounded border border-[#8b5cf6]/30 flex items-center justify-center">
-          <div className={`${size === "small" ? "w-10 h-10" : "w-12 h-12"} rounded bg-[#8b5cf6]/20 border border-[#8b5cf6]/40`} />
+        <div
+          data-animation-child
+          className="flex-1 rounded border flex items-center justify-center"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div
+            className={`${size === "small" ? "w-10 h-10" : "w-12 h-12"} rounded border`}
+            style={{
+              backgroundColor: withOpacity(primaryColor, 0.2),
+              borderColor: withOpacity(primaryColor, 0.4)
+            }}
+          />
         </div>
       </div>
     ),
     "split-reverse": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
         {/* Image + Text - Left image, right text */}
-        <div data-animation-child className="flex-1 bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 rounded border border-[#8b5cf6]/30 flex items-center justify-center">
-          <div className={`${size === "small" ? "w-10 h-10" : "w-12 h-12"} rounded bg-[#8b5cf6]/20 border border-[#8b5cf6]/40`} />
+        <div
+          data-animation-child
+          className="flex-1 rounded border flex items-center justify-center"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div
+            className={`${size === "small" ? "w-10 h-10" : "w-12 h-12"} rounded border`}
+            style={{
+              backgroundColor: withOpacity(primaryColor, 0.2),
+              borderColor: withOpacity(primaryColor, 0.4)
+            }}
+          />
         </div>
         <div data-animation-child className="flex-1 flex flex-col gap-1.5 justify-center p-2 bg-[#1a1a1a]/50 rounded border border-[#333]">
-          <div className="w-full h-1 bg-[#8b5cf6]/20 rounded" />
-          <div className="w-3/4 h-1 bg-[#8b5cf6]/15 rounded" />
-          <div className="w-1/2 h-1 bg-[#8b5cf6]/10 rounded" />
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+          <div className="w-1/2 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.1) }} />
         </div>
       </div>
     ),
@@ -58,13 +107,20 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`flex-1 rounded border flex flex-col gap-1 p-1.5 justify-center ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`flex-1 rounded border flex flex-col gap-1 p-1.5 justify-center ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-full h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/30" : "bg-[#52525b]/30"}`} />
-            <div className={`w-2/3 h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div
+              className="w-full h-1 rounded"
+              style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }}
+            />
+            <div
+              className="w-2/3 h-1 rounded"
+              style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }}
+            />
           </div>
         ))}
       </div>
@@ -76,13 +132,20 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`flex-1 rounded border flex flex-col gap-1 p-1 justify-center ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`flex-1 rounded border flex flex-col gap-1 p-1 justify-center ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-full h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/30" : "bg-[#52525b]/30"}`} />
-            <div className={`w-2/3 h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div
+              className="w-full h-0.5 rounded"
+              style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }}
+            />
+            <div
+              className="w-2/3 h-0.5 rounded"
+              style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }}
+            />
           </div>
         ))}
       </div>
@@ -94,10 +157,11 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`rounded border aspect-square ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`rounded border aspect-square ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           />
         ))}
       </div>
@@ -105,21 +169,42 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     cta: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
         {/* CTA section - centered with button */}
-        <div className="absolute inset-0 bg-linear-to-r from-[#8b5cf6]/10 via-[#ec4899]/10 to-[#8b5cf6]/10 opacity-30" />
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{ background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.1)}, ${withOpacity(secondaryColor, 0.1)}, ${withOpacity(primaryColor, 0.1)})` }}
+        />
         <div data-animation-child className="relative z-10 flex flex-col items-center gap-2">
-          <div className={`${size === "small" ? "w-28" : "w-32"} h-1.5 bg-[#8b5cf6]/20 rounded-full`} />
-          <div className={`${size === "small" ? "w-20 h-5" : "w-24 h-6"} rounded-md bg-linear-to-r from-[#8b5cf6]/30 to-[#ec4899]/30 border border-[#8b5cf6]/40`} />
+          <div
+            className={`${size === "small" ? "w-28" : "w-32"} h-1.5 rounded-full`}
+            style={{ backgroundColor: withOpacity(primaryColor, 0.2) }}
+          />
+          <div
+            className={`${size === "small" ? "w-20 h-5" : "w-24 h-6"} rounded-md border`}
+            style={{
+              background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(secondaryColor, 0.3)})`,
+              borderColor: withOpacity(primaryColor, 0.4)
+            }}
+          />
         </div>
       </div>
     ),
     testimonial: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center p-3 relative`}>
         {/* Testimonial - quote style with quote-mark for animation */}
-        <div className="quote-mark absolute left-2 top-1 text-xl text-[#8b5cf6]/30">❝</div>
+        <div className="quote-mark absolute left-2 top-1 text-xl" style={{ color: withOpacity(primaryColor, 0.3) }}>❝</div>
         <div data-animation-child className="w-full flex items-center gap-2 ml-3">
-          <div className={`${size === "small" ? "w-7 h-7" : "w-8 h-8"} rounded-full bg-[#8b5cf6]/20 border border-[#8b5cf6]/30 shrink-0`} />
+          <div
+            className={`${size === "small" ? "w-7 h-7" : "w-8 h-8"} rounded-full border shrink-0`}
+            style={{
+              backgroundColor: withOpacity(primaryColor, 0.2),
+              borderColor: withOpacity(primaryColor, 0.3)
+            }}
+          />
           <div className="flex-1 flex flex-col gap-1">
-            <div className={`${size === "small" ? "text-xs" : "text-sm"} text-[#8b5cf6]/80 typewriter-text`}>
+            <div
+              className={`${size === "small" ? "text-xs" : "text-sm"} typewriter-text`}
+              style={{ color: withOpacity(primaryColor, 0.8) }}
+            >
               This product changed my life completely
             </div>
             <div className="w-1/2 h-0.5 bg-[#52525b]/15 rounded" />
@@ -130,9 +215,16 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     faq: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
         {/* FAQ - accordion style */}
-        <div data-animation-child className="flex-1 bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 rounded border border-[#8b5cf6]/30 flex items-center justify-between px-2">
-          <div className="w-2/3 h-1 bg-[#8b5cf6]/30 rounded" />
-          <div className="w-3 h-3 rounded bg-[#8b5cf6]/40" />
+        <div
+          data-animation-child
+          className="flex-1 rounded border flex items-center justify-between px-2"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div className="w-2/3 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.3) }} />
+          <div className="w-3 h-3 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.4) }} />
         </div>
         <div data-animation-child className="flex-1 bg-[#1a1a1a]/50 rounded border border-[#333] px-2 flex items-center">
           <div className="w-full h-0.5 bg-[#52525b]/20 rounded" />
@@ -146,13 +238,20 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`flex-1 rounded border flex flex-col items-center justify-center gap-1 ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`flex-1 rounded border flex flex-col items-center justify-center gap-1 ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`${size === "small" ? "w-7 h-2.5" : "w-8 h-3"} rounded ${i === 0 ? "bg-[#8b5cf6]/30" : "bg-[#52525b]/30"}`} />
-            <div className={`${size === "small" ? "w-10" : "w-12"} h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div
+              className={`${size === "small" ? "w-7 h-2.5" : "w-8 h-3"} rounded`}
+              style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }}
+            />
+            <div
+              className={`${size === "small" ? "w-10" : "w-12"} h-1 rounded`}
+              style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }}
+            />
           </div>
         ))}
       </div>
@@ -161,23 +260,46 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     "hero-split": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
         <div data-animation-child className="flex-1 flex flex-col gap-1.5 justify-center p-2 bg-[#1a1a1a]/50 rounded border border-[#333]">
-          <div className="w-full h-1 bg-[#8b5cf6]/20 rounded" />
-          <div className="w-3/4 h-1 bg-[#8b5cf6]/15 rounded" />
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
         </div>
-        <div data-animation-child className="flex-1 bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 rounded border border-[#8b5cf6]/30 flex items-center justify-center overflow-hidden">
-          <div data-zoom-pan className={`${size === "small" ? "w-10 h-10" : "w-12 h-12"} rounded bg-[#8b5cf6]/20 border border-[#8b5cf6]/40`} />
+        <div
+          data-animation-child
+          className="flex-1 rounded border flex items-center justify-center overflow-hidden"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div
+            data-zoom-pan
+            className={`${size === "small" ? "w-10 h-10" : "w-12 h-12"} rounded border`}
+            style={{
+              backgroundColor: withOpacity(primaryColor, 0.2),
+              borderColor: withOpacity(primaryColor, 0.4)
+            }}
+          />
         </div>
       </div>
     ),
     "hero-video": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
         {/* Background/Video element for ken-burns */}
-        <div className="absolute inset-0 bg-linear-to-r from-[#8b5cf6]/20 via-[#ec4899]/20 to-[#8b5cf6]/20" />
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(secondaryColor, 0.2)}, ${withOpacity(primaryColor, 0.2)})` }}
+        />
         {/* Overlay for fade-overlay animation */}
         <div className="overlay absolute inset-0 bg-[#0d0d0d]/70" />
         {/* Text content for text-over-video animation */}
         <div className="hero-text video-text relative z-10 flex items-center gap-2">
-          <div className={`${size === "small" ? "w-6 h-6" : "w-8 h-8"} rounded-full bg-[#8b5cf6]/40 border border-[#8b5cf6]/60 flex items-center justify-center`}>
+          <div
+            className={`${size === "small" ? "w-6 h-6" : "w-8 h-8"} rounded-full border flex items-center justify-center`}
+            style={{
+              backgroundColor: withOpacity(primaryColor, 0.4),
+              borderColor: withOpacity(primaryColor, 0.6)
+            }}
+          >
             <div className="w-0 h-0 border-l-[6px] border-l-white border-t-4 border-t-transparent border-b-4 border-b-transparent ml-0.5" />
           </div>
           <div className={`${size === "small" ? "w-20" : "w-24"} h-1.5 bg-white/20 rounded-full`} />
@@ -190,15 +312,20 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`flex-1 rounded border ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`flex-1 rounded border ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           />
         ))}
         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className={`w-1 h-1 rounded-full ${i === 0 ? "bg-[#8b5cf6]" : "bg-[#52525b]"}`} />
+            <div
+              key={i}
+              className="w-1 h-1 rounded-full"
+              style={{ backgroundColor: i === 0 ? primaryColor : "#52525b" }}
+            />
           ))}
         </div>
       </div>
@@ -210,7 +337,13 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
         {[...Array(2)].map((_, i) => (
           <div key={i} data-animation-child className={`flex gap-2 ${i % 2 === 0 ? "" : "flex-row-reverse"}`}>
             <div className="flex-1 h-3 bg-[#1a1a1a]/50 rounded border border-[#333]" />
-            <div className="flex-1 h-3 bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 rounded border border-[#8b5cf6]/30" />
+            <div
+              className="flex-1 h-3 rounded border"
+              style={{
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+                borderColor: withOpacity(primaryColor, 0.3)
+              }}
+            />
           </div>
         ))}
       </div>
@@ -219,17 +352,17 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center p-2`}>
         <div data-animation-child className="flex flex-col gap-1.5 items-center w-full">
           <span className={`${size === "small" ? "text-xs" : "text-sm"} text-[#18a3fa] font-medium typewriter-text`}>Preview Text @text-center</span>
-          <div className="w-3/4 h-1 bg-[#8b5cf6]/20 rounded" />
-          <div className="w-1/2 h-1 bg-[#8b5cf6]/15 rounded" />
+          <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div className="w-1/2 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
           <div className="w-2/3 h-0.5 bg-[#52525b]/20 rounded" />
         </div>
       </div>
     ),
     quote: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center p-3 relative`}>
-        <div className="absolute left-2 top-2 text-2xl text-[#8b5cf6]/30">❝</div>
+        <div className="absolute left-2 top-2 text-2xl" style={{ color: withOpacity(primaryColor, 0.3) }}>❝</div>
         <div data-animation-child className="flex-1 flex flex-col gap-1 ml-4">
-          <div className={`${size === "small" ? "text-xs" : "text-sm"} text-[#8b5cf6]/80 typewriter-text`}>
+          <div className={`${size === "small" ? "text-xs" : "text-sm"} typewriter-text`} style={{ color: withOpacity(primaryColor, 0.8) }}>
             Great things in business are never done by one person
           </div>
           <div className="w-3/5 h-0.5 bg-[#52525b]/15 rounded" />
@@ -244,22 +377,30 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`flex-1 rounded border flex flex-col gap-1 p-2 justify-center ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`flex-1 rounded border flex flex-col gap-1 p-2 justify-center ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-full h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/30" : "bg-[#52525b]/30"}`} />
-            <div className={`w-2/3 h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div className={`w-full h-1 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`w-2/3 h-1 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
     ),
     asymmetric: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
-        <div data-animation-child className="flex-2 rounded border bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30 flex flex-col gap-1 p-2 justify-center">
-          <div className="w-full h-1 bg-[#8b5cf6]/30 rounded" />
-          <div className="w-2/3 h-1 bg-[#8b5cf6]/20 rounded" />
+        <div
+          data-animation-child
+          className="flex-2 rounded border flex flex-col gap-1 p-2 justify-center"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.3) }} />
+          <div className="w-2/3 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
         </div>
         <div data-animation-child className="flex-1 rounded border bg-[#1a1a1a]/50 border-[#333] flex flex-col gap-1 p-2 justify-center">
           <div className="w-full h-1 bg-[#52525b]/30 rounded" />
@@ -275,13 +416,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`rounded border flex flex-col items-center justify-center gap-1 p-1 ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`rounded border flex flex-col items-center justify-center gap-1 p-1 ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-3 h-3 rounded ${i === 0 ? "bg-[#8b5cf6]/40" : "bg-[#52525b]/30"}`} />
-            <div className={`w-full h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div className={`w-3 h-3 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`w-full h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
@@ -290,8 +432,8 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
         {[...Array(3)].map((_, i) => (
           <div key={i} data-animation-child className="flex items-center gap-2">
-            <div className={`w-4 h-4 rounded ${i === 0 ? "bg-[#8b5cf6]/40" : "bg-[#52525b]/30"}`} />
-            <div className={`flex-1 h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div className={`w-4 h-4 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`flex-1 h-1 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
@@ -302,10 +444,11 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className={`flex-1 h-2 rounded ${i === 0
-                ? "bg-linear-to-br from-[#8b5cf6]/30 to-[#8b5cf6]/20 border border-[#8b5cf6]/40"
-                : "bg-[#1a1a1a]/50 border border-[#333]"
-                }`}
+              className={`flex-1 h-2 rounded ${i === 0 ? "" : "bg-[#1a1a1a]/50 border border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`,
+                borderColor: withOpacity(primaryColor, 0.4)
+              } : {}}
             />
           ))}
         </div>
@@ -318,7 +461,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1 p-2`}>
         {[...Array(2)].map((_, i) => (
           <div key={i} data-animation-child className="flex-1 bg-[#1a1a1a]/50 rounded border border-[#333] flex items-center justify-between px-2">
-            <div className={`w-2/3 h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/30" : "bg-[#52525b]/20"}`} />
+            <div className={`w-2/3 h-1 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.2)" }} />
             <div className="w-2 h-2 rounded bg-[#52525b]/30" />
           </div>
         ))}
@@ -330,13 +473,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`rounded border flex flex-col items-center justify-center gap-1 p-1 ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`rounded border flex flex-col items-center justify-center gap-1 p-1 ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-3 h-3 rounded ${i === 0 ? "bg-[#8b5cf6]/40" : "bg-[#52525b]/30"}`} />
-            <div className={`w-full h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div className={`w-3 h-3 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`w-full h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
@@ -349,10 +493,11 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`rounded border ${i % 3 === 0 ? "row-span-2" : ""} ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`rounded border ${i % 3 === 0 ? "row-span-2" : ""} ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           />
         ))}
       </div>
@@ -360,13 +505,23 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     carousel: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
         <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#52525b]/40 border border-[#52525b]/60" />
-        <div data-animation-child className="flex-1 h-full bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 rounded border border-[#8b5cf6]/30 m-1" />
+        <div
+          data-animation-child
+          className="flex-1 h-full rounded border m-1"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        />
         <div className="absolute right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#52525b]/40 border border-[#52525b]/60" />
       </div>
     ),
     video: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-linear-to-r from-[#8b5cf6]/20 via-[#ec4899]/20 to-[#8b5cf6]/20 opacity-50" />
+        <div
+          className="absolute inset-0 opacity-50"
+          style={{ background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(secondaryColor, 0.2)}, ${withOpacity(primaryColor, 0.2)})` }}
+        />
         <div data-animation-child className="relative z-10 flex items-center gap-2">
           <div className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"} rounded-full bg-white/20 border border-white/30 flex items-center justify-center`}>
             <div className="w-0 h-0 border-l-4 border-l-white border-t-[3px] border-t-transparent border-b-[3px] border-b-transparent ml-0.5" />
@@ -381,10 +536,11 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`rounded border aspect-square relative ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`rounded border aspect-square relative ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
             {i === 0 && (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -401,9 +557,15 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
         <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-[#52525b]/40" />
         <div data-animation-child className="flex-1 flex items-center gap-2 p-2">
-          <div className={`${size === "small" ? "w-6 h-6" : "w-7 h-7"} rounded-full bg-[#8b5cf6]/20 border border-[#8b5cf6]/30 shrink-0`} />
+          <div
+            className={`${size === "small" ? "w-6 h-6" : "w-7 h-7"} rounded-full border shrink-0`}
+            style={{
+              backgroundColor: withOpacity(primaryColor, 0.2),
+              borderColor: withOpacity(primaryColor, 0.3)
+            }}
+          />
           <div className="flex-1 flex flex-col gap-1">
-            <div className="w-full h-1 bg-[#8b5cf6]/15 rounded" />
+            <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
             <div className="w-3/4 h-1 bg-[#52525b]/20 rounded" />
           </div>
         </div>
@@ -416,13 +578,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`rounded border flex items-center gap-1.5 p-1 ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`rounded border flex items-center gap-1.5 p-1 ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-4 h-4 rounded-full ${i === 0 ? "bg-[#8b5cf6]/40" : "bg-[#52525b]/30"}`} />
-            <div className={`flex-1 h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div className={`w-4 h-4 rounded-full`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`flex-1 h-1 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
@@ -433,12 +596,13 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`flex-1 h-full rounded border flex items-center justify-center ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`flex-1 h-full rounded border flex items-center justify-center ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-6 h-6 rounded ${i === 0 ? "bg-[#8b5cf6]/40" : "bg-[#52525b]/30"}`} />
+            <div className={`w-6 h-6 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
           </div>
         ))}
       </div>
@@ -449,12 +613,13 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`shrink-0 w-12 h-full rounded border flex items-center justify-center ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`shrink-0 w-12 h-full rounded border flex items-center justify-center ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-5 h-5 rounded ${i === 0 ? "bg-[#8b5cf6]/40" : "bg-[#52525b]/30"}`} />
+            <div className={`w-5 h-5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
           </div>
         ))}
       </div>
@@ -465,15 +630,16 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`rounded border flex flex-col ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`rounded border flex flex-col ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
             <div className="flex-1 bg-[#1a1a1a]/30 rounded-t" />
             <div className="p-1 flex flex-col gap-0.5">
-              <div className={`w-full h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/30" : "bg-[#52525b]/20"}`} />
-              <div className={`w-2/3 h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/15"}`} />
+              <div className={`w-full h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.2)" }} />
+              <div className={`w-2/3 h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.15)" }} />
             </div>
           </div>
         ))}
@@ -487,13 +653,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`flex-1 rounded border flex flex-col items-center justify-center gap-1 ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`flex-1 rounded border flex flex-col items-center justify-center gap-1 ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`${size === "small" ? "w-8 h-3" : "w-10 h-3.5"} rounded ${i === 0 ? "bg-[#8b5cf6]/30" : "bg-[#52525b]/30"}`} />
-            <div className={`${size === "small" ? "w-12" : "w-14"} h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div className={`${size === "small" ? "w-8 h-3" : "w-10 h-3.5"} rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`${size === "small" ? "w-12" : "w-14"} h-1 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
@@ -504,14 +671,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div key={i} data-animation-child className="flex items-center gap-2">
             <div className="w-12 h-1 bg-[#1a1a1a]/50 rounded-full overflow-hidden">
               <div
-                className={`progress-bar bar h-full rounded-full ${i === 0
-                  ? "bg-linear-to-r from-[#8b5cf6] to-[#ec4899]"
-                  : "bg-[#52525b]"
-                  }`}
-                style={{ width: `${(i + 1) * 30}%` }}
+                className="progress-bar bar h-full rounded-full"
+                style={{
+                  width: `${(i + 1) * 30}%`,
+                  background: i === 0 ? `linear-gradient(to right, ${primaryColor}, ${secondaryColor})` : "#52525b"
+                }}
               />
             </div>
-            <div className={`flex-1 h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div className={`flex-1 h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
@@ -522,11 +689,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`flex-1 rounded-t border-t ${i === 2
-              ? "bg-linear-to-t from-[#8b5cf6] to-[#8b5cf6]/50 border-[#8b5cf6]/40"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
-            style={{ height: `${30 + i * 15}%` }}
+            className={`flex-1 rounded-t border-t ${i === 2 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 2 ? {
+              height: `${30 + i * 15}%`,
+              background: `linear-gradient(to top, ${primaryColor}, ${withOpacity(primaryColor, 0.5)})`,
+              borderColor: withOpacity(primaryColor, 0.4)
+            } : {
+              height: `${30 + i * 15}%`
+            }}
           />
         ))}
       </div>
@@ -539,14 +709,15 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`flex-1 rounded border flex flex-col gap-1 p-1.5 ${i === 1
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`flex-1 rounded border flex flex-col gap-1 p-1.5 ${i === 1 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 1 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-full h-1 rounded ${i === 1 ? "bg-[#8b5cf6]/30" : "bg-[#52525b]/30"}`} />
-            <div className={`w-2/3 h-0.5 rounded ${i === 1 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
-            <div className={`w-1/2 h-2 rounded ${i === 1 ? "bg-[#8b5cf6]/40" : "bg-[#52525b]/30"}`} />
+            <div className={`w-full h-1 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`w-2/3 h-0.5 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
+            <div className={`w-1/2 h-2 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
           </div>
         ))}
       </div>
@@ -555,7 +726,10 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
         <div data-animation-child className="flex items-center justify-center gap-2">
           <div className="w-8 h-2 bg-[#1a1a1a]/50 rounded-full border border-[#333] relative">
-            <div className="absolute right-0 top-0 w-1/2 h-full bg-linear-to-r from-[#8b5cf6]/30 to-[#8b5cf6]/20 rounded-full" />
+            <div
+              className="absolute right-0 top-0 w-1/2 h-full rounded-full"
+              style={{ background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})` }}
+            />
           </div>
         </div>
         <div data-animation-child className="flex gap-1.5">
@@ -573,10 +747,10 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
             {[...Array(3)].map((_, j) => (
               <div
                 key={j}
-                className={`flex-1 h-2 rounded ${i === 0 && j === 1
-                  ? "bg-linear-to-r from-[#8b5cf6]/30 to-[#8b5cf6]/20"
-                  : "bg-[#1a1a1a]/50 border border-[#333]"
-                  }`}
+                className={`flex-1 h-2 rounded ${i === 0 && j === 1 ? "" : "bg-[#1a1a1a]/50 border border-[#333]"}`}
+                style={i === 0 && j === 1 ? {
+                  background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`
+                } : {}}
               />
             ))}
           </div>
@@ -587,38 +761,81 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     // === CTA VARIANTS ===
     "cta-split": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
-        <div data-animation-child className="flex-1 bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 rounded border border-[#8b5cf6]/30 flex items-center justify-center">
-          <div className={`${size === "small" ? "w-8 h-8" : "w-10 h-10"} rounded bg-[#8b5cf6]/20 border border-[#8b5cf6]/40`} />
+        <div
+          data-animation-child
+          className="flex-1 rounded border flex items-center justify-center"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div
+            className={`${size === "small" ? "w-8 h-8" : "w-10 h-10"} rounded border`}
+            style={{
+              backgroundColor: withOpacity(primaryColor, 0.2),
+              borderColor: withOpacity(primaryColor, 0.4)
+            }}
+          />
         </div>
         <div data-animation-child className="flex-1 flex flex-col gap-1.5 justify-center">
-          <div className="w-full h-1 bg-[#8b5cf6]/20 rounded" />
-          <div className={`${size === "small" ? "w-20 h-4" : "w-24 h-5"} rounded-md bg-linear-to-r from-[#8b5cf6]/30 to-[#ec4899]/30 border border-[#8b5cf6]/40`} />
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div
+            className={`${size === "small" ? "w-20 h-4" : "w-24 h-5"} rounded-md border`}
+            style={{
+              background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(secondaryColor, 0.3)})`,
+              borderColor: withOpacity(primaryColor, 0.4)
+            }}
+          />
         </div>
       </div>
     ),
     "cta-banner": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-between p-3 relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-linear-to-r from-[#8b5cf6]/10 via-[#ec4899]/10 to-[#8b5cf6]/10 opacity-40" />
+        <div
+          className="absolute inset-0 opacity-40"
+          style={{ background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.1)}, ${withOpacity(secondaryColor, 0.1)}, ${withOpacity(primaryColor, 0.1)})` }}
+        />
         <div data-animation-child className="relative z-10 flex-1 flex flex-col gap-1.5">
           <div className="w-3/4 h-1 bg-white/20 rounded" />
           <div className="w-1/2 h-1 bg-white/15 rounded" />
         </div>
-        <div data-animation-child className={`relative z-10 ${size === "small" ? "w-16 h-6" : "w-20 h-7"} rounded-md bg-linear-to-r from-[#8b5cf6]/40 to-[#ec4899]/40 border border-[#8b5cf6]/50`} />
+        <div
+          data-animation-child
+          className={`relative z-10 ${size === "small" ? "w-16 h-6" : "w-20 h-7"} rounded-md border`}
+          style={{
+            background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.4)}, ${withOpacity(secondaryColor, 0.4)})`,
+            borderColor: withOpacity(primaryColor, 0.5)
+          }}
+        />
       </div>
     ),
     newsletter: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center gap-2 p-2`}>
         <div data-animation-child className="flex-1 h-6 bg-[#1a1a1a]/50 rounded border border-[#333]" />
-        <div data-animation-child className={`${size === "small" ? "w-16 h-6" : "w-20 h-7"} rounded-md bg-linear-to-r from-[#8b5cf6]/30 to-[#ec4899]/30 border border-[#8b5cf6]/40`} />
+        <div
+          data-animation-child
+          className={`${size === "small" ? "w-16 h-6" : "w-20 h-7"} rounded-md border`}
+          style={{
+            background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(secondaryColor, 0.3)})`,
+            borderColor: withOpacity(primaryColor, 0.4)
+          }}
+        />
       </div>
     ),
     download: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center gap-2 p-2`}>
-        <div data-animation-child className={`${size === "small" ? "w-6 h-6" : "w-7 h-7"} rounded bg-[#8b5cf6]/20 border border-[#8b5cf6]/30 flex items-center justify-center`}>
-          <div className="w-0 h-0 border-t-4 border-t-[#8b5cf6] border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent" />
+        <div
+          data-animation-child
+          className={`${size === "small" ? "w-6 h-6" : "w-7 h-7"} rounded border flex items-center justify-center`}
+          style={{
+            backgroundColor: withOpacity(primaryColor, 0.2),
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div className="w-0 h-0 border-t-4 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent" style={{ borderTopColor: primaryColor }} />
         </div>
         <div data-animation-child className="flex flex-col gap-1">
-          <div className="w-20 h-1 bg-[#8b5cf6]/20 rounded" />
+          <div className="w-20 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
           <div className="w-16 h-0.5 bg-[#52525b]/20 rounded" />
         </div>
       </div>
@@ -630,7 +847,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
         {[...Array(3)].map((_, i) => (
           <div key={i} data-animation-child className="w-full h-3 bg-[#1a1a1a]/50 rounded border border-[#333]" />
         ))}
-        <div data-animation-child className={`${size === "small" ? "w-16 h-5" : "w-20 h-6"} rounded-md bg-linear-to-r from-[#8b5cf6]/30 to-[#ec4899]/30 border border-[#8b5cf6]/40`} />
+        <div
+          data-animation-child
+          className={`${size === "small" ? "w-16 h-5" : "w-20 h-6"} rounded-md border`}
+          style={{
+            background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(secondaryColor, 0.3)})`,
+            borderColor: withOpacity(primaryColor, 0.4)
+          }}
+        />
       </div>
     ),
     "contact-split": (
@@ -640,7 +864,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
             <div key={i} className="w-full h-3 bg-[#1a1a1a]/50 rounded border border-[#333]" />
           ))}
         </div>
-        <div data-animation-child className="flex-1 bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 rounded border border-[#8b5cf6]/30" />
+        <div
+          data-animation-child
+          className="flex-1 rounded border"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        />
       </div>
     ),
     signup: (
@@ -648,14 +879,31 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
         {[...Array(4)].map((_, i) => (
           <div key={i} data-animation-child className="w-full h-2.5 bg-[#1a1a1a]/50 rounded border border-[#333]" />
         ))}
-        <div data-animation-child className={`${size === "small" ? "w-20 h-5" : "w-24 h-6"} rounded-md bg-linear-to-r from-[#8b5cf6]/30 to-[#ec4899]/30 border border-[#8b5cf6]/40`} />
+        <div
+          data-animation-child
+          className={`${size === "small" ? "w-20 h-5" : "w-24 h-6"} rounded-md border`}
+          style={{
+            background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(secondaryColor, 0.3)})`,
+            borderColor: withOpacity(primaryColor, 0.4)
+          }}
+        />
       </div>
     ),
     lead: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center gap-2 p-2 relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-linear-to-r from-[#8b5cf6]/5 via-[#ec4899]/5 to-[#8b5cf6]/5" />
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.05)}, ${withOpacity(secondaryColor, 0.05)}, ${withOpacity(primaryColor, 0.05)})` }}
+        />
         <div data-animation-child className="relative z-10 flex-1 h-5 bg-[#1a1a1a]/50 rounded border border-[#333]" />
-        <div data-animation-child className={`relative z-10 ${size === "small" ? "w-16 h-5" : "w-20 h-6"} rounded-md bg-linear-to-r from-[#8b5cf6]/30 to-[#ec4899]/30 border border-[#8b5cf6]/40`} />
+        <div
+          data-animation-child
+          className={`relative z-10 ${size === "small" ? "w-16 h-5" : "w-20 h-6"} rounded-md border`}
+          style={{
+            background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(secondaryColor, 0.3)})`,
+            borderColor: withOpacity(primaryColor, 0.4)
+          }}
+        />
       </div>
     ),
 
@@ -666,10 +914,11 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className={`flex-1 h-2 rounded ${i === 0
-                ? "bg-linear-to-br from-[#8b5cf6]/30 to-[#8b5cf6]/20 border border-[#8b5cf6]/40"
-                : "bg-[#1a1a1a]/50 border border-[#333]"
-                }`}
+              className={`flex-1 h-2 rounded ${i === 0 ? "" : "bg-[#1a1a1a]/50 border border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`,
+                borderColor: withOpacity(primaryColor, 0.4)
+              } : {}}
             />
           ))}
         </div>
@@ -695,11 +944,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center gap-3 p-2`}>
         {[...Array(3)].map((_, i) => (
           <div key={i} data-animation-child className="flex flex-col items-center gap-1">
-            <div className={`${size === "small" ? "w-8 h-8" : "w-10 h-10"} rounded-full ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/30 to-[#8b5cf6]/20 border border-[#8b5cf6]/40"
-              : "bg-[#1a1a1a]/50 border border-[#333]"
-              }`} />
-            <div className={`w-12 h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div
+              className={`${size === "small" ? "w-8 h-8" : "w-10 h-10"} rounded-full border ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`,
+                borderColor: withOpacity(primaryColor, 0.4)
+              } : {}}
+            />
+            <div className={`w-12 h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
@@ -710,13 +962,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`rounded border flex flex-col items-center gap-1 p-1 ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`rounded border flex flex-col items-center gap-1 p-1 ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
-            <div className={`w-6 h-6 rounded-full ${i === 0 ? "bg-[#8b5cf6]/40" : "bg-[#52525b]/30"}`} />
-            <div className={`w-full h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div className={`w-6 h-6 rounded-full`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`w-full h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
@@ -727,11 +980,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
         <div data-animation-child className="flex gap-2">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-1">
-              <div className={`${size === "small" ? "w-7 h-7" : "w-8 h-8"} rounded-full ${i === 1
-                ? "bg-linear-to-br from-[#8b5cf6]/30 to-[#8b5cf6]/20 border border-[#8b5cf6]/40"
-                : "bg-[#1a1a1a]/50 border border-[#333]"
-                }`} />
-              <div className={`w-10 h-0.5 rounded ${i === 1 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+              <div
+                className={`${size === "small" ? "w-7 h-7" : "w-8 h-8"} rounded-full border ${i === 1 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+                style={i === 1 ? {
+                  background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`,
+                  borderColor: withOpacity(primaryColor, 0.4)
+                } : {}}
+              />
+              <div className={`w-10 h-0.5 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
             </div>
           ))}
         </div>
@@ -745,11 +1001,17 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
         <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-[#333]" />
         {[...Array(3)].map((_, i) => (
           <div key={i} data-animation-child className="flex items-center gap-2 flex-1">
-            <div className={`w-2 h-2 rounded-full ${i === 0
-              ? "bg-[#8b5cf6] border-2 border-[#8b5cf6]/40"
-              : "bg-[#52525b] border-2 border-[#52525b]/40"
-              }`} />
-            <div className={`flex-1 h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+            <div
+              className={`w-2 h-2 rounded-full border-2`}
+              style={i === 0 ? {
+                backgroundColor: primaryColor,
+                borderColor: withOpacity(primaryColor, 0.4)
+              } : {
+                backgroundColor: "#52525b",
+                borderColor: "rgba(82, 82, 91, 0.4)"
+              }}
+            />
+            <div className={`flex-1 h-1 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
           </div>
         ))}
       </div>
@@ -760,11 +1022,17 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
         <div data-animation-child className="flex gap-4 relative z-10">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-1">
-              <div className={`w-2 h-2 rounded-full ${i === 1
-                ? "bg-[#8b5cf6] border-2 border-[#8b5cf6]/40"
-                : "bg-[#52525b] border-2 border-[#52525b]/40"
-                }`} />
-              <div className={`w-8 h-1 rounded ${i === 1 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+              <div
+                className={`w-2 h-2 rounded-full border-2`}
+                style={i === 1 ? {
+                  backgroundColor: primaryColor,
+                  borderColor: withOpacity(primaryColor, 0.4)
+                } : {
+                  backgroundColor: "#52525b",
+                  borderColor: "rgba(82, 82, 91, 0.4)"
+                }}
+              />
+              <div className={`w-8 h-1 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
             </div>
           ))}
         </div>
@@ -774,11 +1042,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center gap-2 p-2`}>
         {[...Array(4)].map((_, i) => (
           <div key={i} data-animation-child className="flex items-center gap-1.5 flex-1">
-            <div className={`${size === "small" ? "w-4 h-4" : "w-5 h-5"} rounded-full flex items-center justify-center ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/30 to-[#8b5cf6]/20 border border-[#8b5cf6]/40"
-              : "bg-[#1a1a1a]/50 border border-[#333]"
-              }`}>
-              <span className={`text-[8px] ${i === 0 ? "text-[#8b5cf6]" : "text-[#52525b]"}`}>{i + 1}</span>
+            <div
+              className={`${size === "small" ? "w-4 h-4" : "w-5 h-5"} rounded-full flex items-center justify-center border ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`,
+                borderColor: withOpacity(primaryColor, 0.4)
+              } : {}}
+            >
+              <span className={`text-[8px]`} style={{ color: i === 0 ? primaryColor : "#52525b" }}>{i + 1}</span>
             </div>
             {i < 3 && <div className="flex-1 h-0.5 bg-[#333]" />}
           </div>
@@ -788,14 +1059,26 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     roadmap: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
         <div data-animation-child className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[#8b5cf6] border-2 border-[#8b5cf6]/40" />
+          <div
+            className="w-2 h-2 rounded-full border-2"
+            style={{
+              backgroundColor: primaryColor,
+              borderColor: withOpacity(primaryColor, 0.4)
+            }}
+          />
           <div className="flex-1 h-0.5 bg-[#333]" />
           <div className="w-2 h-2 rounded-full bg-[#52525b] border-2 border-[#52525b]/40" />
           <div className="flex-1 h-0.5 bg-[#333]" />
           <div className="w-2 h-2 rounded-full bg-[#52525b] border-2 border-[#52525b]/40" />
         </div>
         <div data-animation-child className="flex gap-2">
-          <div className="flex-1 h-2 bg-[#8b5cf6]/20 rounded border border-[#8b5cf6]/30" />
+          <div
+            className="flex-1 h-2 rounded border"
+            style={{
+              backgroundColor: withOpacity(primaryColor, 0.2),
+              borderColor: withOpacity(primaryColor, 0.3)
+            }}
+          />
           <div className="flex-1 h-2 bg-[#1a1a1a]/50 rounded border border-[#333]" />
           <div className="flex-1 h-2 bg-[#1a1a1a]/50 rounded border border-[#333]" />
         </div>
@@ -807,7 +1090,10 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
         <div className="absolute inset-0 bg-linear-to-br from-[#1a1a1a] to-[#0d0d0d] opacity-80" />
         <div data-animation-child className="absolute inset-0 flex items-center justify-center">
-          <div className="w-2 h-2 rounded-full bg-[#8b5cf6] border-2 border-white/20 animate-pulse" />
+          <div
+            className="w-2 h-2 rounded-full border-2 border-white/20 animate-pulse"
+            style={{ backgroundColor: primaryColor }}
+          />
         </div>
         <div className="absolute top-1 left-1 w-3 h-3 rounded bg-[#52525b]/30 border border-[#52525b]/50" />
         <div className="absolute bottom-1 right-1 w-3 h-3 rounded bg-[#52525b]/30 border border-[#52525b]/50" />
@@ -817,7 +1103,10 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
         <div data-animation-child className="flex-1 bg-linear-to-br from-[#1a1a1a] to-[#0d0d0d] rounded border border-[#333] relative">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-2 h-2 rounded-full bg-[#8b5cf6] border-2 border-white/20" />
+            <div
+              className="w-2 h-2 rounded-full border-2 border-white/20"
+              style={{ backgroundColor: primaryColor }}
+            />
           </div>
         </div>
         <div data-animation-child className="flex-1 flex flex-col gap-1.5">
@@ -834,10 +1123,11 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className="absolute w-2 h-2 rounded-full bg-[#8b5cf6] border-2 border-white/20"
+            className="absolute w-2 h-2 rounded-full border-2 border-white/20"
             style={{
               left: `${20 + i * 30}%`,
               top: `${30 + i * 20}%`,
+              backgroundColor: primaryColor
             }}
           />
         ))}
@@ -851,14 +1141,15 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div
             key={i}
             data-animation-child
-            className={`rounded border flex flex-col ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border-[#333]"
-              }`}
+            className={`rounded border flex flex-col ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
           >
             <div className="flex-1 bg-[#1a1a1a]/30 rounded-t" />
             <div className="p-1">
-              <div className={`w-full h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
+              <div className={`w-full h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
             </div>
           </div>
         ))}
@@ -868,13 +1159,16 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
         {[...Array(3)].map((_, i) => (
           <div key={i} data-animation-child className="flex gap-2">
-            <div className={`w-12 h-12 rounded ${i === 0
-              ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border border-[#8b5cf6]/30"
-              : "bg-[#1a1a1a]/50 border border-[#333]"
-              }`} />
+            <div
+              className={`w-12 h-12 rounded border ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+                borderColor: withOpacity(primaryColor, 0.3)
+              } : {}}
+            />
             <div className="flex-1 flex flex-col gap-1">
-              <div className={`w-full h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/20" : "bg-[#52525b]/20"}`} />
-              <div className={`w-3/4 h-0.5 rounded ${i === 0 ? "bg-[#8b5cf6]/15" : "bg-[#52525b]/15"}`} />
+              <div className={`w-full h-1 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
+              <div className={`w-3/4 h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.15) : "rgba(82, 82, 91, 0.15)" }} />
             </div>
           </div>
         ))}
@@ -882,7 +1176,14 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     ),
     "blog-featured": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
-        <div data-animation-child className="flex-2 bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 rounded border border-[#8b5cf6]/30" />
+        <div
+          data-animation-child
+          className="flex-2 rounded border"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        />
         <div data-animation-child className="flex-1 flex flex-col gap-1.5">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex-1 bg-[#1a1a1a]/50 rounded border border-[#333] p-1">
@@ -894,8 +1195,15 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     ),
     "news-ticker": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center gap-2 p-2 overflow-hidden`}>
-        <div data-animation-child className="w-6 h-6 rounded bg-[#8b5cf6]/20 border border-[#8b5cf6]/30 flex items-center justify-center shrink-0">
-          <div className="w-2 h-2 rounded-full bg-[#8b5cf6]" />
+        <div
+          data-animation-child
+          className="w-6 h-6 rounded border flex items-center justify-center shrink-0"
+          style={{
+            backgroundColor: withOpacity(primaryColor, 0.2),
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: primaryColor }} />
         </div>
         <div data-animation-child className="flex-1 flex gap-3">
           {[...Array(3)].map((_, i) => (
@@ -912,10 +1220,11 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className={`flex-1 h-2 rounded ${i === 0
-                ? "bg-linear-to-br from-[#8b5cf6]/30 to-[#8b5cf6]/20 border border-[#8b5cf6]/40"
-                : "bg-[#1a1a1a]/50 border border-[#333]"
-                }`}
+              className={`flex-1 h-2 rounded ${i === 0 ? "" : "bg-[#1a1a1a]/50 border border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`,
+                borderColor: withOpacity(primaryColor, 0.4)
+              } : {}}
             />
           ))}
         </div>
@@ -928,7 +1237,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1 p-2`}>
         {[...Array(2)].map((_, i) => (
           <div key={i} data-animation-child className="flex-1 bg-[#1a1a1a]/50 rounded border border-[#333] flex items-center justify-between px-2">
-            <div className={`w-2/3 h-1 rounded ${i === 0 ? "bg-[#8b5cf6]/30" : "bg-[#52525b]/20"}`} />
+            <div className={`w-2/3 h-1 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.2)" }} />
             <div className="w-2 h-2 rounded bg-[#52525b]/30" />
           </div>
         ))}
@@ -940,10 +1249,11 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className={`flex-1 h-2 rounded ${i === 0
-                ? "bg-linear-to-br from-[#8b5cf6]/30 to-[#8b5cf6]/20 border border-[#8b5cf6]/40"
-                : "bg-[#1a1a1a]/50 border border-[#333]"
-                }`}
+              className={`flex-1 h-2 rounded ${i === 0 ? "" : "bg-[#1a1a1a]/50 border border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`,
+                borderColor: withOpacity(primaryColor, 0.4)
+              } : {}}
             />
           ))}
         </div>
@@ -951,10 +1261,11 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className={`rounded border aspect-square ${i === 0
-                ? "bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10 border-[#8b5cf6]/30"
-                : "bg-[#1a1a1a]/50 border-[#333]"
-                }`}
+              className={`rounded border aspect-square ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+                borderColor: withOpacity(primaryColor, 0.3)
+              } : {}}
             />
           ))}
         </div>
@@ -963,7 +1274,13 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     comparison: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
         <div className="absolute inset-0 flex">
-          <div data-animation-child className="flex-1 bg-linear-to-br from-[#8b5cf6]/20 to-[#8b5cf6]/10" />
+          <div
+            data-animation-child
+            className="flex-1"
+            style={{
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`
+            }}
+          />
           <div className="w-0.5 bg-[#333]" />
           <div data-animation-child className="flex-1 bg-[#1a1a1a]/50" />
         </div>
@@ -987,8 +1304,8 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           />
           <defs>
             <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#8b5cf6" />
-              <stop offset="100%" stopColor="#ec4899" />
+              <stop offset="0%" stopColor={primaryColor} />
+              <stop offset="100%" stopColor={secondaryColor} />
             </linearGradient>
           </defs>
         </svg>
@@ -1001,12 +1318,16 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     ),
     "parallax-divider": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
-        <div data-animation-child className="absolute inset-0 bg-linear-to-br from-[#8b5cf6]/10 via-[#ec4899]/10 to-[#8b5cf6]/10 opacity-40" />
+        <div
+          data-animation-child
+          className="absolute inset-0 opacity-40"
+          style={{ background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.1)}, ${withOpacity(secondaryColor, 0.1)}, ${withOpacity(primaryColor, 0.1)})` }}
+        />
         <div
           data-animation-child
           className="absolute inset-0 opacity-20"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238b5cf6' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(primaryColor)}' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
       </div>

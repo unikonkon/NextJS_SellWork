@@ -24,6 +24,10 @@ const SECTION_PRICE = 200; // ราคาต่อ section ที่เพิ�
 const INITIAL_SECTIONS = 3; // จำนวน section เริ่มต้น (ฟรี)
 const SECTION_ANIMATION_PRICE = 200; // ราคาต่อ animation ที่เพิ่ม
 
+// Theme Options Pricing
+const DARK_LIGHT_THEME_PRICE = 500;
+const BILINGUAL_PRICE = 500;
+
 // Navbar & Footer Options
 const NAVBAR_OPTIONS = [
   { id: "basic" as const, label: "พื้นฐาน", price: 0 },
@@ -35,11 +39,37 @@ const FOOTER_OPTIONS = [
   { id: "animated" as const, label: "+ Animation", price: 300 },
 ];
 
-// Addon Services
+// Color Theme Options
+const COLOR_THEMES = [
+  { id: "white", label: "White", color: "#ffffff", colorLight: "#ffffff" },
+  { id: "black", label: "Black", color: "#000000", colorLight: "#000000" },
+  { id: "red", label: "Red", color: "#ef4444", colorLight: "#f87171" },
+  { id: "orange", label: "Orange", color: "#f97316", colorLight: "#fb923c" },
+  { id: "amber", label: "Amber", color: "#f59e42", colorLight: "#fbbf24" },
+  { id: "yellow", label: "Yellow", color: "#eab308", colorLight: "#facc15" },
+  { id: "lime", label: "Lime", color: "#84cc16", colorLight: "#bef264" },
+  { id: "green", label: "Green", color: "#10b981", colorLight: "#34d399" },
+  { id: "emerald", label: "Emerald", color: "#059669", colorLight: "#34d399" },
+  { id: "teal", label: "Teal", color: "#14b8a6", colorLight: "#2dd4bf" },
+  { id: "cyan", label: "Cyan", color: "#06b6d4", colorLight: "#22d3ee" },
+  { id: "sky", label: "Sky", color: "#0ea5e9", colorLight: "#38bdf8" },
+  { id: "blue", label: "Blue", color: "#3b82f6", colorLight: "#60a5fa" },
+  { id: "indigo", label: "Indigo", color: "#6366f1", colorLight: "#818cf8" },
+  { id: "violet", label: "Violet", color: "#7c3aed", colorLight: "#a78bfa" },
+  { id: "purple", label: "Purple", color: "#8b5cf6", colorLight: "#a78bfa" },
+  { id: "fuchsia", label: "Fuchsia", color: "#d946ef", colorLight: "#f0abfc" },
+  { id: "pink", label: "Pink", color: "#ec4899", colorLight: "#f472b6" },
+  { id: "rose", label: "Rose", color: "#f43f5e", colorLight: "#fb7185" },
+  { id: "slate", label: "Slate", color: "#64748b", colorLight: "#a3aed0" },
+  { id: "gray", label: "Gray", color: "#6b7280", colorLight: "#d1d5db" },
+  { id: "zinc", label: "Zinc", color: "#71717a", colorLight: "#a1a1aa" },
+  { id: "neutral", label: "Neutral", color: "#737373", colorLight: "#a3a3a3" },
+  { id: "stone", label: "Stone", color: "#78716c", colorLight: "#a8a29e" },
+];
+
+// Addon Services (without bilingual and dark/light - moved to Step 1)
 const ADDON_SERVICES = [
   { id: "seo", label: "SEO Setup เต็มรูปแบบ", price: 1000, icon: "📊" },
-  { id: "bilingual", label: "รองรับ 2 ภาษา (TH/EN)", price: 1200, icon: "🌐" },
-  { id: "light-dark", label: "Theme (Dark/Light)", price: 1500, icon: "🌙/🌞" },
   { id: "mobile-responsive", label: "Mobile Responsive", price: 1000, icon: "📱" },
 ];
 
@@ -61,17 +91,17 @@ function calculateMobileResponsivePrice(params: {
   pages: Array<{ sections: Array<{ animation: string | null; customAnimation: string | null }> }>;
 }): number {
   let mobilePrice = MOBILE_RESPONSIVE_BASE_PRICE;
-  
+
   // +200 if navbar is animated
   if (params.navbar === "animated") {
     mobilePrice += MOBILE_RESPONSIVE_NAVBAR_ANIMATED_PRICE;
   }
-  
+
   // +300 if footer is animated
   if (params.footer === "animated") {
     mobilePrice += MOBILE_RESPONSIVE_FOOTER_ANIMATED_PRICE;
   }
-  
+
   // +100 per section animation (main sections + page sections)
   const mainSectionAnims = params.mainSections.filter((s) => s.animation || s.customAnimation).length;
   const pageSectionAnims = params.pages.reduce(
@@ -80,7 +110,7 @@ function calculateMobileResponsivePrice(params: {
   );
   const totalSectionAnims = mainSectionAnims + pageSectionAnims;
   mobilePrice += totalSectionAnims * MOBILE_RESPONSIVE_SECTION_ANIMATION_PRICE;
-  
+
   return mobilePrice;
 }
 
@@ -109,6 +139,15 @@ interface CustomAnimItem {
 
 interface CalculatorState {
   step1: {
+    // Theme Settings (moved from step3)
+    themeColor: string;
+    customColor: string;
+    darkLightMode: boolean;
+    bilingual: boolean;
+    fontFamily: string;
+  };
+  step2: {
+    // Navbar & Footer (moved from step1)
     navbar: "basic" | "animated";
     footer: "basic" | "animated";
     selectedNavbarAnim: string | null;
@@ -117,14 +156,12 @@ interface CalculatorState {
     footerCustomAnims: CustomAnimItem[];
     customNavbarInput: string;
     customFooterInput: string;
-  };
-  step2: {
+    // Sections
     mainSections: SectionItem[];
     pages: PageItem[];
   };
   step3: {
     seo: boolean;
-    bilingual: boolean;
     cms: boolean;
     extendedSupport: boolean;
   };
@@ -183,6 +220,13 @@ export default function PricingSection() {
 
   const [state, setState] = useState<CalculatorState>({
     step1: {
+      themeColor: "purple",
+      customColor: "#8b5cf6",
+      darkLightMode: false,
+      bilingual: false,
+      fontFamily: "",
+    },
+    step2: {
       navbar: "basic",
       footer: "basic",
       selectedNavbarAnim: null,
@@ -191,9 +235,10 @@ export default function PricingSection() {
       footerCustomAnims: [],
       customNavbarInput: "",
       customFooterInput: "",
+      mainSections: createInitialSections(),
+      pages: [],
     },
-    step2: { mainSections: createInitialSections(), pages: [] },
-    step3: { seo: false, bilingual: false, cms: false, extendedSupport: false },
+    step3: { seo: false, cms: false, extendedSupport: false },
     step4: { customItems: [] },
   });
 
@@ -206,6 +251,14 @@ export default function PricingSection() {
     // Base Price
     items.push({ label: "ราคาเริ่มต้น", price: BASE_PRICE, category: "base" });
 
+    // Theme Options (from Step 1)
+    if (state.step1.darkLightMode) {
+      items.push({ label: "Theme (Dark/Light)", price: DARK_LIGHT_THEME_PRICE, category: "theme" });
+    }
+    if (state.step1.bilingual) {
+      items.push({ label: "รองรับ 2 ภาษา (TH/EN)", price: BILINGUAL_PRICE, category: "theme" });
+    }
+
     // Extra main sections (over INITIAL_SECTIONS)
     const extraMainSections = Math.max(0, state.step2.mainSections.length - INITIAL_SECTIONS);
     if (extraMainSections > 0) {
@@ -216,14 +269,14 @@ export default function PricingSection() {
       });
     }
 
-    // Navbar
-    const navbar = NAVBAR_OPTIONS.find((n) => n.id === state.step1.navbar)!;
+    // Navbar (moved to step2)
+    const navbar = NAVBAR_OPTIONS.find((n) => n.id === state.step2.navbar)!;
     if (navbar.price > 0) {
       items.push({ label: `Navbar ${navbar.label}`, price: navbar.price, category: "navbar" });
     }
 
-    // Footer
-    const footer = FOOTER_OPTIONS.find((f) => f.id === state.step1.footer)!;
+    // Footer (moved to step2)
+    const footer = FOOTER_OPTIONS.find((f) => f.id === state.step2.footer)!;
     if (footer.price > 0) {
       items.push({ label: `Footer ${footer.label}`, price: footer.price, category: "footer" });
     }
@@ -252,22 +305,22 @@ export default function PricingSection() {
     });
 
 
-    // STEP 4: Addons
+    // STEP 3: Addons
     ADDON_SERVICES.forEach((service) => {
       if (state.step3[service.id as keyof typeof state.step3]) {
         // Special calculation for mobile-responsive
         if (service.id === "mobile-responsive") {
           const mobilePrice = calculateMobileResponsivePrice({
-            navbar: state.step1.navbar,
-            footer: state.step1.footer,
+            navbar: state.step2.navbar,
+            footer: state.step2.footer,
             mainSections: state.step2.mainSections,
             pages: state.step2.pages,
           });
-          
-          items.push({ 
-            label: service.label, 
-            price: mobilePrice, 
-            category: "addons" 
+
+          items.push({
+            label: service.label,
+            price: mobilePrice,
+            category: "addons"
           });
         } else {
           items.push({ label: service.label, price: service.price, category: "addons" });
@@ -283,92 +336,98 @@ export default function PricingSection() {
   // Calculate Mobile Responsive price dynamically
   const mobileResponsivePrice = useMemo(() => {
     return calculateMobileResponsivePrice({
-      navbar: state.step1.navbar,
-      footer: state.step1.footer,
+      navbar: state.step2.navbar,
+      footer: state.step2.footer,
       mainSections: state.step2.mainSections,
       pages: state.step2.pages,
     });
   }, [state]);
 
   // ==================== HANDLERS ====================
-  const updateStep1 = useCallback((key: keyof CalculatorState["step1"], value: string | string[] | null | CustomAnimItem[]) => {
+  // Step 1: Theme settings
+  const updateStep1 = useCallback((key: keyof CalculatorState["step1"], value: string | boolean) => {
     setState((prev) => ({ ...prev, step1: { ...prev.step1, [key]: value } }));
   }, []);
 
-  // Select single navbar animation
+  // Step 2: Navbar/Footer settings
+  const updateStep2NavFooter = useCallback((key: keyof Pick<CalculatorState["step2"], "navbar" | "footer" | "customNavbarInput" | "customFooterInput">, value: string) => {
+    setState((prev) => ({ ...prev, step2: { ...prev.step2, [key]: value } }));
+  }, []);
+
+  // Select single navbar animation (moved to step2)
   const selectNavbarAnimation = useCallback((animId: string) => {
     setState((prev) => ({
       ...prev,
-      step1: {
-        ...prev.step1,
-        selectedNavbarAnim: prev.step1.selectedNavbarAnim === animId ? null : animId,
+      step2: {
+        ...prev.step2,
+        selectedNavbarAnim: prev.step2.selectedNavbarAnim === animId ? null : animId,
       },
     }));
   }, []);
 
-  // Select single footer animation
+  // Select single footer animation (moved to step2)
   const selectFooterAnimation = useCallback((animId: string) => {
     setState((prev) => ({
       ...prev,
-      step1: {
-        ...prev.step1,
-        selectedFooterAnim: prev.step1.selectedFooterAnim === animId ? null : animId,
+      step2: {
+        ...prev.step2,
+        selectedFooterAnim: prev.step2.selectedFooterAnim === animId ? null : animId,
       },
     }));
   }, []);
 
-  // Add custom navbar animation
+  // Add custom navbar animation (moved to step2)
   const addCustomNavbarAnim = useCallback(() => {
-    if (state.step1.customNavbarInput.trim()) {
+    if (state.step2.customNavbarInput.trim()) {
       setState((prev) => ({
         ...prev,
-        step1: {
-          ...prev.step1,
+        step2: {
+          ...prev.step2,
           navbarCustomAnims: [
-            ...prev.step1.navbarCustomAnims,
-            { id: generateId(), label: prev.step1.customNavbarInput.trim(), isCustom: true },
+            ...prev.step2.navbarCustomAnims,
+            { id: generateId(), label: prev.step2.customNavbarInput.trim(), isCustom: true },
           ],
           customNavbarInput: "",
         },
       }));
     }
-  }, [state.step1.customNavbarInput]);
+  }, [state.step2.customNavbarInput]);
 
-  // Add custom footer animation
+  // Add custom footer animation (moved to step2)
   const addCustomFooterAnim = useCallback(() => {
-    if (state.step1.customFooterInput.trim()) {
+    if (state.step2.customFooterInput.trim()) {
       setState((prev) => ({
         ...prev,
-        step1: {
-          ...prev.step1,
+        step2: {
+          ...prev.step2,
           footerCustomAnims: [
-            ...prev.step1.footerCustomAnims,
-            { id: generateId(), label: prev.step1.customFooterInput.trim(), isCustom: true },
+            ...prev.step2.footerCustomAnims,
+            { id: generateId(), label: prev.step2.customFooterInput.trim(), isCustom: true },
           ],
           customFooterInput: "",
         },
       }));
     }
-  }, [state.step1.customFooterInput]);
+  }, [state.step2.customFooterInput]);
 
-  // Remove custom navbar animation
+  // Remove custom navbar animation (moved to step2)
   const removeNavbarCustomAnim = useCallback((id: string) => {
     setState((prev) => ({
       ...prev,
-      step1: {
-        ...prev.step1,
-        navbarCustomAnims: prev.step1.navbarCustomAnims.filter((a) => a.id !== id),
+      step2: {
+        ...prev.step2,
+        navbarCustomAnims: prev.step2.navbarCustomAnims.filter((a) => a.id !== id),
       },
     }));
   }, []);
 
-  // Remove custom footer animation
+  // Remove custom footer animation (moved to step2)
   const removeFooterCustomAnim = useCallback((id: string) => {
     setState((prev) => ({
       ...prev,
-      step1: {
-        ...prev.step1,
-        footerCustomAnims: prev.step1.footerCustomAnims.filter((a) => a.id !== id),
+      step2: {
+        ...prev.step2,
+        footerCustomAnims: prev.step2.footerCustomAnims.filter((a) => a.id !== id),
       },
     }));
   }, []);
@@ -510,7 +569,7 @@ export default function PricingSection() {
     // For stagger animations, look for children with data-animation-child attribute
     // or fallback to direct children of the animation target
     const animationChildren = element.querySelectorAll('[data-animation-child]');
-    const children = animationChildren.length > 0 
+    const children = animationChildren.length > 0
       ? Array.from(animationChildren) as HTMLElement[]
       : Array.from(element.children) as HTMLElement[];
 
@@ -708,12 +767,12 @@ export default function PricingSection() {
       "Logo (PNG/SVG format)",
       "ข้อความ/เนื้อหาทุกหน้า",
       "รูปภาพสำหรับเว็บ (Hero, Banner)",
-      "ข้อมูลติดต่อ (โทร, อีเมล, ที่อยู่)",
+      "ข้อมูลติดต่อ (เบอร์โทร, อีเมล)",
       "Social Media Links",
     ];
 
     state.step2.pages.forEach((page) => {
-      reqs.push(`เนื้อหาสำหรับ ${page.name} (${page.sections.length} sec)`);
+      reqs.push(`เนื้อหาสำหรับ ${page.name} (${page.sections.length} sections ที่กำหนดเอง)`);
     });
 
     if (state.step3.seo) {
@@ -721,8 +780,12 @@ export default function PricingSection() {
       reqs.push("Meta Description ที่ต้องการ");
     }
 
-    if (state.step3.bilingual) {
+    if (state.step1.bilingual) {
       reqs.push("เนื้อหาภาษาอังกฤษทั้งหมด");
+    }
+
+    if (state.step1.fontFamily) {
+      reqs.push(`Font: ${state.step1.fontFamily} (จาก Google Fonts)`);
     }
 
     return reqs;
@@ -884,31 +947,31 @@ export default function PricingSection() {
   const selectedAnimations = useMemo(() => {
     const anims: string[] = [];
 
-    if (state.step1.navbar === "animated") {
-      if (state.step1.selectedNavbarAnim) {
-        const navAnim = NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim);
+    if (state.step2.navbar === "animated") {
+      if (state.step2.selectedNavbarAnim) {
+        const navAnim = NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedNavbarAnim);
         if (navAnim) {
           anims.push(`Navbar: ${navAnim.label}`);
         }
       }
-      state.step1.navbarCustomAnims.forEach((a) => {
+      state.step2.navbarCustomAnims.forEach((a) => {
         anims.push(`Navbar: ${a.label}`);
       });
-      if (!state.step1.selectedNavbarAnim && state.step1.navbarCustomAnims.length === 0) {
+      if (!state.step2.selectedNavbarAnim && state.step2.navbarCustomAnims.length === 0) {
         anims.push("Navbar Animation");
       }
     }
-    if (state.step1.footer === "animated") {
-      if (state.step1.selectedFooterAnim) {
-        const footAnim = FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim);
+    if (state.step2.footer === "animated") {
+      if (state.step2.selectedFooterAnim) {
+        const footAnim = FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedFooterAnim);
         if (footAnim) {
           anims.push(`Footer: ${footAnim.label}`);
         }
       }
-      state.step1.footerCustomAnims.forEach((a) => {
+      state.step2.footerCustomAnims.forEach((a) => {
         anims.push(`Footer: ${a.label}`);
       });
-      if (!state.step1.selectedFooterAnim && state.step1.footerCustomAnims.length === 0) {
+      if (!state.step2.selectedFooterAnim && state.step2.footerCustomAnims.length === 0) {
         anims.push("Footer Animation");
       }
     }
@@ -940,9 +1003,9 @@ export default function PricingSection() {
 
   // ==================== PREVIEW ANIMATION CLASSES ====================
   const getNavbarPreviewClasses = useMemo(() => {
-    if (state.step1.navbar !== "animated" || !navbarAnimating) return "";
+    if (state.step2.navbar !== "animated" || !navbarAnimating) return "";
 
-    const animId = state.step1.selectedNavbarAnim;
+    const animId = state.step2.selectedNavbarAnim;
     if (animId === "sticky-fade") return "animate-navbar-fade";
     if (animId === "slide-down") return "animate-navbar-slide";
     if (animId === "color-change") return "animate-navbar-color";
@@ -951,12 +1014,12 @@ export default function PricingSection() {
     if (animId === "menu-reveal") return "animate-navbar-menu";
 
     return "animate-navbar-fade";
-  }, [state.step1.navbar, state.step1.selectedNavbarAnim, navbarAnimating]);
+  }, [state.step2.navbar, state.step2.selectedNavbarAnim, navbarAnimating]);
 
   const getFooterPreviewClasses = useMemo(() => {
-    if (state.step1.footer !== "animated" || !footerAnimating) return "";
+    if (state.step2.footer !== "animated" || !footerAnimating) return "";
 
-    const animId = state.step1.selectedFooterAnim;
+    const animId = state.step2.selectedFooterAnim;
     if (animId === "fade-in") return "animate-footer-fade";
     if (animId === "slide-up") return "animate-footer-slide";
     if (animId === "parallax") return "animate-footer-parallax";
@@ -965,7 +1028,25 @@ export default function PricingSection() {
     if (animId === "stagger-cols") return "animate-footer-stagger";
 
     return "animate-footer-fade";
-  }, [state.step1.footer, state.step1.selectedFooterAnim, footerAnimating]);
+  }, [state.step2.footer, state.step2.selectedFooterAnim, footerAnimating]);
+
+  // Get theme color for preview
+  const getThemeColor = useMemo(() => {
+    if (state.step1.themeColor === "custom") {
+      return state.step1.customColor;
+    }
+    const theme = COLOR_THEMES.find((t) => t.id === state.step1.themeColor);
+    return theme?.color || "#8b5cf6";
+  }, [state.step1.themeColor, state.step1.customColor]);
+
+  const getThemeColorLight = useMemo(() => {
+    if (state.step1.themeColor === "custom") {
+      // Lighten the custom color slightly
+      return state.step1.customColor + "aa";
+    }
+    const theme = COLOR_THEMES.find((t) => t.id === state.step1.themeColor);
+    return theme?.colorLight || "#a78bfa";
+  }, [state.step1.themeColor, state.step1.customColor]);
 
   // ==================== RENDER ====================
   return (
@@ -1075,12 +1156,12 @@ export default function PricingSection() {
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             {/* ==================== LEFT PANEL - OPTIONS ==================== */}
             <div ref={leftPanelRef} className="flex-1 lg:max-w-[55%] space-y-6">
-              {/* STEP 1: Base Price & Options */}
+              {/* STEP 1: Base Price & Theme Settings */}
               <div className="calc-step">
-                <StepHeader step={1} title="ราคาเริ่มต้น" />
+                <StepHeader step={1} title="ราคาเริ่มต้น & ธีม" />
                 <div className="space-y-4 p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
                   {/* Base Price Card */}
-                  <div className="p-4 rounded-xl border-2 border-[#8b5cf6] bg-linear-to-b from-[#8b5cf6]/10 to-transparent">
+                  <div className="p-4 rounded-xl border-2 bg-linear-to-b to-transparent" style={{ borderColor: getThemeColor, background: `linear-gradient(to bottom, ${getThemeColor}15, transparent)` }}>
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm text-[#52525b] mb-1">ราคาเริ่มต้น</div>
@@ -1088,24 +1169,207 @@ export default function PricingSection() {
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-[#52525b] mb-1">รวม {INITIAL_SECTIONS} Sections ฟรี</div>
-                        <div className="text-xs text-[#8b5cf6]">+{formatPrice(SECTION_PRICE)}/section เพิ่ม</div>
+                        <div className="text-xs" style={{ color: getThemeColor }}>+{formatPrice(SECTION_PRICE)}/section เพิ่ม</div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Navbar & Footer Options */}
+                  {/* Theme Color Selection */}
+                  <div className="pt-4 border-t border-[#262626]">
+                    <label className="block font-mono text-[13px] text-[#cfcfe2] mb-3">
+                      <span style={{ color: getThemeColor }}>{">"}</span> เลือกธีมสี
+                    </label>
+                    <div className="grid grid-cols-6 sm:grid-cols-12 gap-2 mb-3">
+                      {COLOR_THEMES.map((theme) => (
+                        <button
+                          key={theme.id}
+                          onClick={() => updateStep1("themeColor", theme.id)}
+                          className={`group relative w-8 h-8 rounded-lg transition-all ${state.step1.themeColor === theme.id
+                            ? "ring-2 ring-white ring-offset-2 ring-offset-[#141414] scale-110"
+                            : "hover:scale-105"
+                            }`}
+                          style={{ backgroundColor: theme.color }}
+                          title={theme.label}
+                        >
+                          {state.step1.themeColor === theme.id && (
+                            <svg className="absolute inset-0 m-auto w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Custom Color Input */}
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#262626]">
+                      <span className="text-[11px] text-[#cfcfe2]">หรือเลือกสีเอง:</span>
+                      <div className="flex items-center gap-2 flex-1">
+                        <input
+                          type="color"
+                          value={state.step1.customColor}
+                          onChange={(e) => {
+                            updateStep1("customColor", e.target.value);
+                            updateStep1("themeColor", "custom");
+                          }}
+                          className="w-10 h-8 rounded cursor-pointer border-0 bg-transparent"
+                        />
+                        <input
+                          type="text"
+                          value={state.step1.customColor}
+                          onChange={(e) => {
+                            updateStep1("customColor", e.target.value);
+                            updateStep1("themeColor", "custom");
+                          }}
+                          placeholder="#8b5cf6"
+                          className="flex-1 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#262626] text-xs text-[#a1a1aa] placeholder:text-[#333] focus:outline-none focus:border-[#8b5cf6]/50 font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dark/Light Mode & Bilingual Options */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-[#262626]">
+                    {/* Dark/Light Theme Toggle */}
+                    <button
+                      onClick={() => updateStep1("darkLightMode", !state.step1.darkLightMode)}
+                      className={`flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${state.step1.darkLightMode
+                        ? "bg-[#f97316]/10 border-[#f97316]/50"
+                        : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">🌙/🌞</span>
+                        <div>
+                          <span className="text-sm text-[#a1a1aa] block">Theme (Dark/Light)</span>
+                          <span className="text-[10px] text-[#52525b]">รองรับ 2 โหมดสี</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-[#f97316]">+{formatPrice(DARK_LIGHT_THEME_PRICE)}</span>
+                        <div
+                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${state.step1.darkLightMode ? "bg-[#f97316] border-[#f97316]" : "border-[#333]"
+                            }`}
+                        >
+                          {state.step1.darkLightMode && (
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Bilingual Toggle */}
+                    <button
+                      onClick={() => updateStep1("bilingual", !state.step1.bilingual)}
+                      className={`flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${state.step1.bilingual
+                        ? "bg-[#06b6d4]/10 border-[#06b6d4]/50"
+                        : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">🌐</span>
+                        <div>
+                          <span className="text-sm text-[#a1a1aa] block">รองรับ 2 ภาษา (TH/EN)</span>
+                          <span className="text-[10px] text-[#52525b]">สลับภาษาได้</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-[#06b6d4]">+{formatPrice(BILINGUAL_PRICE)}</span>
+                        <div
+                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${state.step1.bilingual ? "bg-[#06b6d4] border-[#06b6d4]" : "border-[#333]"
+                            }`}
+                        >
+                          {state.step1.bilingual && (
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Font Selection */}
+                  <div className="pt-4 border-t border-[#262626]">
+                    <label className="block font-mono text-[13px] text-[#cfcfe2] mb-2">
+                      <span style={{ color: getThemeColor }}>{">"}</span> Font ที่ต้องการใช้ (ถ้าไม่ระบุจะใช้ฟอนต์ค่าเริ่มต้น)
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={state.step1.fontFamily}
+                        onChange={(e) => updateStep1("fontFamily", e.target.value)}
+                        placeholder="เช่น: Noto Sans Thai, Prompt, Sarabun..."
+                        className="flex-1 px-4 py-2.5 rounded-lg bg-[#0d0d0d] border border-[#262626] text-sm text-[#a1a1aa] placeholder:text-[#333] focus:outline-none transition-colors"
+                        style={{ borderColor: state.step1.fontFamily ? getThemeColor + "50" : undefined }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-[10px] text-[#52525b]">ดู Font ที่รองรับได้ที่:</span>
+                      <a
+                        href="https://fonts.google.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] hover:underline transition-colors"
+                        style={{ color: getThemeColor }}
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Google Fonts
+                      </a>
+                    </div>
+                    {state.step1.fontFamily && (
+                      <div className="mt-2 p-2 rounded-lg bg-[#0d0d0d] border border-[#262626]">
+                        <span className="text-[13px] text-[#cfcfe2]">ตัวอย่าง Font:</span>
+                        <p className="mt-1 text-sm text-white" style={{ fontFamily: state.step1.fontFamily }}>
+                          สวัสดีครับ Hello World! 1234567890
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Summary of Selected Options */}
+                  {(state.step1.darkLightMode || state.step1.bilingual || state.step1.fontFamily) && (
+                    <div className="p-3 rounded-lg border" style={{ borderColor: getThemeColor + "30", backgroundColor: getThemeColor + "10" }}>
+                      <p className="text-[10px] text-[#52525b] mb-2">ตัวเลือกที่เลือก:</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="px-2 py-0.5 rounded text-[10px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
+                          🎨 {COLOR_THEMES.find((t) => t.id === state.step1.themeColor)?.label || "Custom Color"}
+                        </span>
+                        {state.step1.darkLightMode && (
+                          <span className="px-2 py-0.5 rounded bg-[#f97316]/20 text-[10px] text-[#f97316]">🌙/🌞 Dark/Light</span>
+                        )}
+                        {state.step1.bilingual && (
+                          <span className="px-2 py-0.5 rounded bg-[#06b6d4]/20 text-[10px] text-[#06b6d4]">🌐 TH/EN</span>
+                        )}
+                        {state.step1.fontFamily && (
+                          <span className="px-2 py-0.5 rounded bg-[#10b981]/20 text-[10px] text-[#10b981]">✏️ {state.step1.fontFamily}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* STEP 2: Navbar, Footer, Pages & Sections */}
+              <div className="calc-step">
+                <StepHeader step={2} title="Navbar, Footer & Sections" />
+                <div className="space-y-4 p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
+                  {/* Navbar & Footer Options */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Navbar */}
                     <div className="space-y-3">
-                      <label className="block font-mono text-xs text-[#52525b]">
+                      <label className="block font-mono text-[13px] text-[#cfcfe2]">
                         <span className="text-[#06b6d4]">{">"}</span> Navbar
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {NAVBAR_OPTIONS.map((opt) => (
                           <button
                             key={opt.id}
-                            onClick={() => updateStep1("navbar", opt.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${state.step1.navbar === opt.id
+                            onClick={() => updateStep2NavFooter("navbar", opt.id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${state.step2.navbar === opt.id
                               ? "bg-[#06b6d4] text-white"
                               : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#06b6d4]/50"
                               }`}
@@ -1117,24 +1381,24 @@ export default function PricingSection() {
                       </div>
 
                       {/* Navbar Animation Types */}
-                      {state.step1.navbar === "animated" && (
+                      {state.step2.navbar === "animated" && (
                         <div className="space-y-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#06b6d4]/20">
                           <p className="text-xs text-[#06b6d4] font-medium">เลือก Animation 1 อย่าง:</p>
-                          <div className="grid grid-cols-1 gap-2">
+                          <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                             {NAVBAR_ANIMATION_TYPES.map((anim) => (
                               <button
                                 key={anim.id}
                                 onClick={() => selectNavbarAnimation(anim.id)}
-                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${state.step1.selectedNavbarAnim === anim.id
+                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${state.step2.selectedNavbarAnim === anim.id
                                   ? "bg-[#06b6d4]/20 border border-[#06b6d4]/50"
                                   : "bg-[#1a1a1a] border border-[#262626] hover:border-[#06b6d4]/30"
                                   }`}
                               >
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${state.step1.selectedNavbarAnim === anim.id
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${state.step2.selectedNavbarAnim === anim.id
                                   ? "border-[#06b6d4] bg-[#06b6d4]"
                                   : "border-[#333]"
                                   }`}>
-                                  {state.step1.selectedNavbarAnim === anim.id && (
+                                  {state.step2.selectedNavbarAnim === anim.id && (
                                     <div className="w-2 h-2 rounded-full bg-white" />
                                   )}
                                 </div>
@@ -1151,30 +1415,29 @@ export default function PricingSection() {
 
                           {/* Custom Navbar Animation Input */}
                           <div className="pt-3 border-t border-[#262626]">
-                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง หรือใส่รายละเอียดเพิ่มเติม:</p>
+                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง:</p>
                             <div className="flex gap-2">
                               <input
                                 type="text"
-                                value={state.step1.customNavbarInput}
-                                onChange={(e) => updateStep1("customNavbarInput", e.target.value)}
+                                value={state.step2.customNavbarInput}
+                                onChange={(e) => updateStep2NavFooter("customNavbarInput", e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && addCustomNavbarAnim()}
-                                placeholder="เช่น: Logo spin, Dropdown slide..."
+                                placeholder="เช่น: Logo spin..."
                                 className="flex-1 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#262626] text-xs text-[#a1a1aa] placeholder:text-[#333] focus:outline-none focus:border-[#06b6d4]/50"
                               />
                               <button
                                 onClick={addCustomNavbarAnim}
                                 className="px-3 py-1.5 rounded-lg bg-[#06b6d4] text-white text-xs font-medium hover:bg-[#06b6d4]/90 transition-colors"
                               >
-                                Add
+                                +
                               </button>
                             </div>
                           </div>
 
                           {/* Custom animations list */}
-                          {state.step1.navbarCustomAnims.length > 0 && (
+                          {state.step2.navbarCustomAnims.length > 0 && (
                             <div className="space-y-1.5 pt-2">
-                              <p className="text-[10px] text-[#06b6d4]">Animation ที่เพิ่ม:</p>
-                              {state.step1.navbarCustomAnims.map((anim) => (
+                              {state.step2.navbarCustomAnims.map((anim) => (
                                 <div
                                   key={anim.id}
                                   className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#06b6d4]/10 border border-[#06b6d4]/30"
@@ -1198,15 +1461,15 @@ export default function PricingSection() {
 
                     {/* Footer */}
                     <div className="space-y-3">
-                      <label className="block font-mono text-xs text-[#52525b]">
+                      <label className="block font-mono text-[13px] text-[#cfcfe2]">
                         <span className="text-[#10b981]">{">"}</span> Footer
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {FOOTER_OPTIONS.map((opt) => (
                           <button
                             key={opt.id}
-                            onClick={() => updateStep1("footer", opt.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${state.step1.footer === opt.id
+                            onClick={() => updateStep2NavFooter("footer", opt.id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${state.step2.footer === opt.id
                               ? "bg-[#10b981] text-white"
                               : "bg-[#1a1a1a] text-[#a1a1aa] border border-[#262626] hover:border-[#10b981]/50"
                               }`}
@@ -1218,24 +1481,24 @@ export default function PricingSection() {
                       </div>
 
                       {/* Footer Animation Types */}
-                      {state.step1.footer === "animated" && (
+                      {state.step2.footer === "animated" && (
                         <div className="space-y-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#10b981]/20">
                           <p className="text-xs text-[#10b981] font-medium">เลือก Animation 1 อย่าง:</p>
-                          <div className="grid grid-cols-1 gap-2">
+                          <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                             {FOOTER_ANIMATION_TYPES.map((anim) => (
                               <button
                                 key={anim.id}
                                 onClick={() => selectFooterAnimation(anim.id)}
-                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${state.step1.selectedFooterAnim === anim.id
+                                className={`flex items-start gap-3 p-2.5 rounded-lg text-left transition-all ${state.step2.selectedFooterAnim === anim.id
                                   ? "bg-[#10b981]/20 border border-[#10b981]/50"
                                   : "bg-[#1a1a1a] border border-[#262626] hover:border-[#10b981]/30"
                                   }`}
                               >
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${state.step1.selectedFooterAnim === anim.id
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${state.step2.selectedFooterAnim === anim.id
                                   ? "border-[#10b981] bg-[#10b981]"
                                   : "border-[#333]"
                                   }`}>
-                                  {state.step1.selectedFooterAnim === anim.id && (
+                                  {state.step2.selectedFooterAnim === anim.id && (
                                     <div className="w-2 h-2 rounded-full bg-white" />
                                   )}
                                 </div>
@@ -1252,30 +1515,29 @@ export default function PricingSection() {
 
                           {/* Custom Footer Animation Input */}
                           <div className="pt-3 border-t border-[#262626]">
-                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง หรือใส่รายละเอียดเพิ่มเติม:</p>
+                            <p className="text-[10px] text-[#52525b] mb-2">หรือระบุเอง:</p>
                             <div className="flex gap-2">
                               <input
                                 type="text"
-                                value={state.step1.customFooterInput}
-                                onChange={(e) => updateStep1("customFooterInput", e.target.value)}
+                                value={state.step2.customFooterInput}
+                                onChange={(e) => updateStep2NavFooter("customFooterInput", e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && addCustomFooterAnim()}
-                                placeholder="เช่น: Social icons bounce, Map zoom..."
+                                placeholder="เช่น: Social icons bounce..."
                                 className="flex-1 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#262626] text-xs text-[#a1a1aa] placeholder:text-[#333] focus:outline-none focus:border-[#10b981]/50"
                               />
                               <button
                                 onClick={addCustomFooterAnim}
                                 className="px-3 py-1.5 rounded-lg bg-[#10b981] text-white text-xs font-medium hover:bg-[#10b981]/90 transition-colors"
                               >
-                                Add
+                                +
                               </button>
                             </div>
                           </div>
 
                           {/* Custom animations list */}
-                          {state.step1.footerCustomAnims.length > 0 && (
+                          {state.step2.footerCustomAnims.length > 0 && (
                             <div className="space-y-1.5 pt-2">
-                              <p className="text-[10px] text-[#10b981]">Animation ที่เพิ่ม:</p>
-                              {state.step1.footerCustomAnims.map((anim) => (
+                              {state.step2.footerCustomAnims.map((anim) => (
                                 <div
                                   key={anim.id}
                                   className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#10b981]/10 border border-[#10b981]/30"
@@ -1297,17 +1559,11 @@ export default function PricingSection() {
                       )}
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* STEP 2: Pages & Sections */}
-              <div className="calc-step">
-                <StepHeader step={2} title="จัดการ Sections และหน้าเพิ่ม" />
-                <div className="space-y-4 p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
                   {/* Main Sections */}
-                  <div>
+                  <div className="pt-4 border-t border-[#262626]">
                     <div className="flex items-center justify-between mb-3">
-                      <label className="block font-mono text-xs text-[#52525b]">
+                      <label className="block font-mono text-[13px] text-[#cfcfe2]">
                         <span className="text-[#8b5cf6]">{">"}</span> Sections หน้าหลัก
                       </label>
                       <div className="flex items-center gap-2">
@@ -1346,6 +1602,7 @@ export default function PricingSection() {
                                     onChange={(value) => updateMainSectionLayout(section.id, value)}
                                     options={SECTION_LAYOUTS}
                                     triggerColor="purple"
+                                    themeColor={getThemeColor}
                                   />
                                 </div>
 
@@ -1488,12 +1745,12 @@ export default function PricingSection() {
 
                   {/* Add Page Button */}
                   <div className="pt-4 border-t border-[#262626]">
-                    <label className="block font-mono text-xs text-[#52525b] mb-3">
+                    {/* <label className="block font-mono text-[13px] text-[#cfcfe2] mb-3">
                       <span className="text-[#ec4899]">{">"}</span> เพิ่มหน้าเว็บ
-                    </label>
+                    </label> */}
                     <button
                       onClick={addPage}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1a1a1a] border border-[#262626] hover:border-[#ec4899]/50 text-sm transition-all group"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[13px] text-[#cfcfe2] bg-[#1a1a1a] border border-[#262626] hover:border-[#ec4899]/50 text-sm transition-all group"
                     >
                       <span className="text-[#ec4899] group-hover:scale-110 transition-transform">+</span>
                       <span className="text-[#a1a1aa]">เพิ่มหน้าใหม่</span>
@@ -1504,7 +1761,7 @@ export default function PricingSection() {
                   {/* Added Pages List */}
                   {state.step2.pages.length > 0 && (
                     <div className="space-y-4 pt-4 border-t border-[#262626]">
-                      <label className="block font-mono text-xs text-[#52525b]">
+                      <label className="block font-mono text-[13px] text-[#cfcfe2]">
                         หน้าที่เพิ่ม ({state.step2.pages.length})
                       </label>
                       {state.step2.pages.map((page, pageIdx) => (
@@ -1564,6 +1821,7 @@ export default function PricingSection() {
                                         onChange={(value) => updateSectionLayout(page.id, section.id, value)}
                                         options={SECTION_LAYOUTS}
                                         triggerColor="pink"
+                                        themeColor={getThemeColor}
                                       />
                                     </div>
 
@@ -1749,7 +2007,7 @@ export default function PricingSection() {
                 <div className="space-y-4 p-5 rounded-2xl bg-[#141414]/80 border border-[#262626]">
                   {/* Auto-generated Requirements */}
                   <div>
-                    <label className="block font-mono text-xs text-[#52525b] mb-3">
+                    <label className="block font-mono text-[13px] text-[#cfcfe2] mb-3">
                       <span className="text-[#06b6d4]">{">"}</span> รายการที่ต้องเตรียม (Auto-generated)
                     </label>
                     <div className="space-y-2">
@@ -1766,7 +2024,7 @@ export default function PricingSection() {
 
                   {/* Custom Items */}
                   <div className="pt-4 border-t border-[#262626]">
-                    <label className="block font-mono text-xs text-[#52525b] mb-3">
+                    <label className="block font-mono text-[13px] text-[#cfcfe2] mb-3">
                       <span className="text-[#f97316]">{">"}</span> เพิ่มรายการอื่นๆ
                     </label>
                     <div className="flex gap-2 mb-3">
@@ -1824,9 +2082,12 @@ export default function PricingSection() {
                   onClick={() => setMobilePreviewOpen(!mobilePreviewOpen)}
                   className="lg:hidden w-full flex items-center justify-between p-4 rounded-xl bg-[#141414] border border-[#262626]"
                 >
-                  <span className="font-medium text-white">Preview & สรุปราคา</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-[#8b5cf6]">{formatPrice(priceBreakdown.total)}</span>
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: getThemeColor }} />
+                    <span className="font-medium text-white">Preview & สรุปราคา</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold" style={{ color: getThemeColor }}>{formatPrice(priceBreakdown.total)}</span>
                     <svg
                       className={`w-5 h-5 text-[#52525b] transition-transform ${mobilePreviewOpen ? "rotate-180" : ""}`}
                       fill="none"
@@ -1844,14 +2105,22 @@ export default function PricingSection() {
                     {/* Header with Summary */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-[#8b5cf6]">👁️</span>
+                        <span style={{ color: getThemeColor }}>👁️</span>
                         <span className="font-mono text-xs uppercase tracking-wider text-[#52525b]">LIVE PREVIEW</span>
+                        {/* Theme indicator */}
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#0d0d0d] border border-[#262626]">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getThemeColor }} />
+                          <span className="text-[10px] text-[#52525b]">{COLOR_THEMES.find((t) => t.id === state.step1.themeColor)?.label || "Custom"}</span>
+                          {state.step1.darkLightMode && <span className="text-[10px]">🌙/🌞</span>}
+                          {state.step1.bilingual && <span className="text-[10px]">🌐</span>}
+                        </div>
                       </div>
 
                       {/* Button Play All Animations */}
                       <button
                         onClick={playAllAnimations}
-                        className="p-2 rounded-lg text-xs bg-[#06b6d4]/20 text-[#06b6d4] hover:bg-[#06b6d4]/30"
+                        className="p-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
+                        style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}
                       >
                         ▶ เล่น Animation ทั้งหมด
                       </button>
@@ -1863,16 +2132,19 @@ export default function PricingSection() {
                         {/* Main Page */}
                         <div className="shrink-0 w-[380px] md:w-[550px]">
                           <div className="text-center mb-4">
-                            <span className="px-4 py-1 rounded-full bg-[#8b5cf6]/20 text-sm text-[#8b5cf6] font-medium">
+                            <span className="px-4 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
                               หน้าหลัก ({state.step2.mainSections.length} sec)
                             </span>
                           </div>
-                          <div className="rounded-2xl bg-[#0a0a0a] border border-[#8b5cf6]/30 overflow-hidden">
+                          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: state.step1.darkLightMode ? "#0a0a0a" : "#0a0a0a", border: `1px solid ${getThemeColor}50` }}>
                             {/* Browser Chrome */}
                             <div className="flex items-center gap-2 px-4 py-2 bg-[#141414] border-b border-[#1f1f1f]">
                               <div className="w-2.5 h-2.5 rounded-full bg-[#ec4899]" />
                               <div className="w-2.5 h-2.5 rounded-full bg-[#f97316]" />
                               <div className="w-2.5 h-2.5 rounded-full bg-[#10b981]" />
+                              {state.step1.fontFamily && (
+                                <span className="ml-auto text-[8px] text-[#52525b] truncate max-w-[80px]">{state.step1.fontFamily}</span>
+                              )}
                             </div>
 
                             {/* Page Content */}
@@ -1881,20 +2153,24 @@ export default function PricingSection() {
                               <div className="flex items-center gap-2">
                                 <div
                                   ref={previewNavbarRef}
-                                  className={`flex-1 flex items-center justify-between p-3 rounded-lg bg-[#1a1a1a] transition-all ${state.step1.navbar !== "basic" ? "ring-2 ring-[#06b6d4]/50" : ""
-                                    } ${getNavbarPreviewClasses}`}
+                                  className={`flex-1 flex items-center justify-between p-3 rounded-lg transition-all ${getNavbarPreviewClasses}`}
+                                  style={{
+                                    backgroundColor: "#1a1a1a",
+                                    boxShadow: state.step2.navbar !== "basic" ? `0 0 0 2px ${getThemeColor}50` : "none"
+                                  }}
                                 >
-                                  <div className="w-16 h-4 rounded bg-[#262626]" />
+                                  <div className="w-16 h-4 rounded" style={{ backgroundColor: getThemeColor + "30" }} />
                                   <div className="flex gap-2">
                                     {[1, 2, 3].map((i) => (
                                       <div key={i} className="w-8 h-3 rounded bg-[#262626]" />
                                     ))}
                                   </div>
                                 </div>
-                                {state.step1.navbar === "animated" && (
+                                {state.step2.navbar === "animated" && (
                                   <button
                                     onClick={playNavbarAnimation}
-                                    className="p-2 rounded-lg text-xs bg-[#06b6d4]/20 text-[#06b6d4] hover:bg-[#06b6d4]/30"
+                                    className="p-2 rounded-lg text-xs hover:opacity-80"
+                                    style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}
                                   >
                                     ▶
                                   </button>
@@ -1922,11 +2198,11 @@ export default function PricingSection() {
                                           } w-full`}
                                       >
                                         {/* Layout Preview from LayoutModal */}
-                                        <LayoutPreview preview={previewType} customLabel={section.customLayout || null} size="small" />
-                                        
+                                        <LayoutPreview preview={previewType} customLabel={section.customLayout || null} size="small" themeColor={getThemeColor} />
+
                                         {/* Layout icon */}
                                         <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                          <span className="text-xs text-[#52525b]">{layout?.icon}</span>
+                                          <span className="text-[13px] text-[#cfcfe2]">{layout?.icon}</span>
                                         </div>
                                         {/* Animation badge & play button */}
                                         {section.animation && (
@@ -1964,11 +2240,14 @@ export default function PricingSection() {
                               <div className="flex items-center gap-2">
                                 <div
                                   ref={previewFooterRef}
-                                  className={`flex-1 p-3 rounded-lg bg-[#1a1a1a] transition-all ${state.step1.footer !== "basic" ? "ring-2 ring-[#10b981]/50" : ""
-                                    } ${getFooterPreviewClasses}`}
+                                  className={`flex-1 p-3 rounded-lg transition-all ${getFooterPreviewClasses}`}
+                                  style={{
+                                    backgroundColor: "#1a1a1a",
+                                    boxShadow: state.step2.footer !== "basic" ? `0 0 0 2px ${getThemeColor}50` : "none"
+                                  }}
                                 >
                                   <div className="flex justify-between">
-                                    <div className="w-12 h-3 rounded bg-[#262626]" />
+                                    <div className="w-12 h-3 rounded" style={{ backgroundColor: getThemeColor + "30" }} />
                                     <div className="flex gap-1">
                                       {[1, 2, 3].map((i) => (
                                         <div key={i} className="w-4 h-4 rounded-full bg-[#262626]" />
@@ -1976,10 +2255,11 @@ export default function PricingSection() {
                                     </div>
                                   </div>
                                 </div>
-                                {state.step1.footer === "animated" && (
+                                {state.step2.footer === "animated" && (
                                   <button
                                     onClick={playFooterAnimation}
-                                    className="p-2 rounded-lg bg-[#10b981]/20 text-[#10b981] text-xs hover:bg-[#10b981]/30"
+                                    className="p-2 rounded-lg text-xs hover:opacity-80"
+                                    style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}
                                   >
                                     ▶
                                   </button>
@@ -1989,7 +2269,7 @@ export default function PricingSection() {
 
                             {/* Section Count */}
                             <div className="px-4 py-2 bg-[#141414] border-t border-[#1f1f1f] text-center">
-                              <span className="text-sm text-[#8b5cf6]">{state.step2.mainSections.length} sections</span>
+                              <span className="text-sm" style={{ color: getThemeColor }}>{state.step2.mainSections.length} sections</span>
                             </div>
                           </div>
                         </div>
@@ -1998,16 +2278,19 @@ export default function PricingSection() {
                         {state.step2.pages.map((page) => (
                           <div key={page.id} className="shrink-0 w-[380px] md:w-[550px]">
                             <div className="text-center mb-4">
-                              <span className="px-4 py-1 rounded-full bg-[#ec4899]/20 text-sm text-[#ec4899] font-medium">
+                              <span className="px-4 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: getThemeColorLight + "20", color: getThemeColorLight }}>
                                 {page.name}
                               </span>
                             </div>
-                            <div className="rounded-2xl bg-[#0a0a0a] border border-[#ec4899]/30 overflow-hidden">
+                            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#0a0a0a", border: `1px solid ${getThemeColorLight}50` }}>
                               {/* Browser Chrome */}
                               <div className="flex items-center gap-2 px-4 py-2 bg-[#141414] border-b border-[#1f1f1f]">
                                 <div className="w-2.5 h-2.5 rounded-full bg-[#ec4899]" />
                                 <div className="w-2.5 h-2.5 rounded-full bg-[#f97316]" />
                                 <div className="w-2.5 h-2.5 rounded-full bg-[#10b981]" />
+                                {state.step1.fontFamily && (
+                                  <span className="ml-auto text-[8px] text-[#52525b] truncate max-w-[80px]">{state.step1.fontFamily}</span>
+                                )}
                               </div>
 
                               {/* Page Sections - Vertical Scroll */}
@@ -2017,20 +2300,24 @@ export default function PricingSection() {
                                 <div className="flex items-center gap-2">
                                   <div
                                     ref={previewNavbarRef}
-                                    className={`flex-1 flex items-center justify-between p-3 rounded-lg bg-[#1a1a1a] transition-all ${state.step1.navbar !== "basic" ? "ring-2 ring-[#06b6d4]/50" : ""
-                                      } ${getNavbarPreviewClasses}`}
+                                    className={`flex-1 flex items-center justify-between p-3 rounded-lg transition-all ${getNavbarPreviewClasses}`}
+                                    style={{
+                                      backgroundColor: "#1a1a1a",
+                                      boxShadow: state.step2.navbar !== "basic" ? `0 0 0 2px ${getThemeColor}50` : "none"
+                                    }}
                                   >
-                                    <div className="w-16 h-4 rounded bg-[#262626]" />
+                                    <div className="w-16 h-4 rounded" style={{ backgroundColor: getThemeColor + "30" }} />
                                     <div className="flex gap-2">
                                       {[1, 2, 3].map((i) => (
                                         <div key={i} className="w-8 h-3 rounded bg-[#262626]" />
                                       ))}
                                     </div>
                                   </div>
-                                  {state.step1.navbar === "animated" && (
+                                  {state.step2.navbar === "animated" && (
                                     <button
                                       onClick={playNavbarAnimation}
-                                      className="p-2 rounded-lg text-xs bg-[#06b6d4]/20 text-[#06b6d4] hover:bg-[#06b6d4]/30"
+                                      className="p-2 rounded-lg text-xs hover:opacity-80"
+                                      style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}
                                     >
                                       ▶
                                     </button>
@@ -2058,11 +2345,11 @@ export default function PricingSection() {
                                             } w-full`}
                                         >
                                           {/* Layout Preview from LayoutModal */}
-                                          <LayoutPreview preview={previewType} customLabel={section.customLayout || null} size="small" />
+                                          <LayoutPreview preview={previewType} customLabel={section.customLayout || null} size="small" themeColor={getThemeColor} />
 
                                           {/* Layout icon */}
                                           <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span className="text-xs text-[#52525b]">{layout?.icon}</span>
+                                            <span className="text-[13px] text-[#cfcfe2]">{layout?.icon}</span>
                                           </div>
                                           {/* Animation badge & play button */}
                                           {section.animation && (
@@ -2100,11 +2387,14 @@ export default function PricingSection() {
                                 <div className="flex items-center gap-2">
                                   <div
                                     ref={previewFooterRef}
-                                    className={`flex-1 p-3 rounded-lg bg-[#1a1a1a] transition-all ${state.step1.footer !== "basic" ? "ring-2 ring-[#10b981]/50" : ""
-                                      } ${getFooterPreviewClasses}`}
+                                    className={`flex-1 p-3 rounded-lg transition-all ${getFooterPreviewClasses}`}
+                                    style={{
+                                      backgroundColor: "#1a1a1a",
+                                      boxShadow: state.step2.footer !== "basic" ? `0 0 0 2px ${getThemeColor}50` : "none"
+                                    }}
                                   >
                                     <div className="flex justify-between">
-                                      <div className="w-12 h-3 rounded bg-[#262626]" />
+                                      <div className="w-12 h-3 rounded" style={{ backgroundColor: getThemeColor + "30" }} />
                                       <div className="flex gap-1">
                                         {[1, 2, 3].map((i) => (
                                           <div key={i} className="w-4 h-4 rounded-full bg-[#262626]" />
@@ -2112,10 +2402,11 @@ export default function PricingSection() {
                                       </div>
                                     </div>
                                   </div>
-                                  {state.step1.footer === "animated" && (
+                                  {state.step2.footer === "animated" && (
                                     <button
                                       onClick={playFooterAnimation}
-                                      className="p-2 rounded-lg bg-[#10b981]/20 text-[#10b981] text-xs hover:bg-[#10b981]/30"
+                                      className="p-2 rounded-lg text-xs hover:opacity-80"
+                                      style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}
                                     >
                                       ▶
                                     </button>
@@ -2126,9 +2417,9 @@ export default function PricingSection() {
 
                               {/* Section Count */}
                               <div className="px-4 py-2 bg-[#141414] border-t border-[#1f1f1f] text-center">
-                                <span className="text-sm text-[#ec4899]">{page.sections.length} sections</span>
+                                <span className="text-sm" style={{ color: getThemeColorLight }}>{page.sections.length} sections</span>
                                 {page.sections.some((s) => s.animation) && (
-                                  <span className="ml-2 text-sm text-[#ec4899]">✨</span>
+                                  <span className="ml-2 text-sm" style={{ color: getThemeColorLight }}>✨</span>
                                 )}
                               </div>
                             </div>
@@ -2161,7 +2452,7 @@ export default function PricingSection() {
                           {/* Service Icons */}
                           <div className="flex gap-1 ml-2">
                             {state.step3.seo && <span className="text-[10px]">📊</span>}
-                            {state.step3.bilingual && <span className="text-[10px]">🌐</span>}
+                            {state.step1.bilingual && <span className="text-[10px]">🌐</span>}
                             {state.step3.cms && <span className="text-[10px]">⚙️</span>}
                           </div>
                         </div>
@@ -2170,30 +2461,30 @@ export default function PricingSection() {
 
 
                     {/* Animation Details */}
-                    {(state.step1.navbar === "animated" && (state.step1.selectedNavbarAnim || state.step1.navbarCustomAnims.length > 0)) ||
-                      (state.step1.footer === "animated" && (state.step1.selectedFooterAnim || state.step1.footerCustomAnims.length > 0)) ? (
+                    {(state.step2.navbar === "animated" && (state.step2.selectedNavbarAnim || state.step2.navbarCustomAnims.length > 0)) ||
+                      (state.step2.footer === "animated" && (state.step2.selectedFooterAnim || state.step2.footerCustomAnims.length > 0)) ? (
                       <div className="mt-3 p-2 rounded-lg bg-[#0d0d0d] border border-[#262626]">
                         <p className="text-[10px] text-[#52525b] mb-1">Animation ที่เลือก (Navbar & Footer) :</p>
                         <div className="flex flex-wrap gap-1">
-                          {state.step1.selectedNavbarAnim && (
-                            <span className="px-1.5 py-0.5 rounded bg-[#06b6d4]/20 text-[8px] text-[#06b6d4]">
-                              Navbar : {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim)?.icon}{" "}
-                              {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedNavbarAnim)?.label}
+                          {state.step2.selectedNavbarAnim && (
+                            <span className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
+                              Navbar : {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedNavbarAnim)?.icon}{" "}
+                              {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedNavbarAnim)?.label}
                             </span>
                           )}
-                          {state.step1.navbarCustomAnims.map((anim) => (
-                            <span key={anim.id} className="px-1.5 py-0.5 rounded bg-[#06b6d4]/20 text-[8px] text-[#06b6d4]">
+                          {state.step2.navbarCustomAnims.map((anim) => (
+                            <span key={anim.id} className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
                               Navbar : ✦ {anim.label}
                             </span>
                           ))}
-                          {state.step1.selectedFooterAnim && (
-                            <span className="px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[8px] text-[#10b981]">
-                              Footer : {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim)?.icon}{" "}
-                              {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step1.selectedFooterAnim)?.label}
+                          {state.step2.selectedFooterAnim && (
+                            <span className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
+                              Footer : {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedFooterAnim)?.icon}{" "}
+                              {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedFooterAnim)?.label}
                             </span>
                           )}
-                          {state.step1.footerCustomAnims.map((anim) => (
-                            <span key={anim.id} className="px-1.5 py-0.5 rounded bg-[#10b981]/20 text-[8px] text-[#10b981]">
+                          {state.step2.footerCustomAnims.map((anim) => (
+                            <span key={anim.id} className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
                               Footer : ✦ {anim.label}
                             </span>
                           ))}
@@ -2208,10 +2499,10 @@ export default function PricingSection() {
                       {/* Main Page Sections */}
                       <div className="mb-4">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="px-2 py-0.5 rounded bg-[#8b5cf6]/20 text-[10px] text-[#8b5cf6] font-medium">หน้าหลัก</span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-medium" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>หน้าหลัก</span>
                           <span className="text-[10px] text-[#52525b]">{state.step2.mainSections.length} sections</span>
                         </div>
-                        <div className="space-y-1.5 pl-2 border-l-2 border-[#8b5cf6]/30">
+                        <div className="space-y-1.5 pl-2 border-l-2" style={{ borderColor: getThemeColor + "50" }}>
                           {state.step2.mainSections.map((section, idx) => {
                             const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                             const animInfo = section.animation && section.animation !== "custom"
@@ -2219,7 +2510,7 @@ export default function PricingSection() {
                               : null;
                             return (
                               <div key={section.id} className="flex items-center gap-2 py-1 px-2 rounded bg-[#1a1a1a]/50 text-[10px]">
-                                <span className="font-mono text-[#8b5cf6] w-4">{idx + 1}</span>
+                                <span className="font-mono w-4" style={{ color: getThemeColor }}>{idx + 1}</span>
                                 <span className="text-[#52525b]">|</span>
                                 <span className="text-white">
                                   {section.layout === "custom" ? (
@@ -2231,7 +2522,7 @@ export default function PricingSection() {
                                 {(section.animation || section.customAnimation) && (
                                   <>
                                     <span className="text-[#52525b]">|</span>
-                                    <span className="text-[#ec4899]">
+                                    <span style={{ color: getThemeColorLight }}>
                                       {section.animation === "custom" ? (
                                         <span>✏️ {section.customAnimation || "กำหนดเอง"}</span>
                                       ) : animInfo ? (
@@ -2250,10 +2541,10 @@ export default function PricingSection() {
                       {state.step2.pages.map((page) => (
                         <div key={page.id} className="mb-4 last:mb-0">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="px-2 py-0.5 rounded bg-[#ec4899]/20 text-[10px] text-[#ec4899] font-medium">{page.name}</span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-medium" style={{ backgroundColor: getThemeColorLight + "20", color: getThemeColorLight }}>{page.name}</span>
                             <span className="text-[10px] text-[#52525b]">{page.sections.length} sections</span>
                           </div>
-                          <div className="space-y-1.5 pl-2 border-l-2 border-[#ec4899]/30">
+                          <div className="space-y-1.5 pl-2 border-l-2" style={{ borderColor: getThemeColorLight + "50" }}>
                             {page.sections.map((section, idx) => {
                               const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                               const animInfo = section.animation && section.animation !== "custom"
@@ -2261,7 +2552,7 @@ export default function PricingSection() {
                                 : null;
                               return (
                                 <div key={section.id} className="flex items-center gap-2 py-1 px-2 rounded bg-[#1a1a1a]/50 text-[10px]">
-                                  <span className="font-mono text-[#ec4899] w-4">{idx + 1}</span>
+                                  <span className="font-mono w-4" style={{ color: getThemeColorLight }}>{idx + 1}</span>
                                   <span className="text-[#52525b]">|</span>
                                   <span className="text-white">
                                     {section.layout === "custom" ? (
@@ -2273,7 +2564,7 @@ export default function PricingSection() {
                                   {(section.animation || section.customAnimation) && (
                                     <>
                                       <span className="text-[#52525b]">|</span>
-                                      <span className="text-[#ec4899]">
+                                      <span style={{ color: getThemeColorLight }}>
                                         {section.animation === "custom" ? (
                                           <span>✏️ {section.customAnimation || "กำหนดเอง"}</span>
                                         ) : animInfo ? (
@@ -2291,9 +2582,9 @@ export default function PricingSection() {
                     </div>
 
                     {/* Page Count */}
-                    <div className="mt-3 flex items-center justify-center gap-2 text-xs text-[#52525b]">
+                    <div className="mt-3 flex items-center justify-center gap-2 text-[13px] text-[#cfcfe2]">
                       <span>หน้าทั้งหมด:</span>
-                      <span className="font-mono text-[#8b5cf6]">
+                      <span className="font-mono" style={{ color: getThemeColor }}>
                         1 หน้าหลัก + {state.step2.pages.length} หน้าเพิ่ม
                       </span>
                     </div>
@@ -2321,19 +2612,73 @@ export default function PricingSection() {
                       <p className="text-[9px] text-[#52525b] mb-2 font-mono uppercase tracking-wider">📋 สรุป Sections</p>
                       <div className="space-y-1.5 text-[10px] max-h-[100px] overflow-y-auto">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[#8b5cf6]">🏠</span>
+                          <span style={{ color: getThemeColor }}>🏠</span>
                           <span className="text-[#a1a1aa]">หน้าหลัก:</span>
                           <span className="text-white">{state.step2.mainSections.length} sections</span>
                         </div>
                         {state.step2.pages.map((page) => (
                           <div key={page.id} className="flex items-center gap-1.5">
-                            <span className="text-[#ec4899]">📄</span>
+                            <span style={{ color: getThemeColorLight }}>📄</span>
                             <span className="text-[#a1a1aa]">{page.name}:</span>
                             <span className="text-white">{page.sections.length} sections</span>
                           </div>
                         ))}
                       </div>
                     </div>
+
+                    {/* Theme Settings Summary from STEP 1 */}
+                    {(state.step1.themeColor || state.step1.darkLightMode || state.step1.bilingual || state.step1.fontFamily) && (
+                      <div className="mb-4 p-3 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]">
+                        <p className="text-[9px] text-[#52525b] mb-2 font-mono uppercase tracking-wider">🎨 ธีม & การตั้งค่า</p>
+                        <div className="space-y-2 text-[10px]">
+                          {/* Theme Color */}
+                          {state.step1.themeColor && (
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded border border-[#333] shrink-0"
+                                style={{ backgroundColor: getThemeColor }}
+                              />
+                              <span className="text-[#a1a1aa]">ธีมสี:</span>
+                              <span className="text-white font-medium">
+                                {COLOR_THEMES.find((t) => t.id === state.step1.themeColor)?.label || "Custom Color"}
+                              </span>
+                              {state.step1.themeColor === "custom" && (
+                                <span className="text-[#52525b] font-mono">({state.step1.customColor})</span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Dark/Light Mode */}
+                          {state.step1.darkLightMode && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">🌙/🌞</span>
+                              <span className="text-[#a1a1aa]">Theme:</span>
+                              <span className="text-white font-medium">Dark/Light Mode</span>
+                              <span className="ml-auto text-[#10b981] font-mono">+{formatPrice(DARK_LIGHT_THEME_PRICE)}</span>
+                            </div>
+                          )}
+
+                          {/* Bilingual */}
+                          {state.step1.bilingual && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">🌐</span>
+                              <span className="text-[#a1a1aa]">ภาษา:</span>
+                              <span className="text-white font-medium">รองรับ 2 ภาษา (TH/EN)</span>
+                              <span className="ml-auto text-[#10b981] font-mono">+{formatPrice(BILINGUAL_PRICE)}</span>
+                            </div>
+                          )}
+
+                          {/* Font Family */}
+                          {state.step1.fontFamily && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">✏️</span>
+                              <span className="text-[#a1a1aa]">Font:</span>
+                              <span className="text-white font-medium truncate">{state.step1.fontFamily}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="pt-4 border-t border-[#262626]">
                       {/* Total */}
@@ -2390,7 +2735,7 @@ export default function PricingSection() {
 
                   {/* Notes */}
                   <div className="p-4 rounded-xl bg-[#0d0d0d] border border-[#1f1f1f]">
-                    <p className="text-xs text-[#52525b] leading-relaxed">
+                    <p className="text-[13px] text-[#cfcfe2] leading-relaxed">
                       <span className="text-[#f97316]">⚠️</span> ราคาอาจปรับตามความซับซ้อนของงานจริง หลังจากรับ brief
                       รายละเอียดแล้ว จะประเมินอีกครั้ง
                     </p>
@@ -2406,7 +2751,7 @@ export default function PricingSection() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-[#0a0a0a]/95 backdrop-blur-lg border-t border-[#262626] z-50">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div>
-            <div className="text-xs text-[#52525b]">รวมทั้งหมด</div>
+            <div className="text-[13px] text-[#cfcfe2]">รวมทั้งหมด</div>
             <div className="text-xl font-bold gradient-text-purple">{formatPrice(priceBreakdown.total)}</div>
           </div>
           <a

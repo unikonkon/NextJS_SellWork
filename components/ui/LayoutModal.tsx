@@ -18,6 +18,7 @@ interface LayoutModalProps {
     options: LayoutOption[];
     className?: string;
     triggerColor?: "purple" | "pink";
+    themeColor?: string; // Theme color from STEP 1
 }
 
 export default function LayoutModal({
@@ -26,6 +27,7 @@ export default function LayoutModal({
     options,
     className = "",
     triggerColor = "purple",
+    themeColor,
 }: LayoutModalProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -86,8 +88,10 @@ export default function LayoutModal({
         setIsOpen(false);
     };
 
-    const hoverBorderColor = triggerColor === "pink" ? "hover:border-[#ec4899]/50" : "hover:border-[#8b5cf6]/50";
-    const focusBorderColor = triggerColor === "pink" ? "focus:border-[#ec4899]" : "focus:border-[#8b5cf6]";
+    // Use theme color if provided, otherwise fallback to triggerColor
+    const primaryColor = themeColor || (triggerColor === "pink" ? "#ec4899" : "#8b5cf6");
+    const hoverBorderColor = themeColor ? `hover:border-[${primaryColor}]/50` : (triggerColor === "pink" ? "hover:border-[#ec4899]/50" : "hover:border-[#8b5cf6]/50");
+    const focusBorderColor = themeColor ? `focus:border-[${primaryColor}]` : (triggerColor === "pink" ? "focus:border-[#ec4899]" : "focus:border-[#8b5cf6]");
 
     return (
         <>
@@ -101,8 +105,10 @@ export default function LayoutModal({
                 <div className="flex items-center justify-between">
                     <span className="flex items-center gap-2">
                         {/* Layout icon indicator */}
-                        <span className={`text-sm transition-transform group-hover:scale-110 ${triggerColor === "pink" ? "text-[#ec4899]" : "text-[#8b5cf6]"
-                            }`}>
+                        <span
+                            className="text-sm transition-transform group-hover:scale-110"
+                            style={{ color: themeColor || (triggerColor === "pink" ? "#ec4899" : "#8b5cf6") }}
+                        >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
                             </svg>
@@ -121,24 +127,33 @@ export default function LayoutModal({
                         <span className="text-[10px] text-[#52525b] group-hover:text-[#71717a] transition-colors hidden sm:inline">
                             เปลี่ยน
                         </span>
-                        <svg className={`w-3 h-3 transition-transform group-hover:scale-110 ${triggerColor === "pink" ? "text-[#ec4899]/60 group-hover:text-[#ec4899]" : "text-[#8b5cf6]/60 group-hover:text-[#8b5cf6]"
-                            }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                            className="w-3 h-3 transition-transform group-hover:scale-110"
+                            style={{ color: themeColor ? `${themeColor}99` : (triggerColor === "pink" ? "#ec4899" : "#8b5cf6") + "99" }}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                     </div>
                 </div>
                 {/* Hover glow effect */}
                 <div
-                    className={`absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${triggerColor === "pink"
-                        ? "bg-linear-to-r from-[#ec4899]/5 to-transparent"
-                        : "bg-linear-to-r from-[#8b5cf6]/5 to-transparent"
-                        }`}
+                    className="absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                    style={{
+                        background: themeColor
+                            ? `linear-gradient(to right, ${primaryColor}0D, transparent)`
+                            : triggerColor === "pink"
+                                ? "linear-gradient(to right, rgba(236, 72, 153, 0.05), transparent)"
+                                : "linear-gradient(to right, rgba(139, 92, 246, 0.05), transparent)"
+                    }}
                 />
             </button>
 
             {/* Modal Overlay - Using Portal to render at body level */}
             {isOpen && mounted && createPortal(
-                <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-99999 flex items-center justify-center p-4">
                     {/* Backdrop */}
                     <div
                         className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in"
@@ -148,9 +163,11 @@ export default function LayoutModal({
                     {/* Modal Content */}
                     <div
                         ref={modalRef}
-                        className="relative w-full max-w-4xl max-h-[90vh] rounded-2xl bg-[#0d0d0d] border border-[#262626] shadow-2xl overflow-hidden animate-fade-in-up z-[100000]"
+                        className="relative w-full max-w-4xl max-h-[90vh] rounded-2xl bg-[#0d0d0d] border border-[#262626] shadow-2xl overflow-hidden animate-fade-in-up z-100000"
                         style={{
-                            boxShadow: `0 20px 50px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(139, 92, 246, 0.1), 0 0 40px rgba(139, 92, 246, 0.1)`,
+                            boxShadow: themeColor
+                                ? `0 20px 50px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px ${primaryColor}1A, 0 0 40px ${primaryColor}1A`
+                                : `0 20px 50px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(139, 92, 246, 0.1), 0 0 40px rgba(139, 92, 246, 0.1)`,
                         }}
                     >
                         {/* Modal Header */}
@@ -178,17 +195,20 @@ export default function LayoutModal({
                                             type="button"
                                             onClick={() => handleSelect(option.id)}
                                             className={`group relative p-4 rounded-xl border-2 transition-all text-left ${isSelected
-                                                ? triggerColor === "pink"
-                                                    ? "border-[#ec4899] bg-[#ec4899]/10 shadow-lg shadow-[#ec4899]/20"
-                                                    : "border-[#8b5cf6] bg-[#8b5cf6]/10 shadow-lg shadow-[#8b5cf6]/20"
-                                                : "border-[#262626] bg-[#1a1a1a] hover:border-[#333] hover:bg-[#1f1f1f]"
+                                                    ? "shadow-lg"
+                                                    : "border-[#262626] bg-[#1a1a1a] hover:border-[#333] hover:bg-[#1f1f1f]"
                                                 }`}
+                                            style={isSelected ? {
+                                                borderColor: primaryColor,
+                                                backgroundColor: `${primaryColor}1A`,
+                                                boxShadow: `0 10px 30px -5px ${primaryColor}33`,
+                                            } : {}}
                                         >
                                             {/* Selected Indicator */}
                                             {isSelected && (
                                                 <div
-                                                    className={`z-10 absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center ${triggerColor === "pink" ? "bg-[#ec4899]" : "bg-[#8b5cf6]"
-                                                        }`}
+                                                    className="z-10 absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
+                                                    style={{ backgroundColor: primaryColor }}
                                                 >
                                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -198,19 +218,15 @@ export default function LayoutModal({
 
                                             {/* Preview */}
                                             <div className="mb-3">
-                                                <LayoutPreview preview={option.preview} />
+                                                <LayoutPreview preview={option.preview} themeColor={themeColor} />
                                             </div>
 
                                             {/* Label & Icon */}
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-base">{option.icon}</span>
                                                 <span
-                                                    className={`text-sm font-medium ${isSelected
-                                                        ? triggerColor === "pink"
-                                                            ? "text-[#ec4899]"
-                                                            : "text-[#8b5cf6]"
-                                                        : "text-white"
-                                                        }`}
+                                                    className={`text-sm font-medium ${isSelected ? "" : "text-white"}`}
+                                                    style={isSelected ? { color: primaryColor } : {}}
                                                 >
                                                     {option.label}
                                                 </span>
@@ -226,7 +242,9 @@ export default function LayoutModal({
                                                 <div
                                                     className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                                                     style={{
-                                                        background: `radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1), transparent 70%)`,
+                                                        background: themeColor
+                                                            ? `radial-gradient(circle at 50% 50%, ${primaryColor}1A, transparent 70%)`
+                                                            : `radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1), transparent 70%)`,
                                                     }}
                                                 />
                                             )}
