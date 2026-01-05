@@ -155,14 +155,6 @@ export const SECTION_LAYOUTS = [
     preview: "hero-slider",
     category: "hero",
   },
-  {
-    id: "hero-particles",
-    label: "Hero Particles",
-    description: "Hero พร้อม Particle Effect พื้นหลัง",
-    icon: "✦",
-    preview: "hero-particles",
-    category: "hero",
-  },
 
   // === CONTENT SECTIONS ===
   {
@@ -759,45 +751,50 @@ export const SECTION_ANIMATIONS: Record<
     { id: "glitch", label: "Glitch Effect", icon: "▓", description: "เอฟเฟกต์ Glitch แบบ Digital" },
   ],
   "hero-split": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "slide-opposite", label: "Slide Opposite", icon: "↔", description: "ซ้ายขวาเลื่อนเข้าหากัน" },
     { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละส่วน" },
     { id: "reveal-mask", label: "Reveal Mask", icon: "▣", description: "เปิดเผยด้วย mask effect" },
     { id: "zoom-pan", label: "Zoom Pan", icon: "⊕", description: "ซูมและเลื่อนรูป" },
   ],
   "hero-video": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "fade-overlay", label: "Fade Overlay", icon: "◔", description: "Overlay ค่อยๆ จางลง" },
     { id: "text-over-video", label: "Text Over", icon: "Aa▶", description: "ข้อความปรากฏเหนือวิดีโอ" },
-    { id: "ken-burns", label: "Ken Burns", icon: "⊕", description: "ซูมช้าๆ แบบ Ken Burns" },
   ],
   "hero-slider": [
-    { id: "slide-horizontal", label: "Slide H", icon: "↔", description: "เลื่อนแนวนอน" },
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
+    { id: "slide-horizontal-left", label: "Slide H Left", icon: "←", description: "เลื่อนแนวนอนซ้าย" },
+    { id: "slide-horizontal-right", label: "Slide H Right", icon: "→", description: "เลื่อนแนวนอนขวา" },
     { id: "slide-vertical", label: "Slide V", icon: "↕", description: "เลื่อนแนวตั้ง" },
-    { id: "fade-slide", label: "Fade Slide", icon: "◔↔", description: "Fade พร้อมเลื่อน" },
+    { id: "fade-slide-left", label: "Fade Slide Left", icon: "◔ ←", description: "Fade พร้อมเลื่อน ซ้าย" },
+    { id: "fade-slide-right", label: "Fade Slide Right", icon: "◔ →", description: "Fade พร้อมเลื่อน ขวา" },
     { id: "cube", label: "Cube Effect", icon: "◰", description: "หมุนแบบลูกบาศก์" },
     { id: "coverflow", label: "Coverflow", icon: "◧◰◨", description: "เอฟเฟกต์ Coverflow" },
   ],
-  "hero-particles": [
-    { id: "particles-float", label: "Float", icon: "✦", description: "อนุภาคลอยขึ้น" },
-    { id: "particles-connect", label: "Connect", icon: "✦―✦", description: "อนุภาคเชื่อมต่อกัน" },
-    { id: "particles-repel", label: "Repel", icon: "←✦→", description: "อนุภาคหนีเมาส์" },
-  ],
-
   // === TEXT-IMAGE SECTIONS ===
   "text-image": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "slide-left", label: "Slide Left", icon: "←", description: "เนื้อหาเลื่อนเข้าจากซ้าย" },
     { id: "slide-right", label: "Slide Right", icon: "→", description: "รูปเลื่อนเข้าจากขวา" },
     { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละส่วน" },
     { id: "reveal-mask", label: "Reveal Mask", icon: "▣", description: "เปิดเผยด้วย mask effect" },
     { id: "clip-reveal", label: "Clip Reveal", icon: "◲", description: "เปิดเผยด้วย clip-path" },
+    { id: "zoom-img", label: "Zoom Image", icon: "⊕", description: "รูปซูมเข้าเมื่อ scroll ถึง" },
+    { id: "tilt-3d", label: "3D Tilt", icon: "◰", description: "รูปเอียง 3D เมื่อ hover" },
   ],
   "image-text": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "slide-right", label: "Slide Right", icon: "→", description: "รูปเลื่อนเข้าจากขวา" },
     { id: "slide-left", label: "Slide Left", icon: "←", description: "เนื้อหาเลื่อนเข้าจากซ้าย" },
     { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละส่วน" },
+    { id: "reveal-mask", label: "Reveal Mask", icon: "▣", description: "เปิดเผยด้วย mask effect" },
+    { id: "clip-reveal", label: "Clip Reveal", icon: "◲", description: "เปิดเผยด้วย clip-path" },
     { id: "zoom-img", label: "Zoom Image", icon: "⊕", description: "รูปซูมเข้าเมื่อ scroll ถึง" },
     { id: "tilt-3d", label: "3D Tilt", icon: "◰", description: "รูปเอียง 3D เมื่อ hover" },
   ],
   zigzag: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "alternate-slide", label: "Alternate Slide", icon: "↔", description: "เลื่อนสลับซ้ายขวา" },
     { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละส่วน" },
     { id: "scroll-reveal", label: "Scroll Reveal", icon: "↓", description: "เปิดเผยตาม scroll" },
@@ -808,6 +805,7 @@ export const SECTION_ANIMATIONS: Record<
     { id: "blur-in", label: "Blur In", icon: "◔", description: "จากเบลอเป็นชัด" },
   ],
   "quote-block": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "slide-quote", label: "Slide Quote", icon: "❝", description: "คำพูดเลื่อนเข้ามา" },
     { id: "typewriter", label: "Typewriter", icon: "⌨", description: "พิมพ์ทีละตัวอักษร" },
     { id: "fade-scale", label: "Fade Scale", icon: "⊡", description: "ปรากฏพร้อมขยาย" },
@@ -815,11 +813,13 @@ export const SECTION_ANIMATIONS: Record<
 
   // === COLUMN LAYOUTS ===
   "two-cols": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "stagger-up", label: "Stagger Up", icon: "↑↑", description: "คอลัมน์ปรากฏทีละอัน" },
     { id: "slide-opposite", label: "Slide Opposite", icon: "↔", description: "เลื่อนเข้าจากคนละทาง" },
     { id: "fade-cascade", label: "Fade Cascade", icon: "◔◔", description: "ค่อยๆ ปรากฏต่อเนื่อง" },
   ],
   "three-cols": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "stagger-up", label: "Stagger Up", icon: "↑↑↑", description: "คอลัมน์ปรากฏทีละอัน" },
     { id: "flip-in", label: "Flip In", icon: "◰", description: "พลิกเข้ามาทีละคอลัมน์" },
     { id: "scale-stagger", label: "Scale Stagger", icon: "⊡⊡⊡", description: "ขยายขึ้นทีละอัน" },
@@ -827,6 +827,7 @@ export const SECTION_ANIMATIONS: Record<
     { id: "rotate-in", label: "Rotate In", icon: "↻", description: "หมุนเข้ามาทีละอัน" },
   ],
   "four-cols": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "stagger-up", label: "Stagger Up", icon: "↑↑↑↑", description: "คอลัมน์ปรากฏทีละอัน" },
     { id: "wave-in", label: "Wave In", icon: "∿", description: "เคลื่อนเข้ามาเป็นคลื่น" },
     { id: "scale-stagger", label: "Scale Stagger", icon: "⊡⊡⊡⊡", description: "ขยายขึ้นทีละอัน" },
@@ -834,6 +835,7 @@ export const SECTION_ANIMATIONS: Record<
     { id: "pop-random", label: "Pop Random", icon: "⊡?", description: "ป็อปขึ้นแบบสุ่มลำดับ" },
   ],
   asymmetric: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "slide-opposite", label: "Slide Opposite", icon: "↔", description: "เลื่อนเข้าจากคนละทาง" },
     { id: "scale-stagger", label: "Scale Stagger", icon: "⊡⊡", description: "ขยายขึ้นทีละอัน" },
     { id: "parallax-cols", label: "Parallax Cols", icon: "≋", description: "เคลื่อนที่ความเร็วต่างกัน" },
@@ -841,6 +843,7 @@ export const SECTION_ANIMATIONS: Record<
 
   // === FEATURE SECTIONS ===
   "features-grid": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "stagger-up", label: "Stagger Up", icon: "↑", description: "ปรากฏทีละอัน" },
     { id: "scale-stagger", label: "Scale Stagger", icon: "⊡", description: "ขยายขึ้นทีละอัน" },
     { id: "flip-in", label: "Flip In", icon: "◰", description: "พลิกเข้ามา" },
@@ -848,21 +851,25 @@ export const SECTION_ANIMATIONS: Record<
     { id: "icon-spin", label: "Icon Spin", icon: "↻", description: "Icon หมุนเมื่อปรากฏ" },
   ],
   "features-list": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "slide-right", label: "Slide Right", icon: "→", description: "เลื่อนเข้าจากซ้าย" },
     { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละรายการ" },
     { id: "check-mark", label: "Check Mark", icon: "✓", description: "เครื่องหมายถูกปรากฏ" },
   ],
   "features-tabs": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "fade-switch", label: "Fade Switch", icon: "◔↔", description: "สลับแบบ Fade" },
     { id: "slide-switch", label: "Slide Switch", icon: "←→", description: "สลับแบบเลื่อน" },
     { id: "flip-switch", label: "Flip Switch", icon: "◰↔", description: "สลับแบบพลิก" },
   ],
   "features-accordion": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "accordion", label: "Accordion", icon: "≡", description: "พับ/กางแบบ accordion" },
     { id: "slide-expand", label: "Slide Expand", icon: "↕", description: "เลื่อนขยาย" },
     { id: "rotate-arrow", label: "Rotate Arrow", icon: "↻", description: "ลูกศรหมุนเมื่อเปิด" },
   ],
   "icon-boxes": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "stagger-up", label: "Stagger Up", icon: "↑", description: "ปรากฏทีละอัน" },
     { id: "hover-lift", label: "Hover Lift", icon: "⤴", description: "ยกขึ้นเมื่อ hover" },
     { id: "icon-bounce", label: "Icon Bounce", icon: "◉⤴", description: "Icon เด้งเมื่อปรากฏ" },
@@ -871,6 +878,7 @@ export const SECTION_ANIMATIONS: Record<
 
   // === GALLERY & MEDIA ===
   gallery: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "masonry-fade", label: "Masonry Fade", icon: "▤", description: "รูปปรากฏแบบสุ่ม" },
     { id: "zoom-hover", label: "Zoom Hover", icon: "⊕", description: "ซูมเมื่อ hover" },
     { id: "lightbox", label: "Lightbox", icon: "◳", description: "เปิดดูเต็มจอเมื่อคลิก" },
@@ -883,17 +891,20 @@ export const SECTION_ANIMATIONS: Record<
     { id: "shuffle", label: "Shuffle", icon: "⇆", description: "สลับตำแหน่งเมื่อ filter" },
   ],
   carousel: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "slide-smooth", label: "Slide Smooth", icon: "↔", description: "เลื่อนนุ่มนวล" },
     { id: "fade-carousel", label: "Fade", icon: "◔", description: "สลับแบบ Fade" },
     { id: "coverflow", label: "Coverflow", icon: "◧◰◨", description: "เอฟเฟกต์ Coverflow" },
     { id: "cards-stack", label: "Cards Stack", icon: "▢▢▢", description: "การ์ดซ้อนกัน" },
   ],
   "video-section": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "play-button-pulse", label: "Play Pulse", icon: "▶◉", description: "ปุ่ม Play เต้น" },
     { id: "fade-in-video", label: "Fade In", icon: "◔▶", description: "วิดีโอค่อยๆ ปรากฏ" },
     { id: "scale-video", label: "Scale Video", icon: "⊡▶", description: "วิดีโอขยายขึ้น" },
   ],
   "lightbox-gallery": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "grid-reveal", label: "Grid Reveal", icon: "▦", description: "เปิดเผยทีละช่อง" },
     { id: "lightbox-zoom", label: "Lightbox Zoom", icon: "⊕", description: "ซูมเข้า Lightbox" },
     { id: "lightbox-fade", label: "Lightbox Fade", icon: "◔◳", description: "Lightbox แบบ Fade" },
@@ -901,6 +912,7 @@ export const SECTION_ANIMATIONS: Record<
 
   // === SOCIAL PROOF ===
   testimonial: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "slide-quote", label: "Slide Quote", icon: "❝", description: "คำพูดเลื่อนเข้ามา" },
     { id: "fade-rotate", label: "Fade Rotate", icon: "↻", description: "หมุนสลับรีวิว" },
     { id: "typewriter", label: "Typewriter", icon: "⌨", description: "พิมพ์ทีละตัวอักษร" },
@@ -908,26 +920,31 @@ export const SECTION_ANIMATIONS: Record<
     { id: "quote-mark-animate", label: "Quote Animate", icon: "❝↑", description: "เครื่องหมายคำพูดเคลื่อนไหว" },
   ],
   "testimonial-slider": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "slide-horizontal", label: "Slide H", icon: "↔", description: "เลื่อนแนวนอน" },
     { id: "fade-slide", label: "Fade Slide", icon: "◔↔", description: "Fade พร้อมเลื่อน" },
     { id: "cards-stack", label: "Cards Stack", icon: "▢▢▢", description: "การ์ดซ้อนกัน" },
   ],
   "testimonial-grid": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "stagger-up", label: "Stagger Up", icon: "↑", description: "ปรากฏทีละอัน" },
     { id: "hover-lift", label: "Hover Lift", icon: "⤴", description: "ยกขึ้นเมื่อ hover" },
     { id: "quote-mark-animate", label: "Quote Animate", icon: "❝↑", description: "เครื่องหมายคำพูดเคลื่อนไหว" },
   ],
   logos: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "fade-stagger", label: "Fade Stagger", icon: "◔", description: "ปรากฏทีละอัน" },
     { id: "grayscale-color", label: "Grayscale→Color", icon: "◐→◉", description: "ขาวดำเป็นสีเมื่อ hover" },
     { id: "scale-hover", label: "Scale Hover", icon: "⊡", description: "ขยายเมื่อ hover" },
   ],
   "logos-scroll": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "marquee-smooth", label: "Marquee Smooth", icon: "→→", description: "เลื่อนต่อเนื่อง" },
     { id: "marquee-pause", label: "Marquee Pause", icon: "→‖", description: "หยุดเมื่อ hover" },
     { id: "marquee-reverse", label: "Marquee Reverse", icon: "←→", description: "สลับทิศทาง" },
   ],
   "case-studies": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "card-hover", label: "Card Hover", icon: "▢↑", description: "การ์ดยกขึ้นเมื่อ hover" },
     { id: "image-overlay", label: "Image Overlay", icon: "▣", description: "Overlay ปรากฏเมื่อ hover" },
     { id: "stagger-up", label: "Stagger Up", icon: "↑", description: "ปรากฏทีละอัน" },
@@ -935,24 +952,28 @@ export const SECTION_ANIMATIONS: Record<
 
   // === DATA & STATS ===
   stats: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "counter", label: "Counter", icon: "123", description: "ตัวเลขนับขึ้น" },
     { id: "bar-grow", label: "Bar Grow", icon: "▐", description: "แท่งกราฟขยาย" },
     { id: "flip-number", label: "Flip Number", icon: "↻", description: "พลิกตัวเลข" },
     { id: "pop-scale", label: "Pop Scale", icon: "⊡", description: "ตัวเลขป็อปขึ้นมา" },
   ],
   "stats-counter": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "counter-fast", label: "Counter Fast", icon: "123↑", description: "นับเร็ว" },
     { id: "counter-slow", label: "Counter Slow", icon: "123→", description: "นับช้าๆ" },
     { id: "counter-bounce", label: "Counter Bounce", icon: "123⤴", description: "นับแล้วเด้ง" },
     { id: "odometer", label: "Odometer", icon: "⊡123", description: "แบบมิเตอร์รถ" },
   ],
   "progress-bars": [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "bar-grow", label: "Bar Grow", icon: "▐→", description: "แท่งขยาย" },
     { id: "bar-striped", label: "Bar Striped", icon: "▐▒", description: "แท่งลายทาง" },
     { id: "bar-animated", label: "Bar Animated", icon: "▐∿", description: "แท่งเคลื่อนไหว" },
     { id: "circular-progress", label: "Circular", icon: "◔", description: "Progress วงกลม" },
   ],
   charts: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "draw-line", label: "Draw Line", icon: "📈", description: "วาดเส้นกราฟ" },
     { id: "bar-stagger", label: "Bar Stagger", icon: "▐▐▐", description: "แท่งปรากฏทีละอัน" },
     { id: "pie-reveal", label: "Pie Reveal", icon: "◔→◉", description: "วงกลมเปิดเผย" },
@@ -961,6 +982,7 @@ export const SECTION_ANIMATIONS: Record<
 
   // === PRICING ===
   pricing: [
+    { id: "fade-up", label: "Fade Up", icon: "↑", description: "เนื้อหาค่อยๆ ปรากฏขึ้นจากด้านล่าง" },
     { id: "stagger-up", label: "Stagger Up", icon: "↑", description: "ปรากฏทีละอัน" },
     { id: "hover-lift", label: "Hover Lift", icon: "⤴", description: "ยกขึ้นเมื่อ hover" },
     { id: "highlight-popular", label: "Highlight Popular", icon: "★", description: "ไฮไลท์ตัวเลือกยอดนิยม" },

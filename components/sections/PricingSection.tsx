@@ -530,6 +530,30 @@ export default function PricingSection() {
     });
   }, [getPreviewRef]);
 
+  // Clear all animations for a section
+  const clearAnimation = useCallback((refKey: string) => {
+    const containerElement = getPreviewRef(refKey);
+    if (!containerElement) return;
+
+    const animationTarget = containerElement.querySelector('[data-animation-target]') as HTMLElement | null;
+    const element = animationTarget || containerElement;
+
+    // Kill and reset main element
+    killAnimations(element);
+    gsap.set(element, { clearProps: "all" });
+
+    // Kill and reset children
+    const animationChildren = element.querySelectorAll('[data-animation-child]');
+    const children = animationChildren.length > 0
+      ? Array.from(animationChildren) as HTMLElement[]
+      : Array.from(element.children) as HTMLElement[];
+
+    children.forEach(child => {
+      killAnimations(child);
+      gsap.set(child, { clearProps: "all" });
+    });
+  }, [getPreviewRef]);
+
   // Add new page with 1 section
   const addPage = useCallback(() => {
     setState((prev) => {
@@ -1388,6 +1412,7 @@ export default function PricingSection() {
                                     {(section.animation || section.customAnimation) && (
                                       <button
                                         onClick={() => {
+                                          clearAnimation(`preview-main-${section.id}`);
                                           updateMainSectionAnimation(section.id, null);
                                           updateMainSectionCustomAnimation(section.id, "");
                                         }}
@@ -1598,6 +1623,7 @@ export default function PricingSection() {
                                         {(section.animation || section.customAnimation) && (
                                           <button
                                             onClick={() => {
+                                              clearAnimation(`preview-page-${page.id}-${section.id}`);
                                               updatePageSectionAnimation(page.id, section.id, null);
                                               updatePageSectionCustomAnimation(page.id, section.id, "");
                                             }}
@@ -1912,12 +1938,23 @@ export default function PricingSection() {
                                           </div>
                                         )}
                                       </div>
-                                      <button
-                                        onClick={() => playSectionAnimation(refKey, section.animation!)}
-                                        className="p-2 rounded-lg text-xs bg-[#ec4899]/20 text-[#ec4899] hover:bg-[#ec4899]/30 transition-colors"
-                                      >
-                                        ▶
-                                      </button>
+                                      {section.animation || section.customAnimation ? (
+                                        <button
+                                          onClick={() => playSectionAnimation(refKey, section.animation || section.customAnimation!)}
+                                          className="p-2 rounded-lg text-xs bg-[#ec4899]/20 text-[#ec4899] hover:bg-[#ec4899]/30 transition-colors"
+                                        >
+                                          ▶
+                                        </button>
+                                      ) : (
+                                        // <button
+                                        //   onClick={() => clearAnimation(refKey)}
+                                        //   className="p-2 rounded-lg text-xs bg-[#52525b]/20 text-[#52525b] hover:bg-[#52525b]/30 transition-colors"
+                                        //   title="ไม่ Animation"
+                                        // >
+                                        //   ⊗
+                                        // </button>
+                                        <></>
+                                      )}
                                     </div>
                                   );
                                 })}
@@ -2037,12 +2074,23 @@ export default function PricingSection() {
                                             </div>
                                           )}
                                         </div>
-                                        <button
-                                          onClick={() => playSectionAnimation(refKey, section.animation!)}
-                                          className="p-2 rounded-lg text-xs bg-[#ec4899]/20 text-[#ec4899] hover:bg-[#ec4899]/30 transition-colors"
-                                        >
-                                          ▶
-                                        </button>
+                                        {section.animation || section.customAnimation ? (
+                                          <button
+                                            onClick={() => playSectionAnimation(refKey, section.animation || section.customAnimation!)}
+                                            className="p-2 rounded-lg text-xs bg-[#ec4899]/20 text-[#ec4899] hover:bg-[#ec4899]/30 transition-colors"
+                                          >
+                                            ▶
+                                          </button>
+                                        ) : (
+                                          // <button
+                                          //   onClick={() => clearAnimation(refKey)}
+                                          //   className="p-2 rounded-lg text-xs bg-[#52525b]/20 text-[#52525b] hover:bg-[#52525b]/30 transition-colors"
+                                          //   title="ไม่ Animation"
+                                          // >
+                                          //   ⊗
+                                          // </button>
+                                          <></>
+                                        )}
                                       </div>
                                     );
                                   })}

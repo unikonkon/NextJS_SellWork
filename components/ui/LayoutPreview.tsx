@@ -113,9 +113,10 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
       </div>
     ),
     testimonial: (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center p-3`}>
-        {/* Testimonial - quote style */}
-        <div data-animation-child className="w-full flex items-center gap-2">
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center p-3 relative`}>
+        {/* Testimonial - quote style with quote-mark for animation */}
+        <div className="quote-mark absolute left-2 top-1 text-xl text-[#8b5cf6]/30">❝</div>
+        <div data-animation-child className="w-full flex items-center gap-2 ml-3">
           <div className={`${size === "small" ? "w-7 h-7" : "w-8 h-8"} rounded-full bg-[#8b5cf6]/20 border border-[#8b5cf6]/30 shrink-0`} />
           <div className="flex-1 flex flex-col gap-1">
             <div className={`${size === "small" ? "text-xs" : "text-sm"} text-[#8b5cf6]/80 typewriter-text`}>
@@ -170,8 +171,12 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     ),
     "hero-video": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-linear-to-r from-[#8b5cf6]/20 via-[#ec4899]/20 to-[#8b5cf6]/20 opacity-60" />
-        <div data-animation-child className="relative z-10 flex items-center gap-2">
+        {/* Background/Video element for ken-burns */}
+        <div className="absolute inset-0 bg-linear-to-r from-[#8b5cf6]/20 via-[#ec4899]/20 to-[#8b5cf6]/20" />
+        {/* Overlay for fade-overlay animation */}
+        <div className="overlay absolute inset-0 bg-[#0d0d0d]/70" />
+        {/* Text content for text-over-video animation */}
+        <div className="hero-text video-text relative z-10 flex items-center gap-2">
           <div className={`${size === "small" ? "w-6 h-6" : "w-8 h-8"} rounded-full bg-[#8b5cf6]/40 border border-[#8b5cf6]/60 flex items-center justify-center`}>
             <div className="w-0 h-0 border-l-[6px] border-l-white border-t-4 border-t-transparent border-b-4 border-b-transparent ml-0.5" />
           </div>
@@ -198,27 +203,6 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
         </div>
       </div>
     ),
-    "hero-particles": (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
-        <div className="absolute inset-0">
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              data-animation-child
-              className="absolute w-1 h-1 rounded-full bg-[#8b5cf6]/30"
-              style={{
-                left: `${(i * 12.5) % 100}%`,
-                top: `${(i * 15) % 100}%`,
-              }}
-            />
-          ))}
-        </div>
-        <div data-animation-child className="relative z-10 flex flex-col items-center gap-2">
-          <div className={`${size === "small" ? "w-20" : "w-24"} h-2 bg-[#8b5cf6]/30 rounded-full`} />
-          <div className={`${size === "small" ? "w-14" : "w-16"} h-1.5 bg-[#ec4899]/20 rounded-full`} />
-        </div>
-      </div>
-    ),
 
     // === CONTENT VARIANTS ===
     zigzag: (
@@ -234,7 +218,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
     "text-center": (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center p-2`}>
         <div data-animation-child className="flex flex-col gap-1.5 items-center w-full">
-        <span className={`${size === "small" ? "text-xs" : "text-sm"} text-[#18a3fa] font-medium typewriter-text`}>Preview Text @text-center</span>
+          <span className={`${size === "small" ? "text-xs" : "text-sm"} text-[#18a3fa] font-medium typewriter-text`}>Preview Text @text-center</span>
           <div className="w-3/4 h-1 bg-[#8b5cf6]/20 rounded" />
           <div className="w-1/2 h-1 bg-[#8b5cf6]/15 rounded" />
           <div className="w-2/3 h-0.5 bg-[#52525b]/20 rounded" />
@@ -520,7 +504,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium" }:
           <div key={i} data-animation-child className="flex items-center gap-2">
             <div className="w-12 h-1 bg-[#1a1a1a]/50 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full ${i === 0
+                className={`progress-bar bar h-full rounded-full ${i === 0
                   ? "bg-linear-to-r from-[#8b5cf6] to-[#ec4899]"
                   : "bg-[#52525b]"
                   }`}

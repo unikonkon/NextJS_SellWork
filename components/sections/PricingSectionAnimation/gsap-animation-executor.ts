@@ -273,10 +273,25 @@ export function executeAnimation({
       return tl;
     }
 
-    case "slide-horizontal":
+    case "slide-horizontal-left":
       return gsap.fromTo(
         element,
         { opacity: 0, x: 100 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: duration || 0.6,
+          delay,
+          ease: ease || "power2.out",
+          ...scrollConfig,
+          onComplete,
+        }
+      );
+
+    case "slide-horizontal-right":
+      return gsap.fromTo(
+        element,
+        { opacity: 0, x: -100 },
         {
           opacity: 1,
           x: 0,
@@ -1955,10 +1970,24 @@ export function executeAnimation({
       );
     }
 
-    case "fade-slide":
+    case "fade-slide-left":
       return gsap.fromTo(
         element,
         { opacity: 0, x: 30 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: duration || 0.5,
+          delay,
+          ease: ease || "power2.out",
+          onComplete,
+        }
+      );
+
+    case "fade-slide-right":
+      return gsap.fromTo(
+        element,
+        { opacity: 0, x: -30 },
         {
           opacity: 1,
           x: 0,
@@ -2256,34 +2285,31 @@ export function executeAnimation({
         }
       );
 
-    case "ken-burns": {
-      const img = element.querySelector("img, video");
-      if (img) {
-        return gsap.fromTo(
-          img,
-          { scale: 1 },
-          {
-            scale: 1.2,
-            duration: duration || 20,
-            ease: "none",
-            repeat: -1,
-            yoyo: true,
-            onComplete,
-          }
-        );
-      }
-      return null;
-    }
-
     case "fade-overlay": {
-      const overlay = element.querySelector(".overlay");
+      // Look for overlay element with class "overlay"
+      let overlay = element.querySelector(".overlay") as HTMLElement | null;
+      
+      // If no .overlay class, look for first absolute positioned div that could be overlay
+      if (!overlay) {
+        const absoluteDivs = element.querySelectorAll("div[class*='absolute']");
+        overlay = Array.from(absoluteDivs).find(
+          (div) => {
+            const el = div as HTMLElement;
+            const styles = window.getComputedStyle(el);
+            return styles.position === "absolute" && styles.inset !== "none";
+          }
+        ) as HTMLElement | null;
+      }
+      
       if (overlay) {
-        return gsap.fromTo(
+        // Set initial opacity if not set
+        gsap.set(overlay, { opacity: 1 });
+        
+        return gsap.to(
           overlay,
-          { opacity: 1 },
           {
-            opacity: 0.5,
-            duration: duration || 1,
+            opacity: 0.3,
+            duration: duration || 1.5,
             delay,
             ease: ease || "power2.out",
             ...scrollConfig,
@@ -2295,11 +2321,38 @@ export function executeAnimation({
     }
 
     case "text-over-video": {
-      const text = element.querySelector(".hero-text, .video-text");
+      // Look for text elements with hero-text or video-text class
+      let text = element.querySelector(".hero-text, .video-text") as HTMLElement | null;
+      
+      // If no specific class, look for relative positioned content div
+      if (!text) {
+        const relativeDivs = element.querySelectorAll("div[class*='relative']");
+        text = Array.from(relativeDivs).find(
+          (div) => {
+            const el = div as HTMLElement;
+            const styles = window.getComputedStyle(el);
+            return styles.position === "relative" && styles.zIndex !== "auto";
+          }
+        ) as HTMLElement | null;
+      }
+      
+      // Fallback: look for data-animation-child that contains text content
+      if (!text) {
+        const animationChildren = element.querySelectorAll("[data-animation-child]");
+        text = Array.from(animationChildren).find(
+          (child) => {
+            const el = child as HTMLElement;
+            return el.textContent && el.textContent.trim().length > 0;
+          }
+        ) as HTMLElement | null;
+      }
+      
       if (text) {
-        return gsap.fromTo(
+        // Set initial state
+        gsap.set(text, { opacity: 0, y: 30 });
+        
+        return gsap.to(
           text,
-          { opacity: 0, y: 30 },
           {
             opacity: 1,
             y: 0,
@@ -2447,7 +2500,11 @@ export function executeAnimation({
       );
 
     case "tilt-3d":
-      element.addEventListener("mousemove", (e) => {
+      // Apply tilt-3d to children (Left image and right text) instead of parent
+      const tiltChildren = childElements.length > 0 ? childElements : [element];
+      
+      // Track mouse on parent element but apply to children
+      const handleMouseMove = (e: MouseEvent) => {
         const rect = element.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -2455,16 +2512,27 @@ export function executeAnimation({
         const centerY = rect.height / 2;
         const rotateX = (y - centerY) / 10;
         const rotateY = (centerX - x) / 10;
-        gsap.to(element, {
-          rotationX: rotateX,
-          rotationY: rotateY,
-          transformPerspective: 1000,
-          duration: 0.3,
+        
+        // Apply tilt to each child separately
+        tiltChildren.forEach((child) => {
+          gsap.to(child, {
+            rotationX: rotateX,
+            rotationY: rotateY,
+            transformPerspective: 1000,
+            duration: 0.3,
+          });
         });
-      });
-      element.addEventListener("mouseleave", () => {
-        gsap.to(element, { rotationX: 0, rotationY: 0, duration: 0.5 });
-      });
+      };
+      
+      const handleMouseLeave = () => {
+        tiltChildren.forEach((child) => {
+          gsap.to(child, { rotationX: 0, rotationY: 0, duration: 0.5 });
+        });
+      };
+      
+      element.addEventListener("mousemove", handleMouseMove);
+      element.addEventListener("mouseleave", handleMouseLeave);
+      
       return gsap.fromTo(
         element,
         { opacity: 0 },
@@ -2472,6 +2540,131 @@ export function executeAnimation({
           opacity: 1,
           duration: duration || 0.5,
           delay,
+          ...scrollConfig,
+          onComplete,
+        }
+      );
+
+    // ==================== ZOOM IMG ANIMATION ====================
+    case "zoom-img": {
+      const img = element.querySelector("img") as HTMLElement;
+      if (img) {
+        gsap.set(element, { overflow: "hidden" });
+        return gsap.fromTo(
+          img,
+          { opacity: 0, scale: 1.2 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: duration || 0.8,
+            delay,
+            ease: ease || "power2.out",
+            ...scrollConfig,
+            onComplete,
+          }
+        );
+      }
+      return gsap.fromTo(
+        element,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.5, delay, ...scrollConfig, onComplete }
+      );
+    }
+
+    // ==================== PROGRESS BAR VARIANTS ====================
+    case "bar-striped": {
+      const bars = element.querySelectorAll(".progress-bar, .bar");
+      bars.forEach((bar) => {
+        gsap.set(bar, { 
+          backgroundImage: "linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)",
+          backgroundSize: "1rem 1rem",
+        });
+      });
+      return gsap.fromTo(
+        bars,
+        { scaleX: 0, transformOrigin: "left" },
+        {
+          scaleX: 1,
+          duration: duration || 1,
+          delay,
+          stagger: 0.15,
+          ease: ease || "power2.out",
+          ...scrollConfig,
+          onComplete,
+        }
+      );
+    }
+
+    case "bar-animated": {
+      const bars = element.querySelectorAll(".progress-bar, .bar");
+      bars.forEach((bar) => {
+        gsap.set(bar, { 
+          backgroundImage: "linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)",
+          backgroundSize: "1rem 1rem",
+        });
+        gsap.to(bar, {
+          backgroundPosition: "40px 0",
+          duration: 1,
+          ease: "none",
+          repeat: -1,
+        });
+      });
+      return gsap.fromTo(
+        bars,
+        { scaleX: 0, transformOrigin: "left" },
+        {
+          scaleX: 1,
+          duration: duration || 1,
+          delay,
+          stagger: 0.15,
+          ease: ease || "power2.out",
+          ...scrollConfig,
+          onComplete,
+        }
+      );
+    }
+
+    // ==================== LIGHTBOX FADE ====================
+    case "lightbox-fade":
+      return gsap.fromTo(
+        element,
+        { opacity: 0 },
+        {
+          opacity: 1,
+          duration: duration || 0.4,
+          delay,
+          ease: ease || "power2.out",
+          onComplete,
+        }
+      );
+
+    // ==================== SLIDE HORIZONTAL (generic) ====================
+    case "slide-horizontal":
+      return gsap.fromTo(
+        element,
+        { opacity: 0, x: 100 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: duration || 0.5,
+          delay,
+          ease: ease || "power2.out",
+          ...scrollConfig,
+          onComplete,
+        }
+      );
+
+    // ==================== FADE SLIDE (generic) ====================
+    case "fade-slide":
+      return gsap.fromTo(
+        element,
+        { opacity: 0, x: 30 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: duration || 0.5,
+          delay,
+          ease: ease || "power2.out",
           ...scrollConfig,
           onComplete,
         }
@@ -2713,23 +2906,135 @@ export function executeAnimation({
         }
       );
 
-    // ==================== PARTICLES (placeholder) ====================
-    case "particles-float":
-    case "particles-connect":
-    case "particles-repel":
-      // These require a particle library like particles.js
-      // Return basic fade for now
-      return gsap.fromTo(
-        element,
-        { opacity: 0 },
-        {
-          opacity: 1,
-          duration: duration || 0.5,
-          delay,
-          ...scrollConfig,
-          onComplete,
-        }
-      );
+    // ==================== PARTICLES ANIMATIONS ====================
+    case "particles-float": {
+      // Particles floating upward animation
+      const particles = element.querySelectorAll("[data-animation-child]");
+      const contentElement = element.querySelector("[data-animation-child]:last-child");
+      
+      // Animate container fade in
+      gsap.fromTo(element, { opacity: 0 }, { opacity: 1, duration: 0.5, delay, ...scrollConfig });
+      
+      // Animate particles floating
+      if (particles.length > 1) {
+        const particleElements = Array.from(particles).slice(0, -1); // Exclude content element
+        particleElements.forEach((particle, i) => {
+          // Random initial position offset
+          const randomX = (Math.random() - 0.5) * 20;
+          const randomDelay = Math.random() * 2;
+          
+          // Floating animation
+          gsap.fromTo(
+            particle,
+            { opacity: 0, y: 2, x: randomX },
+            {
+              opacity: 0.6,
+              y: 0,
+              x: 0,
+              duration: 1,
+              delay: delay + randomDelay * 0.3,
+              ease: "power2.out",
+            }
+          );
+          
+          // Continuous floating loop
+          gsap.to(particle, {
+            y: -30 - (i * 5),
+            x: (Math.random() - 0.5) * 30,
+            opacity: 0,
+            duration: 3 + Math.random() * 2,
+            delay: delay + 1 + randomDelay,
+            ease: "power1.inOut",
+            repeat: -1,
+            repeatDelay: Math.random() * 2,
+            onRepeat: function() {
+              gsap.set(particle, { y: 20, opacity: 0 });
+            }
+          });
+        });
+      }
+      
+      // Animate content
+      if (contentElement) {
+        return gsap.fromTo(
+          contentElement,
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: duration || 0.6,
+            delay: delay + 0.3,
+            ease: ease || "power2.out",
+            onComplete,
+          }
+        );
+      }
+      return null;
+    }
+
+    case "particles-connect": {
+      // Particles fade in and become visible (simulating connection effect)
+      const particles = element.querySelectorAll("[data-animation-child]");
+      const contentElement = element.querySelector("[data-animation-child]:last-child");
+      
+      // Animate container
+      gsap.fromTo(element, { opacity: 0 }, { opacity: 1, duration: 0.5, delay, ...scrollConfig });
+      
+      if (particles.length > 1) {
+        const particleElements = Array.from(particles).slice(0, -1);
+        const tl = gsap.timeline({ delay });
+        
+        // Particles appear one by one with scale and glow effect
+        particleElements.forEach((particle, i) => {
+          tl.fromTo(
+            particle,
+            { 
+              opacity: 0, 
+              scale: 0,
+              boxShadow: "0 0 0 0 rgba(139, 92, 246, 0)"
+            },
+            {
+              opacity: 0.8,
+              scale: 1,
+              boxShadow: "0 0 10px 2px rgba(139, 92, 246, 0.3)",
+              duration: 0.4,
+              ease: "back.out(2)",
+            },
+            i * 0.1
+          );
+        });
+        
+        // Add pulsing glow effect to all particles
+        particleElements.forEach((particle, i) => {
+          gsap.to(particle, {
+            boxShadow: "0 0 15px 4px rgba(139, 92, 246, 0.5)",
+            duration: 1.5,
+            delay: delay + 1 + (i * 0.2),
+            yoyo: true,
+            repeat: -1,
+            ease: "sine.inOut",
+          });
+        });
+      }
+      
+      // Animate content
+      if (contentElement) {
+        return gsap.fromTo(
+          contentElement,
+          { opacity: 0, y: 20, scale: 0.95 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: duration || 0.6,
+            delay: delay + 0.5,
+            ease: ease || "power2.out",
+            onComplete,
+          }
+        );
+      }
+      return null;
+    }
 
     // ==================== NO ANIMATION ====================
     case "none":
@@ -2762,31 +3067,6 @@ export function killAnimations(element: HTMLElement): void {
 // Refresh ScrollTrigger (call after DOM changes)
 export function refreshScrollTrigger(): void {
   ScrollTrigger.refresh();
-}
-
-// Get animation by layout type
-export function getAnimationsForLayout(layoutId: string): string[] {
-  const animationMap: Record<string, string[]> = {
-    hero: ["fade-up", "scale-in", "parallax-bg", "text-reveal", "split-reveal", "typewriter", "glitch"],
-    "hero-split": ["slide-opposite", "fade-stagger", "reveal-mask", "zoom-pan"],
-    "hero-video": ["fade-overlay", "text-over-video", "ken-burns"],
-    "hero-slider": ["slide-horizontal", "slide-vertical", "fade-slide", "cube", "coverflow"],
-    "text-image": ["slide-left", "slide-right", "fade-stagger", "reveal-mask", "clip-reveal"],
-    "image-text": ["slide-right", "slide-left", "fade-stagger", "zoom-img", "tilt-3d"],
-    "three-cols": ["stagger-up", "flip-in", "scale-stagger", "fade-cascade", "rotate-in"],
-    "four-cols": ["stagger-up", "wave-in", "scale-stagger", "rotate-in", "pop-random"],
-    gallery: ["masonry-fade", "zoom-hover", "lightbox", "grid-reveal", "overlay-slide"],
-    cta: ["pulse", "glow", "bounce", "shake", "ripple", "gradient-shift"],
-    testimonial: ["slide-quote", "fade-rotate", "typewriter", "card-flip", "quote-mark-animate"],
-    faq: ["accordion", "slide-expand", "fade-content", "highlight", "plus-rotate"],
-    stats: ["counter", "bar-grow", "flip-number", "pop-scale"],
-    pricing: ["stagger-up", "hover-lift", "highlight-popular", "scale-featured"],
-    team: ["stagger-up", "hover-info", "social-reveal", "image-grayscale"],
-    timeline: ["line-draw", "point-pop", "fade-stagger", "scroll-progress"],
-    custom: ["fade-up", "scale-in", "slide-left", "slide-right", "none"],
-  };
-
-  return animationMap[layoutId] || animationMap.custom;
 }
 
 export default executeAnimation;
