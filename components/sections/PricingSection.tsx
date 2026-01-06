@@ -19,7 +19,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 // ==================== ราคาเริ่มต้น ====================
 // Base Pricing
-const BASE_PRICE = 1500; // ราคาเริ่มต้น
+const BASE_PRICE = 1000; // ราคาเริ่มต้น
 const SECTION_PRICE = 200; // ราคาต่อ section ที่เพิ่ม (นับจาก section ที่ 4 เป็นต้นไป)
 const INITIAL_SECTIONS = 3; // จำนวน section เริ่มต้น (ฟรี)
 const SECTION_ANIMATION_PRICE = 200; // ราคาต่อ animation ที่เพิ่ม
@@ -78,7 +78,7 @@ const ADDON_SERVICES = [
 // +200 if navbar is animated
 // +300 if footer is animated
 // +100 per section animation (main sections + page sections)
-const MOBILE_RESPONSIVE_BASE_PRICE = 1000;
+const MOBILE_RESPONSIVE_BASE_PRICE = 500;
 const MOBILE_RESPONSIVE_NAVBAR_ANIMATED_PRICE = 200;
 const MOBILE_RESPONSIVE_FOOTER_ANIMATED_PRICE = 300;
 const MOBILE_RESPONSIVE_SECTION_ANIMATION_PRICE = 100;
@@ -142,6 +142,8 @@ interface CalculatorState {
     // Theme Settings (moved from step3)
     themeColor: string;
     customColor: string;
+    darkThemeColor: string; // สำหรับ Dark Theme เมื่อเปิด darkLightMode
+    lightThemeColor: string; // สำหรับ Light Theme เมื่อเปิด darkLightMode
     darkLightMode: boolean;
     bilingual: boolean;
     fontFamily: string;
@@ -194,6 +196,63 @@ function getEstimatedDays(total: number): string {
   return "20-30 วัน";
 }
 
+// Function to invert hex color (RGB inverse)
+function invertHexColor(hex: string): string {
+  // Remove # if present
+  hex = hex.replace("#", "");
+
+  // Convert to RGB
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  // Invert RGB
+  const invertedR = 255 - r;
+  const invertedG = 255 - g;
+  const invertedB = 255 - b;
+
+  // Convert back to hex
+  const toHex = (n: number) => {
+    const hex = n.toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+  };
+
+  return `#${toHex(invertedR)}${toHex(invertedG)}${toHex(invertedB)}`;
+}
+
+// Function to find closest theme color
+function findClosestThemeColor(color: string): string {
+  // Remove # if present
+  const hex = color.replace("#", "");
+
+  // Convert to RGB
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  // Find closest theme by calculating Euclidean distance
+  let minDistance = Infinity;
+  let closestTheme = COLOR_THEMES[0];
+
+  COLOR_THEMES.forEach((theme) => {
+    const themeHex = theme.color.replace("#", "");
+    const themeR = parseInt(themeHex.substring(0, 2), 16);
+    const themeG = parseInt(themeHex.substring(2, 4), 16);
+    const themeB = parseInt(themeHex.substring(4, 6), 16);
+
+    const distance = Math.sqrt(
+      Math.pow(r - themeR, 2) + Math.pow(g - themeG, 2) + Math.pow(b - themeB, 2)
+    );
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestTheme = theme;
+    }
+  });
+
+  return closestTheme.id;
+}
+
 
 // ==================== MAIN COMPONENT ====================
 export default function PricingSection() {
@@ -222,6 +281,8 @@ export default function PricingSection() {
     step1: {
       themeColor: "purple",
       customColor: "#8b5cf6",
+      darkThemeColor: "#8b5cf6", // เริ่มต้นด้วยสีเดียวกับ themeColor
+      lightThemeColor: "#a78bfa", // เริ่มต้นด้วยสี light ของ purple
       darkLightMode: false,
       bilingual: false,
       fontFamily: "",
@@ -793,16 +854,66 @@ export default function PricingSection() {
 
   // Generate Quote
   const generateQuote = useCallback(() => {
+    const currentThemeColor = state.step1.darkLightMode
+      ? state.step1.darkThemeColor
+      : state.step1.themeColor === "custom"
+        ? state.step1.customColor
+        : COLOR_THEMES.find((t) => t.id === state.step1.themeColor)?.color || "#8b5cf6";
+
     const lines = [
       "══════════════════════════════════",
       "   ANIMATION WEBSITE QUOTE",
       "══════════════════════════════════",
       "",
-      ...priceBreakdown.items.map((item) => `${item.label.padEnd(30)} ${formatPrice(item.price)}`),
+      "📋 สรุปราคา",
+      "──────────────────────────────────",
+      "",
+      ...priceBreakdown.items.map((item) => `${item.label.padEnd(40)} ${formatPrice(item.price)}`),
       "",
       "──────────────────────────────────",
-      `${"รวมทั้งหมด".padEnd(30)} ${formatPrice(priceBreakdown.total)}`,
-      `${"ระยะเวลาโดยประมาณ".padEnd(30)} ${getEstimatedDays(priceBreakdown.total)}`,
+      `${"รวมทั้งหมด".padEnd(40)} ${formatPrice(priceBreakdown.total)}`,
+      `${"ระยะเวลาโดยประมาณ".padEnd(40)} ${getEstimatedDays(priceBreakdown.total)}`,
+      "",
+      "══════════════════════════════════",
+      "",
+      "🎨 ธีม & การตั้งค่า",
+      "──────────────────────────────────",
+      "",
+      `ธีมสี: ${COLOR_THEMES.find((t) => t.id === state.step1.themeColor)?.label || "Custom Color"}${state.step1.themeColor === "custom" ? ` (${state.step1.customColor})` : ""}`,
+      ...(state.step1.darkLightMode
+        ? [
+          `Theme: Dark/Light Mode`,
+          `   Dark Theme: ${state.step1.darkThemeColor}`,
+          `   Light Theme: ${state.step1.lightThemeColor}`,
+          `   (+${formatPrice(DARK_LIGHT_THEME_PRICE)})`,
+        ]
+        : []),
+      ...(state.step1.bilingual
+        ? [`รองรับ 2 ภาษา (TH/EN): +${formatPrice(BILINGUAL_PRICE)}`]
+        : []),
+      ...(state.step1.fontFamily ? [`Font: ${state.step1.fontFamily}`] : []),
+      "",
+      "══════════════════════════════════",
+      "",
+      "🎬 Animation ที่เลือก (Navbar & Footer)",
+      "──────────────────────────────────",
+      "",
+      ...(state.step2.navbar === "animated" && state.step2.selectedNavbarAnim
+        ? [
+          `Navbar: ${NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedNavbarAnim)?.icon || ""} ${NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedNavbarAnim)?.label || ""}`,
+        ]
+        : []),
+      ...state.step2.navbarCustomAnims.map((anim) => `Navbar: ✦ ${anim.label}`),
+      ...(state.step2.footer === "animated" && state.step2.selectedFooterAnim
+        ? [
+          `Footer: ${FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedFooterAnim)?.icon || ""} ${FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedFooterAnim)?.label || ""}`,
+        ]
+        : []),
+      ...state.step2.footerCustomAnims.map((anim) => `Footer: ✦ ${anim.label}`),
+      ...(state.step2.navbar !== "animated" && state.step2.footer !== "animated"
+        ? ["ไม่มี Animation สำหรับ Navbar และ Footer"]
+        : []),
+      "",
       "══════════════════════════════════",
       "",
       "📋 สรุป Sections",
@@ -844,17 +955,31 @@ export default function PricingSection() {
         }),
       ]),
       "",
+      `หน้าทั้งหมด: 1 หน้าหลัก + ${state.step2.pages.length} หน้าเพิ่ม`,
+      `Sections ทั้งหมด: ${state.step2.mainSections.length + state.step2.pages.reduce((sum, p) => sum + p.sections.length, 0)} sections`,
+      "",
       "══════════════════════════════════",
       "",
-      "📝 STEP 4: สิ่งที่ต้องเตรียมก่อนสั่งงาน",
+      "📝 สิ่งที่ต้องเตรียมก่อนสั่งงาน",
       "──────────────────────────────────",
       "",
       ...autoRequirements.map((req, idx) => `   ${idx + 1}. ${req}`),
+      ...(state.step4.customItems.length > 0
+        ? [
+          "",
+          "รายการอื่นๆ:",
+          ...state.step4.customItems.map((item, idx) => `   • ${item}`),
+        ]
+        : []),
+      "",
+      "══════════════════════════════════",
+      "",
+      "⚠️ หมายเหตุ: ราคาอาจปรับตามความซับซ้อนของงานจริง หลังจากรับ brief รายละเอียดแล้ว จะประเมินอีกครั้ง",
       "",
       "══════════════════════════════════",
     ];
     return lines.join("\n");
-  }, [priceBreakdown, state.step2.mainSections, state.step2.pages, autoRequirements]);
+  }, [priceBreakdown, state, autoRequirements]);
 
   const copyQuote = useCallback(async () => {
     await navigator.clipboard.writeText(generateQuote());
@@ -1032,21 +1157,31 @@ export default function PricingSection() {
 
   // Get theme color for preview
   const getThemeColor = useMemo(() => {
+    // ถ้าเปิด darkLightMode ให้ใช้ darkThemeColor
+    if (state.step1.darkLightMode) {
+      return state.step1.darkThemeColor;
+    }
+    // ถ้าไม่เปิด darkLightMode ให้ใช้ themeColor ตามปกติ
     if (state.step1.themeColor === "custom") {
       return state.step1.customColor;
     }
     const theme = COLOR_THEMES.find((t) => t.id === state.step1.themeColor);
     return theme?.color || "#8b5cf6";
-  }, [state.step1.themeColor, state.step1.customColor]);
+  }, [state.step1.themeColor, state.step1.customColor, state.step1.darkLightMode, state.step1.darkThemeColor]);
 
   const getThemeColorLight = useMemo(() => {
+    // ถ้าเปิด darkLightMode ให้ใช้ lightThemeColor
+    if (state.step1.darkLightMode) {
+      return state.step1.lightThemeColor;
+    }
+    // ถ้าไม่เปิด darkLightMode ให้ใช้ colorLight ตามปกติ
     if (state.step1.themeColor === "custom") {
       // Lighten the custom color slightly
       return state.step1.customColor + "aa";
     }
     const theme = COLOR_THEMES.find((t) => t.id === state.step1.themeColor);
     return theme?.colorLight || "#a78bfa";
-  }, [state.step1.themeColor, state.step1.customColor]);
+  }, [state.step1.themeColor, state.step1.customColor, state.step1.darkLightMode, state.step1.lightThemeColor]);
 
   // ==================== RENDER ====================
   return (
@@ -1183,7 +1318,15 @@ export default function PricingSection() {
                       {COLOR_THEMES.map((theme) => (
                         <button
                           key={theme.id}
-                          onClick={() => updateStep1("themeColor", theme.id)}
+                          onClick={() => {
+                            updateStep1("themeColor", theme.id);
+                            // ถ้าเปิด darkLightMode ให้อัปเดต darkThemeColor ด้วย
+                            if (state.step1.darkLightMode) {
+                              const invertedColor = invertHexColor(theme.color);
+                              updateStep1("darkThemeColor", theme.color);
+                              updateStep1("lightThemeColor", invertedColor);
+                            }
+                          }}
                           className={`group relative w-8 h-8 rounded-lg transition-all ${state.step1.themeColor === theme.id
                             ? "ring-2 ring-white ring-offset-2 ring-offset-[#141414] scale-110"
                             : "hover:scale-105"
@@ -1200,69 +1343,185 @@ export default function PricingSection() {
                       ))}
                     </div>
 
-                    {/* Custom Color Input */}
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#262626]">
-                      <span className="text-[11px] text-[#cfcfe2]">หรือเลือกสีเอง:</span>
-                      <div className="flex items-center gap-2 flex-1">
-                        <input
-                          type="color"
-                          value={state.step1.customColor}
-                          onChange={(e) => {
-                            updateStep1("customColor", e.target.value);
-                            updateStep1("themeColor", "custom");
-                          }}
-                          className="w-10 h-8 rounded cursor-pointer border-0 bg-transparent"
-                        />
-                        <input
-                          type="text"
-                          value={state.step1.customColor}
-                          onChange={(e) => {
-                            updateStep1("customColor", e.target.value);
-                            updateStep1("themeColor", "custom");
-                          }}
-                          placeholder="#8b5cf6"
-                          className="flex-1 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#262626] text-xs text-[#a1a1aa] placeholder:text-[#333] focus:outline-none focus:border-[#8b5cf6]/50 font-mono"
-                        />
+                    {/* Custom Color Input หรือ Dark/Light Color Display */}
+                    {state.step1.darkLightMode ? (
+                      /* Dark/Light Color Display - แสดงเมื่อเปิด darkLightMode */
+                      <div className="space-y-3 p-4 rounded-xl bg-[#0d0d0d] border border-[#262626]">
+                        {/* Dark/Light Color Display */}
+                        <div className="grid sm:grid-cols-3 grid-cols-2 gap-4">
+                          {/* Dark Color */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                              <div className="relative group">
+                                <div
+                                  className="w-12 h-12 rounded-lg border-2 border-[#262626] shrink-0 cursor-pointer hover:border-[#8b5cf6]/50 transition-all"
+                                  style={{
+                                    backgroundColor: state.step1.darkThemeColor
+                                  }}
+                                />
+                                <input
+                                  type="color"
+                                  value={state.step1.darkThemeColor}
+                                  onChange={(e) => {
+                                    updateStep1("darkThemeColor", e.target.value);
+                                  }}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  title="เลือกสี Dark Theme"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <label className="block text-xs text-[#a1a1aa]">  Dark Theme: </label>
+                                <div className="text-sm text-white font-medium truncate">
+                                  {(() => {
+                                    const closestTheme = COLOR_THEMES.find((t) => t.id === findClosestThemeColor(state.step1.darkThemeColor));
+                                    return closestTheme?.label || "Custom Color";
+                                  })()}
+                                </div>
+                                <div className="text-[10px] text-[#52525b] font-mono truncate">
+                                  {state.step1.darkThemeColor}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Light Color */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                              <div className="relative group">
+                                <div
+                                  className="w-12 h-12 rounded-lg border-2 border-[#262626] shrink-0 cursor-pointer hover:border-[#8b5cf6]/50 transition-all"
+                                  style={{ backgroundColor: state.step1.lightThemeColor }}
+                                />
+                                <input
+                                  type="color"
+                                  value={state.step1.lightThemeColor}
+                                  onChange={(e) => {
+                                    updateStep1("lightThemeColor", e.target.value);
+                                  }}
+                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                  title="เลือกสี Light Theme"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <label className="block text-xs text-[#a1a1aa]">  Light Theme: </label>
+                                <div className="text-sm text-white font-medium truncate">
+                                  {(() => {
+                                    const closestTheme = COLOR_THEMES.find((t) => t.id === findClosestThemeColor(state.step1.lightThemeColor));
+                                    return closestTheme?.label || "Custom Color";
+                                  })()}
+                                </div>
+                                <div className="text-[10px] text-[#52525b] font-mono truncate">
+                                  {state.step1.lightThemeColor}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+
+                          {/* Swap Color Theme Button */}
+                          <button
+                            onClick={() => {
+                              // สลับสีระหว่าง Dark Theme และ Light Theme
+                              const tempDark = state.step1.darkThemeColor;
+                              updateStep1("darkThemeColor", state.step1.lightThemeColor);
+                              updateStep1("lightThemeColor", tempDark);
+                            }}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 border-[#262626] hover:border-[#f97316]/50 bg-[#1a1a1a] transition-all group"
+                          >
+                            <span className="text-sm">🎨</span>
+                            <span className="text-xs text-[#a1a1aa] group-hover:text-white transition-colors">สลับสี Theme ทั้งหมด</span>
+                          </button>
+                        </div>
+
                       </div>
-                    </div>
+                    ) : (
+                      /* Custom Color Input - แสดงเมื่อไม่เปิด darkLightMode */
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#262626]">
+                        <span className="text-[11px] text-[#cfcfe2]">หรือเลือกสีเอง:</span>
+                        <div className="flex items-center gap-2 flex-1">
+                          <input
+                            type="color"
+                            value={state.step1.customColor}
+                            onChange={(e) => {
+                              updateStep1("customColor", e.target.value);
+                              updateStep1("themeColor", "custom");
+                            }}
+                            className="w-10 h-8 rounded cursor-pointer border-0 bg-transparent"
+                          />
+                          <input
+                            type="text"
+                            value={state.step1.customColor}
+                            onChange={(e) => {
+                              updateStep1("customColor", e.target.value);
+                              updateStep1("themeColor", "custom");
+                            }}
+                            placeholder="#8b5cf6"
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#262626] text-xs text-[#a1a1aa] placeholder:text-[#333] focus:outline-none focus:border-[#8b5cf6]/50 font-mono"
+                          />
+                          <span className="text-[11px] text-[#cfcfe2]">ธีมสี : {state.step1.themeColor}</span  >
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Dark/Light Mode & Bilingual Options */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-[#262626]">
                     {/* Dark/Light Theme Toggle */}
-                    <button
-                      onClick={() => updateStep1("darkLightMode", !state.step1.darkLightMode)}
-                      className={`flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${state.step1.darkLightMode
-                        ? "bg-[#f97316]/10 border-[#f97316]/50"
-                        : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
-                        }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">🌙/🌞</span>
-                        <div>
-                          <span className="text-sm text-[#a1a1aa] block">Theme (Dark/Light)</span>
-                          <span className="text-[10px] text-[#52525b]">รองรับ 2 โหมดสี</span>
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => {
+                          const newDarkLightMode = !state.step1.darkLightMode;
+                          // ถ้าเปิด darkLightMode เป็นครั้งแรก ให้ตั้งค่าเริ่มต้นของสี
+                          if (newDarkLightMode && !state.step1.darkLightMode) {
+                            const currentColor = state.step1.themeColor === "custom"
+                              ? state.step1.customColor
+                              : COLOR_THEMES.find((t) => t.id === state.step1.themeColor)?.color || "#8b5cf6";
+                            const invertedColor = invertHexColor(currentColor);
+                            setState((prev) => ({
+                              ...prev,
+                              step1: {
+                                ...prev.step1,
+                                darkLightMode: newDarkLightMode,
+                                darkThemeColor: currentColor,
+                                lightThemeColor: invertedColor,
+                              },
+                            }));
+                          } else {
+                            updateStep1("darkLightMode", newDarkLightMode);
+                          }
+                        }}
+                        className={`flex items-center justify-between p-3 rounded-xl border-2 text-left transition-all w-full ${state.step1.darkLightMode
+                          ? "bg-[#f97316]/10 border-[#f97316]/50"
+                          : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
+                          }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">🌙/🌞</span>
+                          <div>
+                            <span className="text-sm text-[#a1a1aa] block">Theme (Dark/Light)</span>
+                            <span className="text-[10px] text-[#52525b]">รองรับ 2 โหมดสี</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-[#f97316]">+{formatPrice(DARK_LIGHT_THEME_PRICE)}</span>
-                        <div
-                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${state.step1.darkLightMode ? "bg-[#f97316] border-[#f97316]" : "border-[#333]"
-                            }`}
-                        >
-                          {state.step1.darkLightMode && (
-                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-[#f97316]">+{formatPrice(DARK_LIGHT_THEME_PRICE)}</span>
+                          <div
+                            className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${state.step1.darkLightMode ? "bg-[#f97316] border-[#f97316]" : "border-[#333]"
+                              }`}
+                          >
+                            {state.step1.darkLightMode && (
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </button>
+                      </button>
+                    </div>
 
                     {/* Bilingual Toggle */}
                     <button
                       onClick={() => updateStep1("bilingual", !state.step1.bilingual)}
-                      className={`flex items-center justify-between p-4 rounded-xl border-2 text-left transition-all ${state.step1.bilingual
+                      className={`flex items-center justify-between p-3 rounded-xl border-2 text-left transition-all ${state.step1.bilingual
                         ? "bg-[#06b6d4]/10 border-[#06b6d4]/50"
                         : "bg-[#0d0d0d] border-[#1f1f1f] hover:border-[#262626]"
                         }`}
@@ -1579,7 +1838,7 @@ export default function PricingSection() {
                       </div>
                     </div>
                     <div className="rounded-xl bg-[#0d0d0d] border border-[#8b5cf6]/30 overflow-hidden">
-                      <div className="p-3 space-y-3 max-h-[320px] overflow-y-auto custom-scrollbar">
+                      <div className="p-3 space-y-3">
                         {state.step2.mainSections.map((section: SectionItem, secIdx: number) => {
                           const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                           const availableAnims = SECTION_ANIMATIONS[section.layout] || [];
@@ -2160,10 +2419,30 @@ export default function PricingSection() {
                                   }}
                                 >
                                   <div className="w-16 h-4 rounded" style={{ backgroundColor: getThemeColor + "30" }} />
-                                  <div className="flex gap-2">
-                                    {[1, 2, 3].map((i) => (
-                                      <div key={i} className="w-8 h-3 rounded bg-[#262626]" />
-                                    ))}
+                                  <div className="flex items-center gap-2">
+
+                                    {/* Menu Items */}
+                                    <div className="flex gap-2">
+                                      {[1, 2, 3].map((i) => (
+                                        <div key={i} className="w-8 h-3 rounded bg-[#262626]" />
+                                      ))}
+                                    </div>
+                                    {/* Theme Toggle (Dark/Light) */}
+                                    {state.step1.darkLightMode && (
+                                      <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#262626] border border-[#333]">
+                                        <span className="text-[10px]">🌙</span>
+                                        <span className="text-[10px]">🌞</span>
+                                      </div>
+                                    )}
+                                    {/* Language Selector (TH/EN) */}
+                                    {state.step1.bilingual && (
+                                      <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#262626] border border-[#333]">
+                                        <span className="text-[10px] font-medium" style={{ color: getThemeColor }}>TH</span>
+                                        <span className="text-[10px] text-[#52525b]">/</span>
+                                        <span className="text-[10px] text-[#52525b]">EN</span>
+                                      </div>
+                                    )}
+
                                   </div>
                                 </div>
                                 {state.step2.navbar === "animated" && (
@@ -2307,10 +2586,31 @@ export default function PricingSection() {
                                     }}
                                   >
                                     <div className="w-16 h-4 rounded" style={{ backgroundColor: getThemeColor + "30" }} />
-                                    <div className="flex gap-2">
-                                      {[1, 2, 3].map((i) => (
-                                        <div key={i} className="w-8 h-3 rounded bg-[#262626]" />
-                                      ))}
+                                    <div className="flex items-center gap-2">
+
+                                      {/* Menu Items */}
+                                      <div className="flex gap-2">
+                                        {[1, 2, 3].map((i) => (
+                                          <div key={i} className="w-8 h-3 rounded bg-[#262626]" />
+                                        ))}
+                                      </div>
+
+                                      {/* Theme Toggle (Dark/Light) */}
+                                      {state.step1.darkLightMode && (
+                                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#262626] border border-[#333]">
+                                          <span className="text-[10px]">🌙</span>
+                                          <span className="text-[10px]">🌞</span>
+                                        </div>
+                                      )}
+                                      {/* Language Selector (TH/EN) */}
+                                      {state.step1.bilingual && (
+                                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#262626] border border-[#333]">
+                                          <span className="text-[10px] font-medium" style={{ color: getThemeColor }}>TH</span>
+                                          <span className="text-[10px] text-[#52525b]">/</span>
+                                          <span className="text-[10px] text-[#52525b]">EN</span>
+                                        </div>
+                                      )}
+
                                     </div>
                                   </div>
                                   {state.step2.navbar === "animated" && (
@@ -2654,6 +2954,8 @@ export default function PricingSection() {
                               <span className="text-base">🌙/🌞</span>
                               <span className="text-[#a1a1aa]">Theme:</span>
                               <span className="text-white font-medium">Dark/Light Mode</span>
+                              <span className="text-[#52525b] font-mono"> Dark:({state.step1.darkThemeColor})</span>
+                              <span className="text-[#52525b] font-mono"> Light:({state.step1.lightThemeColor})</span>
                               <span className="ml-auto text-[#10b981] font-mono">+{formatPrice(DARK_LIGHT_THEME_PRICE)}</span>
                             </div>
                           )}
