@@ -5,6 +5,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import LayoutModal from "@/components/ui/LayoutModal";
 import LayoutPreview from "@/components/ui/LayoutPreview";
+import BackgroundModal from "@/components/ui/BackgroundModal";
+import BackgroundPreview from "@/components/ui/BackgroundPreview";
 import {
   NAVBAR_ANIMATION_TYPES,
   FOOTER_ANIMATION_TYPES,
@@ -147,6 +149,9 @@ interface CalculatorState {
     darkLightMode: boolean;
     bilingual: boolean;
     fontFamily: string;
+    // Background Settings
+    background: string; // Background type
+    backgroundCustomColor: string; // Custom background color
   };
   step2: {
     // Navbar & Footer (moved from step1)
@@ -178,6 +183,22 @@ interface CalculatorState {
 
 // Custom animation option ที่จะใช้กับทุก layout
 const CUSTOM_ANIMATION_OPTION = { id: "custom", label: "กำหนดเอง", icon: "✏️", description: "ระบุ animation ที่ต้องการ" };
+
+// ==================== BACKGROUND TYPES ====================
+const BACKGROUND_TYPES = [
+  { id: "none", label: "ไม่มี Background", description: "ไม่มี background พิเศษ", icon: "⬜", preview: "none" },
+  { id: "solid", label: "Solid Color", description: "สีเดียว", icon: "▣", preview: "solid" },
+  { id: "gradient", label: "Gradient", description: "ไล่สี", icon: "◐", preview: "gradient" },
+  { id: "animated-gradient", label: "Animated Gradient", description: "ไล่สีเคลื่อนไหว", icon: "◑", preview: "animated-gradient" },
+  { id: "pattern", label: "Pattern", description: "ลาย", icon: "◈", preview: "pattern" },
+  { id: "grid", label: "Grid", description: "ตาราง", icon: "▦", preview: "grid" },
+  { id: "dots", label: "Dots", description: "จุด", icon: "◉", preview: "dots" },
+  { id: "mesh", label: "Mesh Gradient", description: "Mesh gradient", icon: "◊", preview: "mesh" },
+  { id: "particles", label: "Particles", description: "อนุภาค", icon: "◌", preview: "particles" },
+  { id: "noise", label: "Noise", description: "Noise texture", icon: "▓", preview: "noise" },
+  { id: "lines", label: "Lines", description: "เส้น", icon: "▬", preview: "lines" },
+];
+
 
 // ==================== HELPER FUNCTIONS ====================
 function generateId() {
@@ -286,6 +307,8 @@ export default function PricingSection() {
       darkLightMode: false,
       bilingual: false,
       fontFamily: "",
+      background: "none", // Background type
+      backgroundCustomColor: "#8b5cf6", // Custom background color
     },
     step2: {
       navbar: "basic",
@@ -406,7 +429,7 @@ export default function PricingSection() {
 
   // ==================== HANDLERS ====================
   // Step 1: Theme settings
-  const updateStep1 = useCallback((key: keyof CalculatorState["step1"], value: string | boolean) => {
+  const updateStep1 = useCallback((key: keyof CalculatorState["step1"], value: string | boolean | null) => {
     setState((prev) => ({ ...prev, step1: { ...prev.step1, [key]: value } }));
   }, []);
 
@@ -1183,6 +1206,115 @@ export default function PricingSection() {
     return theme?.colorLight || "#a78bfa";
   }, [state.step1.themeColor, state.step1.customColor, state.step1.darkLightMode, state.step1.lightThemeColor]);
 
+  // Helper function to generate random particles
+  const generateParticles = useCallback((count: number = 120) => {
+    return Array.from({ length: count }, () => ({
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      size: Math.random() * 3 + 2, // 2px to 5px
+      opacity: Math.random() * 0.4 + 0.4, // 0.4 to 0.8
+      delay: Math.random() * 2, // Animation delay
+    }));
+  }, []);
+
+  // Particles Background Component
+  const ParticlesBackground = useCallback(({ themeColor, customColor }: { themeColor: string; customColor?: string }) => {
+    const withOpacity = (color: string, opacity: number) => {
+      if (color.startsWith("#")) {
+        const hex = color.slice(1);
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+      }
+      return color;
+    };
+
+    const bgColor = customColor || themeColor;
+    const particles = useMemo(() => generateParticles(80), [generateParticles]);
+
+    return (
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {particles.map((particle, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full animate-pulse"
+            style={{
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              backgroundColor: withOpacity(bgColor, particle.opacity),
+              left: `${particle.left}%`,
+              top: `${particle.top}%`,
+              animationDelay: `${particle.delay}s`,
+            }}
+          />
+        ))}
+      </div>
+    );
+  }, [generateParticles]);
+
+  // Helper function to get background styles
+  const getBackgroundStyles = useCallback((bgType: string, themeColor: string, themeColorLight: string, customColor?: string) => {
+    const withOpacity = (color: string, opacity: number) => {
+      if (color.startsWith("#")) {
+        const hex = color.slice(1);
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+      }
+      return color;
+    };
+
+    // Use custom color if provided, otherwise use theme color
+    const bgColor = customColor || themeColor;
+    const bgColorLight = customColor || themeColorLight;
+
+    const styles: Record<string, React.CSSProperties> = {
+      none: { backgroundColor: "#0a0a0a" },
+      solid: { backgroundColor: withOpacity(bgColor, 0.1) },
+      gradient: {
+        background: `linear-gradient(135deg, ${withOpacity(bgColor, 0.3)}, ${withOpacity(bgColorLight, 0.2)})`,
+      },
+      "animated-gradient": {
+        background: `linear-gradient(135deg, ${withOpacity(bgColor, 0.3)}, ${withOpacity(bgColorLight, 0.2)})`,
+      },
+      pattern: {
+        backgroundColor: withOpacity(bgColor, 0.05),
+        backgroundImage: `repeating-linear-gradient(45deg, ${withOpacity(bgColor, 0.1)}, ${withOpacity(bgColor, 0.1)} 10px, transparent 10px, transparent 20px)`,
+      },
+      grid: {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: `linear-gradient(${withOpacity(bgColor, 0.1)} 1px, transparent 1px), linear-gradient(90deg, ${withOpacity(bgColor, 0.1)} 1px, transparent 1px)`,
+        backgroundSize: "20px 20px",
+      },
+      dots: {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: `radial-gradient(circle, ${withOpacity(bgColor, 0.3)} 1px, transparent 1px)`,
+        backgroundSize: "15px 15px",
+      },
+      mesh: {
+        background: `radial-gradient(circle at 20% 30%, ${withOpacity(bgColor, 0.2)}, transparent 50%),
+                     radial-gradient(circle at 80% 70%, ${withOpacity(bgColorLight, 0.15)}, transparent 50%),
+                     radial-gradient(circle at 50% 50%, ${withOpacity(bgColor, 0.1)}, transparent 50%)`,
+      },
+      particles: {
+        backgroundColor: "#0a0a0a",
+      },
+      noise: {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        opacity: 0.1,
+      },
+      lines: {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: `repeating-linear-gradient(0deg, ${withOpacity(bgColor, 0.2)}, ${withOpacity(bgColor, 0.2)} 1px, transparent 1px, transparent 20px)`,
+      },
+    };
+
+    return styles[bgType] || styles.none;
+  }, []);
+
   // ==================== RENDER ====================
   return (
     <section ref={sectionRef} id="pricing" className="relative min-h-screen py-16 md:py-24">
@@ -1579,36 +1711,57 @@ export default function PricingSection() {
                         Google Fonts
                       </a>
                     </div>
-                    {state.step1.fontFamily && (
-                      <div className="mt-2 p-2 rounded-lg bg-[#0d0d0d] border border-[#262626]">
-                        <span className="text-[13px] text-[#cfcfe2]">ตัวอย่าง Font:</span>
-                        <p className="mt-1 text-sm text-white" style={{ fontFamily: state.step1.fontFamily }}>
-                          สวัสดีครับ Hello World! 1234567890
-                        </p>
-                      </div>
-                    )}
                   </div>
 
-                  {/* Summary of Selected Options */}
-                  {(state.step1.darkLightMode || state.step1.bilingual || state.step1.fontFamily) && (
-                    <div className="p-3 rounded-lg border" style={{ borderColor: getThemeColor + "30", backgroundColor: getThemeColor + "10" }}>
-                      <p className="text-[10px] text-[#52525b] mb-2">ตัวเลือกที่เลือก:</p>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="px-2 py-0.5 rounded text-[10px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
-                          🎨 {COLOR_THEMES.find((t) => t.id === state.step1.themeColor)?.label || "Custom Color"}
-                        </span>
-                        {state.step1.darkLightMode && (
-                          <span className="px-2 py-0.5 rounded bg-[#f97316]/20 text-[10px] text-[#f97316]">🌙/🌞 Dark/Light</span>
-                        )}
-                        {state.step1.bilingual && (
-                          <span className="px-2 py-0.5 rounded bg-[#06b6d4]/20 text-[10px] text-[#06b6d4]">🌐 TH/EN</span>
-                        )}
-                        {state.step1.fontFamily && (
-                          <span className="px-2 py-0.5 rounded bg-[#10b981]/20 text-[10px] text-[#10b981]">✏️ {state.step1.fontFamily}</span>
-                        )}
-                      </div>
+                  {/* Background Selection */}
+                  <div className="pt-4 border-t border-[#262626]">
+                    <label className="block font-mono text-[13px] text-[#cfcfe2] mb-3">
+                      <span style={{ color: getThemeColor }}>{">"}</span> เลือก Background
+                    </label>
+                    <div className="mb-3 flex flex-col md:flex-row gap-3 w-full">
+                      <BackgroundModal
+                        value={state.step1.background}
+                        onChange={(value) => updateStep1("background", value)}
+                        options={BACKGROUND_TYPES}
+                        themeColor={getThemeColor}
+                      />
+                      {/* Custom Background Color Input */}
+                      {state.step1.background !== "none" && (
+                        <div className="">
+                          <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#262626]">
+                            <div className="relative group">
+                              <div
+                                className="w-9 h-9 rounded-lg border-2 border-[#262626] shrink-0 cursor-pointer hover:border-[#8b5cf6]/50 transition-all"
+                                style={{ backgroundColor: state.step1.backgroundCustomColor }}
+                              />
+                              <input
+                                type="color"
+                                value={state.step1.backgroundCustomColor}
+                                onChange={(e) => updateStep1("backgroundCustomColor", e.target.value)}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                title="เลือกสี Background"
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <label className="block font-mono text-[11px] text-[#cfcfe2] mb-2">
+                                <span style={{ color: getThemeColor }}>{">"}</span> เลือกสี (ถ้าต้องการ)
+                              </label>
+                              <input
+                                type="text"
+                                value={state.step1.backgroundCustomColor}
+                                onChange={(e) => updateStep1("backgroundCustomColor", e.target.value)}
+                                placeholder="#8b5cf6"
+                                className="px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-[#262626] text-xs text-[#a1a1aa] placeholder:text-[#333] focus:outline-none focus:border-[#8b5cf6]/50 font-mono"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+
+
+                  </div>
+
                 </div>
               </div>
 
@@ -2395,7 +2548,7 @@ export default function PricingSection() {
                               หน้าหลัก ({state.step2.mainSections.length} sec)
                             </span>
                           </div>
-                          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: state.step1.darkLightMode ? "#0a0a0a" : "#0a0a0a", border: `1px solid ${getThemeColor}50` }}>
+                          <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${getThemeColor}50` }}>
                             {/* Browser Chrome */}
                             <div className="flex items-center gap-2 px-4 py-2 bg-[#141414] border-b border-[#1f1f1f]">
                               <div className="w-2.5 h-2.5 rounded-full bg-[#ec4899]" />
@@ -2406,8 +2559,12 @@ export default function PricingSection() {
                               )}
                             </div>
 
-                            {/* Page Content */}
-                            <div className="p-4 space-y-3">
+                            {/* Page Content with Background */}
+                            <div className="p-4 space-y-4 relative" style={getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
+                              {/* Particles Background */}
+                              {state.step1.background === "particles" && (
+                                <ParticlesBackground themeColor={getThemeColor} customColor={state.step1.backgroundCustomColor} />
+                              )}
                               {/* Navbar */}
                               <div className="flex items-center gap-2">
                                 <div
@@ -2457,7 +2614,7 @@ export default function PricingSection() {
                               </div>
 
                               {/* Main Sections - Vertical Scroll */}
-                              <div className="max-h-[300px] space-y-3 pr-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                              <div className="max-h-[300px] space-y-5 pr-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                 {state.step2.mainSections.map((section: SectionItem) => {
                                   const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                   const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
@@ -2561,7 +2718,7 @@ export default function PricingSection() {
                                 {page.name}
                               </span>
                             </div>
-                            <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#0a0a0a", border: `1px solid ${getThemeColorLight}50` }}>
+                            <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${getThemeColorLight}50` }}>
                               {/* Browser Chrome */}
                               <div className="flex items-center gap-2 px-4 py-2 bg-[#141414] border-b border-[#1f1f1f]">
                                 <div className="w-2.5 h-2.5 rounded-full bg-[#ec4899]" />
@@ -2572,8 +2729,12 @@ export default function PricingSection() {
                                 )}
                               </div>
 
-                              {/* Page Sections - Vertical Scroll */}
-                              <div className="p-4 space-y-3">
+                              {/* Page Sections - Vertical Scroll with Background */}
+                              <div className="p-4 space-y-4 relative" style={getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
+                                {/* Particles Background */}
+                                {state.step1.background === "particles" && (
+                                  <ParticlesBackground themeColor={getThemeColor} customColor={state.step1.backgroundCustomColor} />
+                                )}
 
                                 {/* Navbar */}
                                 <div className="flex items-center gap-2">
@@ -2625,7 +2786,7 @@ export default function PricingSection() {
                                 </div>
 
                                 {/* Added Pages Sections - Vertical Scroll */}
-                                <div className="max-h-[300px] space-y-3 pr-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                                <div className="max-h-[300px] space-y-5 pr-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
                                   {page.sections.map((section) => {
                                     const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                                     const animInfo = section.animation ? SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation) : null;
@@ -2948,10 +3109,21 @@ export default function PricingSection() {
                             </div>
                           )}
 
+                          {/* Background */}
+                          {state.step1.background !== "none" && state.step1.backgroundCustomColor && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">▣</span>
+                              <span className="text-[#a1a1aa]">Background:</span>
+                              <span className="text-white font-medium">{BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label}</span>
+                              <span className="text-[#52525b] font-mono">สี Background:</span>
+                              <span className="text-[#52525b] font-mono">{state.step1.backgroundCustomColor}</span>
+                            </div>
+                          )}
+
                           {/* Dark/Light Mode */}
                           {state.step1.darkLightMode && (
                             <div className="flex items-center gap-2">
-                              <span className="text-base">🌙/🌞</span>
+                              <span className="text-xs">🌙/🌞</span>
                               <span className="text-[#a1a1aa]">Theme:</span>
                               <span className="text-white font-medium">Dark/Light Mode</span>
                               <span className="text-[#52525b] font-mono"> Dark:({state.step1.darkThemeColor})</span>
@@ -2963,7 +3135,7 @@ export default function PricingSection() {
                           {/* Bilingual */}
                           {state.step1.bilingual && (
                             <div className="flex items-center gap-2">
-                              <span className="text-base">🌐</span>
+                              <span className="text-xs">🌐</span>
                               <span className="text-[#a1a1aa]">ภาษา:</span>
                               <span className="text-white font-medium">รองรับ 2 ภาษา (TH/EN)</span>
                               <span className="ml-auto text-[#10b981] font-mono">+{formatPrice(BILINGUAL_PRICE)}</span>
@@ -2973,11 +3145,12 @@ export default function PricingSection() {
                           {/* Font Family */}
                           {state.step1.fontFamily && (
                             <div className="flex items-center gap-2">
-                              <span className="text-base">✏️</span>
+                              <span className="text-xs">✏️</span>
                               <span className="text-[#a1a1aa]">Font:</span>
                               <span className="text-white font-medium truncate">{state.step1.fontFamily}</span>
                             </div>
                           )}
+
                         </div>
                       </div>
                     )}
