@@ -71,7 +71,7 @@ export default function Footer() {
                 <span className="text-white text-lg font-bold">S</span>
               </div>
               <div>
-                <span className="font-mono text-lg font-bold text-white">สุเทพ</span>
+                <span className="font-mono text-lg font-bold text-white">SUTEP</span>
                 <span className="font-mono text-sm text-[#52525b]">.dev</span>
               </div>
             </div>

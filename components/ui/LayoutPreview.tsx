@@ -531,7 +531,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
       </div>
     ),
     lightbox: (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1 p-2`}>
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1 p-2`}>
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
@@ -957,7 +957,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
       </div>
     ),
     "team-grid": (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1.5 p-2`}>
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1.5 p-2`}>
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
@@ -1156,7 +1156,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
       </div>
     ),
     "blog-list": (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
         {[...Array(3)].map((_, i) => (
           <div key={i} data-animation-child className="flex gap-2">
             <div
@@ -1244,7 +1244,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
       </div>
     ),
     "filter-gallery": (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
         <div data-animation-child className="flex gap-1">
           {[...Array(3)].map((_, i) => (
             <div

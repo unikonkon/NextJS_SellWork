@@ -1304,7 +1304,7 @@ export default function PricingSection() {
       noise: {
         backgroundColor: "#0a0a0a",
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-        opacity: 0.1,
+        opacity: 0.6,
       },
       lines: {
         backgroundColor: "#0a0a0a",
@@ -2078,6 +2078,7 @@ export default function PricingSection() {
                                   <div className="flex items-center gap-2 mb-2">
                                     <span className="text-[12px] text-[#ec4899]">✦</span>
                                     <span className="text-[12px] text-[#71717a]">เลือก Animation</span>
+
                                     {(section.animation || section.customAnimation) && (
                                       <button
                                         onClick={() => {
