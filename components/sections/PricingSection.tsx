@@ -3267,21 +3267,6 @@ export default function PricingSection() {
         </div>
       </div>
 
-      {/* Mobile Sticky Bottom Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-[#0a0a0a]/95 backdrop-blur-lg border-t border-[#262626] z-50">
-        <div className="flex items-center justify-between max-w-lg mx-auto">
-          <div>
-            <div className="text-[13px] text-[#cfcfe2]">รวมทั้งหมด</div>
-            <div className="text-xl font-bold gradient-text-purple">{formatPrice(priceBreakdown.total)}</div>
-          </div>
-          <a
-            href="#contact"
-            className="px-6 py-3 rounded-xl bg-linear-to-r from-[#8b5cf6] to-[#ec4899] text-white text-sm font-medium"
-          >
-            ขอใบเสนอราคา
-          </a>
-        </div>
-      </div>
 
       {/* Bottom Padding for Mobile */}
       <div className="h-24 lg:hidden" />

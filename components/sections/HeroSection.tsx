@@ -23,8 +23,78 @@ export default function HeroSection() {
   const statusIndicatorRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
+  const backgroundCodeLinesRef = useRef<HTMLDivElement>(null);
+  const floatingCodeSnippetsRef = useRef<HTMLDivElement>(null);
 
   const [experienceValue, setExperienceValue] = useState(0);
+
+  // Code snippets for floating animation
+  const codeSnippets = [
+    "const",
+    "function()",
+    "return",
+    "import",
+    "=>",
+    "{}",
+    "</>",
+    "()",
+    "[]",
+    "export",
+    "useState",
+    "useEffect",
+    "gsap",
+    "timeline",
+    "fromTo",
+    "ScrollTrigger",
+    "useRef",
+    "useMemo",
+    "useCallback",
+    "useContext",
+    "useReducer",
+    "useLayoutEffect",
+    "useImperativeHandle",
+    "useDebugValue",
+    "useTransition",
+    "useDeferredValue",
+    "useId",
+    "useFetc",
+    "useSearchParams",
+    "useParams",
+    "usePathname",
+    "useRouter",
+    "useLocation",
+    "useEffect",
+    "useState",
+    "useRef",
+    "useMemo",
+    "useCallback",
+    "useContext",
+    "useReducer",
+    "useLayoutEffect",
+    "useImperativeHandle",
+    "useDebugValue",
+    "useTransition",
+    "useDeferredValue",
+    "useId",
+    "useFetc",
+    "useSearchParams",
+    "useParams",
+    "usePathname",
+    "useRouter",
+    "useLocation",
+  ];
+
+  // Code lines for background typing animation
+  const backgroundCodeLines = [
+    "const website = new Website({ animation: true });",
+    "const developer = { name: 'SUTEP', status: 'available' };",
+    "import { gsap } from 'gsap';",
+    "const timeline = gsap.timeline({ delay: 0.5 });",
+    "const animations = useRef<GSAPTimeline>(null);",
+    "gsap.to(element, { opacity: 1, duration: 0.5 });",
+    "gsap.fromTo(el, from, to);",
+    "const ctx = gsap.context(() => {});",
+  ];
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -221,6 +291,93 @@ export default function HeroSection() {
           });
         }
       }
+
+      // Animated Background Typing Code Lines
+      if (backgroundCodeLinesRef.current) {
+        const codeLineElements = backgroundCodeLinesRef.current.querySelectorAll('.bg-code-line');
+        
+        const animateCodeLines = () => {
+          codeLineElements.forEach((line, index) => {
+            const lineElement = line as HTMLElement;
+            const codeText = backgroundCodeLines[index % backgroundCodeLines.length];
+            const randomDelay = index * 0.2 + Math.random() * 0.3; // Stagger delays
+            const randomOpacity = 0.03 + Math.random() * 0.05; // 0.03-0.08
+            const typingDuration = 1.5 + Math.random() * 1; // 1.5-2.5 seconds
+            const fadeOutDuration = 0.4;
+            const pauseDuration = 0.8 + Math.random() * 0.7; // 0.8-1.5 seconds
+
+            // Set initial state
+            gsap.set(lineElement, { 
+              text: "",
+              opacity: 0 
+            });
+
+            // Create timeline for this line with infinite loop
+            const lineTl = gsap.timeline({ 
+              delay: randomDelay,
+              repeat: -1,
+              repeatDelay: pauseDuration
+            });
+
+            // Type the code using TextPlugin
+            lineTl.to(lineElement, {
+              text: codeText,
+              duration: typingDuration,
+              ease: "none",
+            });
+
+            // Fade in while typing
+            lineTl.to(lineElement, {
+              opacity: randomOpacity,
+              duration: typingDuration * 0.3,
+              ease: "power2.out",
+            }, 0); // Start at same time as typing
+
+            // Hold for a moment
+            lineTl.to({}, { duration: 0.3 });
+
+            // Fade out
+            lineTl.to(lineElement, {
+              opacity: 0,
+              duration: fadeOutDuration,
+              ease: "power2.in",
+            });
+          });
+        };
+
+        animateCodeLines();
+      }
+
+      // Animated Background Floating Code Snippets
+      if (floatingCodeSnippetsRef.current) {
+        const snippetElements = floatingCodeSnippetsRef.current.querySelectorAll('.floating-snippet');
+        
+        snippetElements.forEach((snippet, index) => {
+          const snippetElement = snippet as HTMLElement;
+          
+          // Random properties for each snippet
+          const floatDistance = 30 + Math.random() * 40; // 30-70px
+          const floatDuration = 8 + Math.random() * 6; // 8-14 seconds
+          const opacity = 0.02 + Math.random() * 0.04; // 0.02-0.06
+          const delay = index * 0.1 + Math.random() * 0.5; // Stagger delays
+          const direction = index % 2 === 0 ? 1 : -1; // Alternate up/down
+          
+          // Set initial opacity
+          gsap.set(snippetElement, {
+            opacity: opacity,
+          });
+
+          // Create floating animation (up and down)
+          gsap.to(snippetElement, {
+            y: floatDistance * direction,
+            duration: floatDuration,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+            delay: delay,
+          });
+        });
+      }
     }, sectionRef);
 
     return () => ctx.revert();
@@ -328,6 +485,60 @@ export default function HeroSection() {
         />
       </div>
 
+      {/* Animated Background Typing Code Lines */}
+      {/* <div
+        ref={backgroundCodeLinesRef}
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+      >
+        {backgroundCodeLines.map((_, index) => {
+          // Random positions distributed across the background
+          const top = `${8 + (index * 9) % 85}%`;
+          const left = `${5 + (index * 12) % 88}%`;
+          const rotation = (index % 3) * 0.3 - 0.3; // Slight rotation variation (-0.3° to 0.3°)
+
+          return (
+            <div
+              key={index}
+              className="bg-code-line absolute font-mono text-xs text-[#e6e2f1] whitespace-nowrap"
+              style={{
+                top,
+                left,
+                transform: `rotate(${rotation}deg)`,
+                opacity: 0,
+              }}
+            />
+          );
+        })}
+      </div> */}
+
+      {/* Animated Background Floating Code Snippets */}
+      <div
+        ref={floatingCodeSnippetsRef}
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+      >
+        {codeSnippets.map((snippet, index) => {
+          // Random positions distributed across the background
+          const top = `${10 + (index * 7) % 80}%`;
+          const left = `${8 + (index * 11) % 85}%`;
+          const fontSize = 10 + (index % 3) * 2; // 10px, 12px, 14px
+
+          return (
+            <div
+              key={index}
+              className="floating-snippet absolute font-mono text-[#ffffff] whitespace-nowrap"
+              style={{
+                top,
+                left,
+                fontSize: `${fontSize}px`,
+                opacity: 0,
+              }}
+            >
+              {snippet}
+            </div>
+          );
+        })}
+      </div>
+
       {/* Glow Effects */}
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#8b5cf6]/10 rounded-full blur-[120px] animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#ec4899]/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
@@ -339,7 +550,7 @@ export default function HeroSection() {
             {/* Code Comment - Typewriter Effect */}
             <span
               ref={commentRef}
-              className="inline-block font-mono text-sm text-[#52525b] mb-6 opacity-0"
+              className="inline-block font-mono text-sm text-[#a2a2ad] mb-6 opacity-0"
             >
               <span className="text-[#10b981]">{"// "}</span>
               <span ref={commentTextRef}></span>
