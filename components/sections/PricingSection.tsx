@@ -22,9 +22,9 @@ gsap.registerPlugin(ScrollTrigger);
 // ==================== ราคาเริ่มต้น ====================
 // Base Pricing
 const BASE_PRICE = 1000; // ราคาเริ่มต้น
-const SECTION_PRICE = 200; // ราคาต่อ section ที่เพิ่ม (นับจาก section ที่ 4 เป็นต้นไป)
+const SECTION_PRICE = 100; // ราคาต่อ section ที่เพิ่ม (นับจาก section ที่ 4 เป็นต้นไป)
 const INITIAL_SECTIONS = 3; // จำนวน section เริ่มต้น (ฟรี)
-const SECTION_ANIMATION_PRICE = 200; // ราคาต่อ animation ที่เพิ่ม
+const SECTION_ANIMATION_PRICE = 100; // ราคาต่อ animation ที่เพิ่ม
 
 // Theme Options Pricing
 const DARK_LIGHT_THEME_PRICE = 500;
@@ -71,7 +71,7 @@ const COLOR_THEMES = [
 
 // Addon Services (without bilingual and dark/light - moved to Step 1)
 const ADDON_SERVICES = [
-  { id: "seo", label: "SEO Setup เต็มรูปแบบ", price: 1000, icon: "📊" },
+  { id: "seo", label: "SEO Setup", price: 400, icon: "📊" },
   { id: "mobile-responsive", label: "Mobile Responsive", price: 1000, icon: "📱" },
 ];
 
@@ -81,9 +81,9 @@ const ADDON_SERVICES = [
 // +300 if footer is animated
 // +100 per section animation (main sections + page sections)
 const MOBILE_RESPONSIVE_BASE_PRICE = 500;
-const MOBILE_RESPONSIVE_NAVBAR_ANIMATED_PRICE = 200;
-const MOBILE_RESPONSIVE_FOOTER_ANIMATED_PRICE = 300;
-const MOBILE_RESPONSIVE_SECTION_ANIMATION_PRICE = 100;
+const MOBILE_RESPONSIVE_NAVBAR_ANIMATED_PRICE = 50;
+const MOBILE_RESPONSIVE_FOOTER_ANIMATED_PRICE = 50;
+const MOBILE_RESPONSIVE_SECTION_ANIMATION_PRICE = 50;
 
 // Function to calculate Mobile Responsive price dynamically
 function calculateMobileResponsivePrice(params: {
@@ -285,6 +285,7 @@ export default function PricingSection() {
   const [copiedQuote, setCopiedQuote] = useState(false);
   const [navbarAnimating, setNavbarAnimating] = useState(false);
   const [footerAnimating, setFooterAnimating] = useState(false);
+  const [showPlayButtons, setShowPlayButtons] = useState(true);
 
   // Calculator State
   // Helper to create initial sections
@@ -1995,6 +1996,9 @@ export default function PricingSection() {
                         {state.step2.mainSections.map((section: SectionItem, secIdx: number) => {
                           const layout = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                           const availableAnims = SECTION_ANIMATIONS[section.layout] || [];
+                          // แยก animations ออกเป็น 2 กลุ่ม
+                          const basicAnims = availableAnims.filter((anim) => anim.type === "BASIC");
+                          const sectionSpecificAnims = availableAnims.filter((anim) => !anim.type || anim.type !== "BASIC");
                           const selectedAnim = availableAnims.find((a) => a.id === section.animation);
                           const isFreeSection = secIdx < INITIAL_SECTIONS;
                           return (
@@ -2073,44 +2077,86 @@ export default function PricingSection() {
                               )}
 
                               {/* Animation Selection Row */}
-                              {availableAnims.length > 0 && (
+                              {(basicAnims.length > 0 || sectionSpecificAnims.length > 0) && (
                                 <div className="pl-7 pt-2 border-t border-[#262626]/50">
+                                  {/* Basic Animations Section */}
+                                  {basicAnims.length > 0 && (
+                                    <>
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-[12px] text-[#ec4899]">✦</span>
+                                        <span className="text-[12px] text-[#71717a]">เลือก Animation พื้นฐาน</span>
+                                        <span className="text-[10px] text-[#52525b] italic">(มาจาก BASIC_ANIMATIONS)</span>
+
+                                        {(section.animation || section.customAnimation) && (
+                                          <button
+                                            onClick={() => {
+                                              clearAnimation(`preview-main-${section.id}`);
+                                              updateMainSectionAnimation(section.id, null);
+                                              updateMainSectionCustomAnimation(section.id, "");
+                                            }}
+                                            className="ml-auto text-[10px] text-[#71717a] hover:text-[#ec4899] transition-colors"
+                                          >
+                                            ยกเลิก
+                                          </button>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-wrap gap-1.5 mb-3">
+                                        {basicAnims.map((anim) => (
+                                          <button
+                                            key={anim.id}
+                                            onClick={() => {
+                                              updateMainSectionAnimation(section.id, section.animation === anim.id ? null : anim.id);
+                                              if (section.animation !== anim.id) updateMainSectionCustomAnimation(section.id, "");
+                                            }}
+                                            className={`group/anim relative px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === anim.id
+                                              ? "bg-[#ec4899] text-white"
+                                              : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                              }`}
+                                            title={anim.description}
+                                          >
+                                            <span className="mr-1">{anim.icon}</span>
+                                            {anim.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </>
+                                  )}
+
+                                  {/* Section Specific Animations */}
+                                  {sectionSpecificAnims.length > 0 && (
+                                    <>
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-[12px] text-[#ec4899]">✦</span>
+                                        <span className="text-[12px] text-[#71717a]">เลือก Animation เฉพาะหน้านี้</span>
+                                      </div>
+                                      <div className="flex flex-wrap gap-1.5 mb-3">
+                                        {sectionSpecificAnims.map((anim) => (
+                                          <button
+                                            key={anim.id}
+                                            onClick={() => {
+                                              updateMainSectionAnimation(section.id, section.animation === anim.id ? null : anim.id);
+                                              if (section.animation !== anim.id) updateMainSectionCustomAnimation(section.id, "");
+                                            }}
+                                            className={`group/anim relative px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === anim.id
+                                              ? "bg-[#ec4899] text-white"
+                                              : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                              }`}
+                                            title={anim.description}
+                                          >
+                                            <span className="mr-1">{anim.icon}</span>
+                                            {anim.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </>
+                                  )}
+
+                                  {/* Custom Animation Button */}
                                   <div className="flex items-center gap-2 mb-2">
                                     <span className="text-[12px] text-[#ec4899]">✦</span>
-                                    <span className="text-[12px] text-[#71717a]">เลือก Animation</span>
-
-                                    {(section.animation || section.customAnimation) && (
-                                      <button
-                                        onClick={() => {
-                                          clearAnimation(`preview-main-${section.id}`);
-                                          updateMainSectionAnimation(section.id, null);
-                                          updateMainSectionCustomAnimation(section.id, "");
-                                        }}
-                                        className="ml-auto text-[10px] text-[#71717a] hover:text-[#ec4899] transition-colors"
-                                      >
-                                        ยกเลิก
-                                      </button>
-                                    )}
+                                    <span className="text-[12px] text-[#71717a]">Animation กำหนดเอง</span>
                                   </div>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {availableAnims.map((anim) => (
-                                      <button
-                                        key={anim.id}
-                                        onClick={() => {
-                                          updateMainSectionAnimation(section.id, section.animation === anim.id ? null : anim.id);
-                                          if (section.animation !== anim.id) updateMainSectionCustomAnimation(section.id, "");
-                                        }}
-                                        className={`group/anim relative px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === anim.id
-                                          ? "bg-[#ec4899] text-white"
-                                          : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
-                                          }`}
-                                        title={anim.description}
-                                      >
-                                        <span className="mr-1">{anim.icon}</span>
-                                        {anim.label}
-                                      </button>
-                                    ))}
-                                    {/* Custom Animation Button */}
+                                  <div className="flex flex-wrap gap-1.5 mb-3">
                                     <button
                                       onClick={() => {
                                         updateMainSectionAnimation(section.id, section.animation === "custom" ? null : "custom");
@@ -2125,9 +2171,11 @@ export default function PricingSection() {
                                       {CUSTOM_ANIMATION_OPTION.label}
                                     </button>
                                   </div>
+
                                   {selectedAnim && (
                                     <p className="mt-1.5 text-[12px] text-[#52525b] italic">{selectedAnim.description}</p>
                                   )}
+
                                   {/* Custom Animation Input */}
                                   {section.animation === "custom" && (
                                     <div className="mt-2">
@@ -2530,13 +2578,23 @@ export default function PricingSection() {
                       </div>
 
                       {/* Button Play All Animations */}
-                      <button
-                        onClick={playAllAnimations}
-                        className="p-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
-                        style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}
-                      >
-                        ▶ เล่น Animation ทั้งหมด
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={playAllAnimations}
+                          className="p-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
+                          style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}
+                        >
+                          ▶ เล่น Animation ทั้งหมด
+                        </button>
+                        <button
+                          onClick={() => setShowPlayButtons(!showPlayButtons)}
+                          className="p-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
+                          style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}
+                          title={showPlayButtons ? "ซ่อนปุ่มเล่น" : "แสดงปุ่มเล่น"}
+                        >
+                          {showPlayButtons ? " ซ่อน ▶" : " แสดง ▶"}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Pages Horizontal Scroll Container */}
@@ -2603,7 +2661,7 @@ export default function PricingSection() {
 
                                   </div>
                                 </div>
-                                {state.step2.navbar === "animated" && (
+                                {showPlayButtons && state.step2.navbar === "animated" && (
                                   <button
                                     onClick={playNavbarAnimation}
                                     className="p-2 rounded-lg text-xs hover:opacity-80"
@@ -2651,7 +2709,7 @@ export default function PricingSection() {
                                           </div>
                                         )}
                                       </div>
-                                      {section.animation || section.customAnimation ? (
+                                      {showPlayButtons && (section.animation || section.customAnimation) ? (
                                         <button
                                           onClick={() => playSectionAnimation(refKey, section.animation || section.customAnimation!)}
                                           className="p-2 rounded-lg text-xs bg-[#ec4899]/20 text-[#ec4899] hover:bg-[#ec4899]/30 transition-colors"
@@ -2692,7 +2750,7 @@ export default function PricingSection() {
                                     </div>
                                   </div>
                                 </div>
-                                {state.step2.footer === "animated" && (
+                                {showPlayButtons && state.step2.footer === "animated" && (
                                   <button
                                     onClick={playFooterAnimation}
                                     className="p-2 rounded-lg text-xs hover:opacity-80"
@@ -2705,7 +2763,7 @@ export default function PricingSection() {
                             </div>
 
                             {/* Section Count */}
-                            <div className="px-4 py-2 bg-[#141414] border-t border-[#1f1f1f] text-center">
+                            <div className="px-4 bg-[#141414] border-t border-[#1f1f1f] text-center">
                               <span className="text-sm" style={{ color: getThemeColor }}>{state.step2.mainSections.length} sections</span>
                             </div>
                           </div>
@@ -2775,7 +2833,7 @@ export default function PricingSection() {
 
                                     </div>
                                   </div>
-                                  {state.step2.navbar === "animated" && (
+                                  {showPlayButtons && state.step2.navbar === "animated" && (
                                     <button
                                       onClick={playNavbarAnimation}
                                       className="p-2 rounded-lg text-xs hover:opacity-80"
@@ -2823,7 +2881,7 @@ export default function PricingSection() {
                                             </div>
                                           )}
                                         </div>
-                                        {section.animation || section.customAnimation ? (
+                                        {showPlayButtons && (section.animation || section.customAnimation) ? (
                                           <button
                                             onClick={() => playSectionAnimation(refKey, section.animation || section.customAnimation!)}
                                             className="p-2 rounded-lg text-xs bg-[#ec4899]/20 text-[#ec4899] hover:bg-[#ec4899]/30 transition-colors"
@@ -2864,7 +2922,7 @@ export default function PricingSection() {
                                       </div>
                                     </div>
                                   </div>
-                                  {state.step2.footer === "animated" && (
+                                  {showPlayButtons && state.step2.footer === "animated" && (
                                     <button
                                       onClick={playFooterAnimation}
                                       className="p-2 rounded-lg text-xs hover:opacity-80"
@@ -2878,7 +2936,7 @@ export default function PricingSection() {
                               </div>
 
                               {/* Section Count */}
-                              <div className="px-4 py-2 bg-[#141414] border-t border-[#1f1f1f] text-center">
+                              <div className="px-4 bg-[#141414] border-t border-[#1f1f1f] text-center">
                                 <span className="text-sm" style={{ color: getThemeColorLight }}>{page.sections.length} sections</span>
                                 {page.sections.some((s) => s.animation) && (
                                   <span className="ml-2 text-sm" style={{ color: getThemeColorLight }}>✨</span>
@@ -2890,72 +2948,15 @@ export default function PricingSection() {
                       </div>
                     </div>
 
-                    {/* Summary Bar */}
-                    <div className="mt-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#262626]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-[#52525b]">หน้าทั้งหมด:</span>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-medium text-white">
-                              {1 + state.step2.pages.length}
-                            </span>
-                            <span className="text-[10px] text-[#52525b]">หน้า</span>
-                          </div>
-                          <div className="w-px h-3 bg-[#262626]" />
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-medium text-white">
-                              {(() => {
-                                const addedSections = state.step2.pages.reduce((sum, p) => sum + p.sections.length, 0);
-                                return state.step2.mainSections.length + addedSections;
-                              })()}
-                            </span>
-                            <span className="text-[10px] text-[#52525b]">sections</span>
-                          </div>
-                          {/* Service Icons */}
-                          <div className="flex gap-1 ml-2">
-                            {state.step3.seo && <span className="text-[10px]">📊</span>}
-                            {state.step1.bilingual && <span className="text-[10px]">🌐</span>}
-                            {state.step3.cms && <span className="text-[10px]">⚙️</span>}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
 
 
-                    {/* Animation Details */}
-                    {(state.step2.navbar === "animated" && (state.step2.selectedNavbarAnim || state.step2.navbarCustomAnims.length > 0)) ||
-                      (state.step2.footer === "animated" && (state.step2.selectedFooterAnim || state.step2.footerCustomAnims.length > 0)) ? (
-                      <div className="mt-3 p-2 rounded-lg bg-[#0d0d0d] border border-[#262626]">
-                        <p className="text-[10px] text-[#52525b] mb-1">Animation ที่เลือก (Navbar & Footer) :</p>
-                        <div className="flex flex-wrap gap-1">
-                          {state.step2.selectedNavbarAnim && (
-                            <span className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
-                              Navbar : {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedNavbarAnim)?.icon}{" "}
-                              {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedNavbarAnim)?.label}
-                            </span>
-                          )}
-                          {state.step2.navbarCustomAnims.map((anim) => (
-                            <span key={anim.id} className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
-                              Navbar : ✦ {anim.label}
-                            </span>
-                          ))}
-                          {state.step2.selectedFooterAnim && (
-                            <span className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
-                              Footer : {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedFooterAnim)?.icon}{" "}
-                              {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedFooterAnim)?.label}
-                            </span>
-                          )}
-                          {state.step2.footerCustomAnims.map((anim) => (
-                            <span key={anim.id} className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
-                              Footer : ✦ {anim.label}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
+                  </div>
+
+                  {/* Price Summary */}
+                  <div className="p-5 rounded-2xl bg-linear-to-b from-[#1a1a1a] to-[#141414] border border-[#262626]">
 
                     {/* Section Details Summary */}
-                    <div className="mt-3 p-4 rounded-xl bg-[#0d0d0d] border border-[#262626]">
+                    <div className="mb-4 p-3 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]">
                       <p className="text-[10px] text-[#52525b] mb-3 font-mono uppercase tracking-wider">📋 สรุป Sections</p>
 
                       {/* Main Page Sections */}
@@ -2964,7 +2965,7 @@ export default function PricingSection() {
                           <span className="px-2 py-0.5 rounded text-[10px] font-medium" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>หน้าหลัก</span>
                           <span className="text-[10px] text-[#52525b]">{state.step2.mainSections.length} sections</span>
                         </div>
-                        <div className="space-y-1.5 pl-2 border-l-2" style={{ borderColor: getThemeColor + "50" }}>
+                        <div className="space-y-1.5 pl-2 border-l-2 max-h-[150px] overflow-y-auto" style={{ borderColor: getThemeColor + "50" }}>
                           {state.step2.mainSections.map((section, idx) => {
                             const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                             const animInfo = section.animation && section.animation !== "custom"
@@ -3006,7 +3007,7 @@ export default function PricingSection() {
                             <span className="px-2 py-0.5 rounded text-[10px] font-medium" style={{ backgroundColor: getThemeColorLight + "20", color: getThemeColorLight }}>{page.name}</span>
                             <span className="text-[10px] text-[#52525b]">{page.sections.length} sections</span>
                           </div>
-                          <div className="space-y-1.5 pl-2 border-l-2" style={{ borderColor: getThemeColorLight + "50" }}>
+                          <div className="space-y-1.5 pl-2 border-l-2 max-h-[150px] overflow-y-auto" style={{ borderColor: getThemeColorLight + "50" }}>
                             {page.sections.map((section, idx) => {
                               const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
                               const animInfo = section.animation && section.animation !== "custom"
@@ -3041,120 +3042,163 @@ export default function PricingSection() {
                           </div>
                         </div>
                       ))}
-                    </div>
 
-                    {/* Page Count */}
-                    <div className="mt-3 flex items-center justify-center gap-2 text-[13px] text-[#cfcfe2]">
-                      <span>หน้าทั้งหมด:</span>
-                      <span className="font-mono" style={{ color: getThemeColor }}>
-                        1 หน้าหลัก + {state.step2.pages.length} หน้าเพิ่ม
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Price Summary */}
-                  <div className="p-5 rounded-2xl bg-linear-to-b from-[#1a1a1a] to-[#141414] border border-[#262626]">
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-[#10b981]">📋</span>
-                      <span className="font-mono text-xs uppercase tracking-wider text-[#52525b]">สรุปราคา</span>
-                    </div>
-
-                    {/* Breakdown */}
-                    <div className="space-y-2 mb-4 max-h-[200px] overflow-y-auto pr-2">
-                      {priceBreakdown.items.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between text-sm">
-                          <span className="text-[#a1a1aa] truncate mr-2">{item.label}</span>
-                          <span className="font-mono text-[#52525b] whitespace-nowrap">{formatPrice(item.price)}</span>
+                      {/* Animation Navbar & Footer Details */}
+                      {(state.step2.navbar === "animated" && (state.step2.selectedNavbarAnim || state.step2.navbarCustomAnims.length > 0)) ||
+                        (state.step2.footer === "animated" && (state.step2.selectedFooterAnim || state.step2.footerCustomAnims.length > 0)) ? (
+                        <div className="mt-3 p-2 rounded-lg bg-[#0d0d0d] border border-[#262626]">
+                          <p className="text-[10px] text-[#52525b] mb-1">Animation ที่เลือก (Navbar & Footer) :</p>
+                          <div className="flex flex-wrap gap-1">
+                            {state.step2.selectedNavbarAnim && (
+                              <span className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
+                                Navbar : {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedNavbarAnim)?.icon}{" "}
+                                {NAVBAR_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedNavbarAnim)?.label}
+                              </span>
+                            )}
+                            {state.step2.navbarCustomAnims.map((anim) => (
+                              <span key={anim.id} className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
+                                Navbar : ✦ {anim.label}
+                              </span>
+                            ))}
+                            {state.step2.selectedFooterAnim && (
+                              <span className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
+                                Footer : {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedFooterAnim)?.icon}{" "}
+                                {FOOTER_ANIMATION_TYPES.find((a) => a.id === state.step2.selectedFooterAnim)?.label}
+                              </span>
+                            )}
+                            {state.step2.footerCustomAnims.map((anim) => (
+                              <span key={anim.id} className="px-1.5 py-0.5 rounded text-[8px]" style={{ backgroundColor: getThemeColor + "20", color: getThemeColor }}>
+                                Footer : ✦ {anim.label}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      ))}
+                      ) : null}
+
+                      {/* Summary Bar Page Count & Sections Count */}
+                      <div className="mt-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#262626]">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-[#52525b]">หน้าทั้งหมด:</span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-medium text-white">
+                                {1 + state.step2.pages.length}
+                              </span>
+                              <span className="text-[10px] text-[#52525b]">หน้า</span>
+                            </div>
+                            <div className="w-px h-3 bg-[#262626]" />
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-medium text-white">
+                                {(() => {
+                                  const addedSections = state.step2.pages.reduce((sum, p) => sum + p.sections.length, 0);
+                                  return state.step2.mainSections.length + addedSections;
+                                })()}
+                              </span>
+                              <span className="text-[10px] text-[#52525b]">sections</span>
+                            </div>
+                            {/* Service Icons */}
+                            <div className="flex gap-1 ml-2">
+                              {state.step3.seo && <span className="text-[10px]">📊</span>}
+                              {state.step1.bilingual && <span className="text-[10px]">🌐</span>}
+                              {state.step3.cms && <span className="text-[10px]">⚙️</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
 
-                    {/* Compact Section Summary */}
+                    {/* สรุปราคา Breakdown Price & Theme Settings Summary */}
                     <div className="mb-4 p-3 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]">
-                      <p className="text-[9px] text-[#52525b] mb-2 font-mono uppercase tracking-wider">📋 สรุป Sections</p>
-                      <div className="space-y-1.5 text-[10px] max-h-[100px] overflow-y-auto">
-                        <div className="flex items-center gap-1.5">
-                          <span style={{ color: getThemeColor }}>🏠</span>
-                          <span className="text-[#a1a1aa]">หน้าหลัก:</span>
-                          <span className="text-white">{state.step2.mainSections.length} sections</span>
-                        </div>
-                        {state.step2.pages.map((page) => (
-                          <div key={page.id} className="flex items-center gap-1.5">
-                            <span style={{ color: getThemeColorLight }}>📄</span>
-                            <span className="text-[#a1a1aa]">{page.name}:</span>
-                            <span className="text-white">{page.sections.length} sections</span>
+
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[#10b981]">📋</span>
+                        <span className="font-mono text-xs uppercase tracking-wider text-[#d0d0df]">สรุปราคา</span>
+                      </div>
+
+                      {/* Breakdown */}
+                      <div className="space-y-2 mb-4 max-h-[300px] overflow-y-auto pr-2">
+                        {priceBreakdown.items.map((item, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-sm">
+                            <span className="text-[#a1a1aa] truncate mr-2">{item.label}</span>
+                            <span className="font-mono text-[#aaaabe] whitespace-nowrap">{formatPrice(item.price)}</span>
                           </div>
                         ))}
                       </div>
-                    </div>
 
-                    {/* Theme Settings Summary from STEP 1 */}
-                    {(state.step1.themeColor || state.step1.darkLightMode || state.step1.bilingual || state.step1.fontFamily) && (
-                      <div className="mb-4 p-3 rounded-lg bg-[#0d0d0d] border border-[#1f1f1f]">
-                        <p className="text-[9px] text-[#52525b] mb-2 font-mono uppercase tracking-wider">🎨 ธีม & การตั้งค่า</p>
-                        <div className="space-y-2 text-[10px]">
-                          {/* Theme Color */}
-                          {state.step1.themeColor && (
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="w-3 h-3 rounded border border-[#333] shrink-0"
-                                style={{ backgroundColor: getThemeColor }}
-                              />
-                              <span className="text-[#a1a1aa]">ธีมสี:</span>
-                              <span className="text-white font-medium">
-                                {COLOR_THEMES.find((t) => t.id === state.step1.themeColor)?.label || "Custom Color"}
-                              </span>
-                              {state.step1.themeColor === "custom" && (
-                                <span className="text-[#52525b] font-mono">({state.step1.customColor})</span>
-                              )}
-                            </div>
-                          )}
+                      {/* Theme Settings Summary from STEP 1 */}
+                      {(state.step1.themeColor || state.step1.darkLightMode || state.step1.bilingual || state.step1.fontFamily) && (
+                        <div >
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-[#10b981]">🎨</span>
+                            <span className="font-mono text-xs uppercase tracking-wider text-[#d0d0df]">ธีม & การตั้งค่า</span>
+                          </div>
+                          <div className="space-y-2 text-[#a1a1aa] truncate mr-2 text-sm">
+                            {/* Theme Color */}
+                            {state.step1.themeColor && (
+                              <div className="flex items-center gap-2">
 
-                          {/* Background */}
-                          {state.step1.background !== "none" && state.step1.backgroundCustomColor && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-base">▣</span>
-                              <span className="text-[#a1a1aa]">Background:</span>
-                              <span className="text-white font-medium">{BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label}</span>
-                              <span className="text-[#52525b] font-mono">สี Background:</span>
-                              <span className="text-[#52525b] font-mono">{state.step1.backgroundCustomColor}</span>
-                            </div>
-                          )}
+                                <span className="text-[#a1a1aa]">ธีมสี:</span>
+                                <div
+                                  className="w-3 h-3 rounded border border-[#333] shrink-0"
+                                  style={{ backgroundColor: getThemeColor }}
+                                />
+                                <span className="text-white font-medium">
+                                  {COLOR_THEMES.find((t) => t.id === state.step1.themeColor)?.label || "Custom Color"}
+                                </span>
+                                {state.step1.themeColor === "custom" && (
+                                  <span className="text-[#52525b] font-mono">({state.step1.customColor})</span>
+                                )}
+                              </div>
+                            )}
 
-                          {/* Dark/Light Mode */}
-                          {state.step1.darkLightMode && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs">🌙/🌞</span>
-                              <span className="text-[#a1a1aa]">Theme:</span>
-                              <span className="text-white font-medium">Dark/Light Mode</span>
-                              <span className="text-[#52525b] font-mono"> Dark:({state.step1.darkThemeColor})</span>
-                              <span className="text-[#52525b] font-mono"> Light:({state.step1.lightThemeColor})</span>
-                              <span className="ml-auto text-[#10b981] font-mono">+{formatPrice(DARK_LIGHT_THEME_PRICE)}</span>
-                            </div>
-                          )}
+                            {/* Background */}
+                            {state.step1.background !== "none" && state.step1.backgroundCustomColor && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[#a1a1aa]">Background:</span>
+                                <span className="text-base">▣</span>
+                                <span className="text-white font-medium">{BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label}</span>
+                                <span className="text-[#52525b] font-mono">สี Background:</span>
+                                <span className="text-[#52525b] font-mono">{state.step1.backgroundCustomColor}</span>
+                              </div>
+                            )}
 
-                          {/* Bilingual */}
-                          {state.step1.bilingual && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs">🌐</span>
-                              <span className="text-[#a1a1aa]">ภาษา:</span>
-                              <span className="text-white font-medium">รองรับ 2 ภาษา (TH/EN)</span>
-                              <span className="ml-auto text-[#10b981] font-mono">+{formatPrice(BILINGUAL_PRICE)}</span>
-                            </div>
-                          )}
+                            {/* Dark/Light Mode */}
+                            {state.step1.darkLightMode && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[#a1a1aa]">Theme:</span>
+                                <span className="text-xs">🌙/🌞</span>
+                                <span className="text-white font-medium">Dark/Light Mode</span>
+                                <span className="text-[#52525b] font-mono"> Dark:({state.step1.darkThemeColor})</span>
+                                <span className="text-[#52525b] font-mono"> Light:({state.step1.lightThemeColor})</span>
+                                <span className="ml-auto text-[#10b981] font-mono">+{formatPrice(DARK_LIGHT_THEME_PRICE)}</span>
+                              </div>
+                            )}
 
-                          {/* Font Family */}
-                          {state.step1.fontFamily && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs">✏️</span>
-                              <span className="text-[#a1a1aa]">Font:</span>
-                              <span className="text-white font-medium truncate">{state.step1.fontFamily}</span>
-                            </div>
-                          )}
+                            {/* Bilingual */}
+                            {state.step1.bilingual && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[#a1a1aa]">ภาษา:</span>
+                                <span className="text-xs">🌐</span>
+                                <span className="text-white font-medium">รองรับ 2 ภาษา (TH/EN)</span>
+                                <span className="ml-auto text-[#10b981] font-mono">+{formatPrice(BILINGUAL_PRICE)}</span>
+                              </div>
+                            )}
 
+                            {/* Font Family */}
+                            {state.step1.fontFamily && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[#a1a1aa]">Font:</span>
+                                <span className="text-xs">✏️</span>
+                                <span className="text-white font-medium truncate">{state.step1.fontFamily}</span>
+                              </div>
+                            )}
+
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+
+                    </div>
 
                     <div className="pt-4 border-t border-[#262626]">
                       {/* Total */}

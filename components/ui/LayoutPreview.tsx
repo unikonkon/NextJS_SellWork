@@ -151,7 +151,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
       </div>
     ),
     gallery: (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1 p-2`}>
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1 p-2`}>
         {/* Gallery grid layout */}
         {[...Array(6)].map((_, i) => (
           <div
@@ -503,7 +503,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
       </div>
     ),
     carousel: (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
+      <div data-animation-target className={`w-full ${heightClass} p-3 rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
         <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#52525b]/40 border border-[#52525b]/60" />
         <div
           data-animation-child
@@ -1116,23 +1116,6 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
         </div>
       </div>
     ),
-    locations: (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-linear-to-br from-[#1a1a1a] to-[#0d0d0d] opacity-80" />
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            data-animation-child
-            className="absolute w-2 h-2 rounded-full border-2 border-white/20"
-            style={{
-              left: `${20 + i * 30}%`,
-              top: `${30 + i * 20}%`,
-              backgroundColor: primaryColor
-            }}
-          />
-        ))}
-      </div>
-    ),
 
     // === BLOG & NEWS VARIANTS ===
     "blog-grid": (
@@ -1288,51 +1271,6 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
       </div>
     ),
 
-    // === DIVIDERS VARIANTS ===
-    divider: (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center`}>
-        <div data-animation-child className="w-full h-0.5 bg-[#333] rounded-full" />
-      </div>
-    ),
-    "wave-divider": (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
-        <svg data-animation-child className="absolute inset-0 w-full h-full" viewBox="0 0 100 20" preserveAspectRatio="none">
-          <path
-            d="M0,10 Q25,5 50,10 T100,10 L100,20 L0,20 Z"
-            fill="url(#wave-gradient)"
-            className="opacity-30"
-          />
-          <defs>
-            <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor={primaryColor} />
-              <stop offset="100%" stopColor={secondaryColor} />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-    ),
-    spacer: (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center`}>
-        <div data-animation-child className="w-full h-0.5 bg-[#1a1a1a] border-t border-b border-[#333] opacity-50" />
-      </div>
-    ),
-    "parallax-divider": (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
-        <div
-          data-animation-child
-          className="absolute inset-0 opacity-40"
-          style={{ background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.1)}, ${withOpacity(secondaryColor, 0.1)}, ${withOpacity(primaryColor, 0.1)})` }}
-        />
-        <div
-          data-animation-child
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(primaryColor)}' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
-      </div>
-    ),
-
     // === CUSTOM VARIANTS ===
     custom: (
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#333] flex items-center justify-center`}>
@@ -1351,6 +1289,559 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
           </div>
           <div className="w-16 h-1 bg-[#52525b]/20 rounded" />
         </div>
+      </div>
+    ),
+
+    // === NEW HERO VARIANTS ===
+    "hero-minimal": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center`}>
+        <div data-animation-child className="flex flex-col items-center gap-2">
+          <div className={`${size === "small" ? "text-xs" : "text-sm"} text-[#18a3fa] font-medium typewriter-text`}>
+            Hero Minimal
+          </div>
+          <div
+            className={`${size === "small" ? "w-20 h-5" : "w-24 h-6"} rounded-md border`}
+            style={{
+              background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(secondaryColor, 0.3)})`,
+              borderColor: withOpacity(primaryColor, 0.4)
+            }}
+          />
+        </div>
+      </div>
+    ),
+    "hero-fullscreen": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative`}>
+        <div data-animation-child className="flex flex-col items-center gap-2">
+          <div className={`${size === "small" ? "text-xs" : "text-sm"} text-[#18a3fa] font-medium typewriter-text`}>
+            Hero Fullscreen
+          </div>
+          <div className="w-4 h-4 flex items-center justify-center">
+            <div className="w-1 h-3 rounded-full animate-bounce" style={{ backgroundColor: primaryColor }} />
+          </div>
+        </div>
+      </div>
+    ),
+    "hero-centered": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center`}>
+        <div data-animation-child className="flex flex-col items-center gap-2 text-center">
+          <div className={`${size === "small" ? "text-xs" : "text-sm"} text-[#18a3fa] font-medium typewriter-text`}>
+            Hero Centered
+          </div>
+          <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+        </div>
+      </div>
+    ),
+    "hero-collage": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1 p-2`}>
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`rounded border aspect-square ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          />
+        ))}
+      </div>
+    ),
+    "hero-3d": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            className={`${size === "small" ? "w-12 h-12" : "w-16 h-16"} rounded border-2`}
+            style={{
+              borderColor: withOpacity(primaryColor, 0.4),
+              transform: "perspective(100px) rotateY(15deg)"
+            }}
+          />
+        </div>
+        <div data-animation-child className="relative z-10 flex flex-col items-center gap-2">
+          <div className={`${size === "small" ? "text-xs" : "text-sm"} text-[#18a3fa] font-medium`}>
+            Hero 3D
+          </div>
+        </div>
+      </div>
+    ),
+
+    // === NEW CONTENT VARIANTS ===
+    "full-image": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col relative overflow-hidden`}>
+        <div
+          className="flex-1"
+          style={{ background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})` }}
+        />
+        <div data-animation-child className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3/4 h-0.5 bg-[#52525b]/20 rounded" />
+      </div>
+    ),
+    "two-col-text": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
+        {[...Array(2)].map((_, i) => (
+          <div key={i} data-animation-child className="flex-1 flex flex-col gap-1 p-2 bg-[#1a1a1a]/50 rounded border border-[#333]">
+            <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+            <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+            <div className="w-1/2 h-0.5 bg-[#52525b]/20 rounded" />
+          </div>
+        ))}
+      </div>
+    ),
+    highlight: (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg border flex items-center justify-center p-3`} style={{ borderColor: withOpacity(primaryColor, 0.4), background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.1)}, ${withOpacity(secondaryColor, 0.1)})` }}>
+        <div data-animation-child className="flex flex-col items-center gap-1.5">
+          <div className={`${size === "small" ? "text-xs" : "text-sm"} font-medium`} style={{ color: primaryColor }}>
+            Highlight Box
+          </div>
+          <div className="w-3/4 h-0.5 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.3) }} />
+        </div>
+      </div>
+    ),
+    overlay: (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})` }}
+        />
+        <div className="absolute inset-0 bg-[#0d0d0d]/60" />
+        <div data-animation-child className="relative z-10 flex flex-col items-center gap-2">
+          <div className={`${size === "small" ? "text-xs" : "text-sm"} text-white font-medium`}>
+            Image Overlay Text
+          </div>
+        </div>
+      </div>
+    ),
+    "content-cards": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1.5 p-2`}>
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`rounded border flex flex-col gap-1 p-1 ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          >
+            <div className="flex-1 bg-[#1a1a1a]/30 rounded" />
+            <div className={`w-full h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
+          </div>
+        ))}
+      </div>
+    ),
+    "numbered-list": (
+      <div
+        data-animation-target
+        className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}
+      >
+        {[...Array(3)].map((_, i) => (
+          <div key={i} data-animation-child className="flex items-center gap-2">
+            <div
+              className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"} step-number rounded-full border flex items-center justify-center shrink-0`}
+              style={{
+                borderColor: withOpacity(primaryColor, 0.4),
+                backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "transparent"
+              }}
+            >
+              <span className={`text-[10px]`} style={{ color: primaryColor }}>{i + 1}</span>
+            </div>
+            <div className="flex-1 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+          </div>
+        ))}
+      </div>
+    ),
+    "side-note": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
+        <div data-animation-child className="flex-3 flex flex-col gap-1 p-2">
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+        </div>
+        <div data-animation-child className="flex-1 bg-[#1a1a1a]/50 rounded border border-[#333] p-1.5">
+          <div className="w-full h-0.5 bg-[#52525b]/20 rounded" />
+        </div>
+      </div>
+    ),
+    "rich-text": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} data-animation-child className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+        ))}
+      </div>
+    ),
+    "img-caption-grid": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1.5 p-2`}>
+        {[...Array(6)].map((_, i) => (
+          <div key={i} data-animation-child className="flex flex-col gap-1">
+            <div
+              className={`rounded border aspect-square ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+                borderColor: withOpacity(primaryColor, 0.3)
+              } : {}}
+            />
+            <div className={`w-full h-0.5 rounded`} style={{ backgroundColor: withOpacity(primaryColor, 0.1) }} />
+          </div>
+        ))}
+      </div>
+    ),
+
+    // === NEW COLUMN VARIANTS ===
+    "cols-5": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-1 p-2`}>
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`flex-1 rounded border flex flex-col gap-0.5 p-1 justify-center ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          >
+            <div className={`w-full h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`w-2/3 h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
+          </div>
+        ))}
+      </div>
+    ),
+    "cols-6": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-0.5 p-2`}>
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`flex-1 rounded border flex flex-col gap-0.5 p-0.5 justify-center ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          >
+            <div className={`w-full h-0.5 rounded`} style={{ backgroundColor: i === 0 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }} />
+          </div>
+        ))}
+      </div>
+    ),
+    "sidebar-left": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
+        <div data-animation-child className="w-1/4 rounded border bg-[#1a1a1a]/50 border-[#333] flex flex-col gap-1 p-1.5">
+          <div className="w-full h-0.5 bg-[#52525b]/20 rounded" />
+          <div className="w-2/3 h-0.5 bg-[#52525b]/20 rounded" />
+        </div>
+        <div data-animation-child className="flex-1 flex flex-col gap-1.5 p-2">
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+        </div>
+      </div>
+    ),
+    "sidebar-right": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-2 p-2`}>
+        <div data-animation-child className="flex-1 flex flex-col gap-1.5 p-2">
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+        </div>
+        <div data-animation-child className="w-1/4 rounded border bg-[#1a1a1a]/50 border-[#333] flex flex-col gap-1 p-1.5">
+          <div className="w-full h-0.5 bg-[#52525b]/20 rounded" />
+          <div className="w-2/3 h-0.5 bg-[#52525b]/20 rounded" />
+        </div>
+      </div>
+    ),
+    "cols-3-unequal": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-1.5 p-2`}>
+        <div
+          data-animation-child
+          className="w-1/4 rounded border flex flex-col gap-1 p-1.5 justify-center"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div className="w-full h-0.5 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.3) }} />
+        </div>
+        <div data-animation-child className="flex-1 rounded border bg-[#1a1a1a]/50 border-[#333] flex flex-col gap-1 p-1.5 justify-center">
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div className="w-3/4 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+        </div>
+        <div
+          data-animation-child
+          className="w-1/4 rounded border flex flex-col gap-1 p-1.5 justify-center"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div className="w-full h-0.5 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.3) }} />
+        </div>
+      </div>
+    ),
+
+    // === NEW MEDIA VARIANTS ===
+    "gallery-justified": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-1 p-2`}>
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`flex-1 rounded border ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3),
+              height: i % 2 === 0 ? "100%" : "80%"
+            } : {}}
+          />
+        ))}
+      </div>
+    ),
+    "gallery-hover": (
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1 p-2`}>
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`rounded border aspect-square relative ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          >
+            {i === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-[#0d0d0d]/60">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: primaryColor }} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    ),
+    "gallery-filter": (
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
+        <div data-animation-child className="flex gap-1">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className={`flex-1 h-2 rounded ${i === 0 ? "" : "bg-[#1a1a1a]/50 border border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`,
+                borderColor: withOpacity(primaryColor, 0.4)
+              } : {}}
+            />
+          ))}
+        </div>
+        <div data-animation-child className="grid grid-cols-3 gap-1">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className={`rounded border aspect-square ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+                borderColor: withOpacity(primaryColor, 0.3)
+              } : {}}
+            />
+          ))}
+        </div>
+      </div>
+    ),
+    "gallery-infinite": (
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1 p-2 overflow-hidden`}>
+        {[...Array(9)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`rounded border aspect-square ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          />
+        ))}
+      </div>
+    ),
+    "gallery-mosaic": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-4 gap-1 p-2`}>
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`rounded border ${i % 4 === 0 ? "col-span-2 row-span-2" : ""} ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          />
+        ))}
+      </div>
+    ),
+    "video-grid": (
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1.5 p-2`}>
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`rounded border aspect-square relative flex items-center justify-center ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          >
+            <div className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"} rounded-full border flex items-center justify-center`} style={{ borderColor: withOpacity(primaryColor, 0.4) }}>
+              <div className="w-0 h-0 border-l-2 border-l-white border-t-2 border-t-transparent border-b-2 border-b-transparent ml-0.5" />
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+    "media-slider": (
+      <div data-animation-target className={`w-full ${heightClass} p-3 rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
+        <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#52525b]/40 border border-[#52525b]/60" />
+        <div
+          data-animation-child
+          className="flex-1 h-full rounded border m-1 flex items-center justify-center"
+          style={{
+            background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div className={`${size === "small" ? "w-5 h-5" : "w-6 h-6"} rounded-full border flex items-center justify-center`} style={{ borderColor: withOpacity(primaryColor, 0.4) }}>
+            <div className="w-0 h-0 border-l-2 border-l-white border-t-2 border-t-transparent border-b-2 border-b-transparent ml-0.5" />
+          </div>
+        </div>
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#52525b]/40 border border-[#52525b]/60" />
+      </div>
+    ),
+    "fullscreen-gallery": (
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-2 gap-1 p-2`}>
+        {[...Array(4)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`rounded border aspect-square ${i === 0 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 0 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          />
+        ))}
+      </div>
+    ),
+    "before-after": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center justify-center relative overflow-hidden`}>
+        <div className="absolute inset-0 flex">
+          <div
+            data-animation-child
+            className="flex-1"
+            style={{
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`
+            }}
+          />
+          <div className="w-0.5 bg-[#333]" />
+          <div data-animation-child className="flex-1 bg-[#1a1a1a]/50" />
+        </div>
+        <div data-animation-child className="relative z-10 w-1 h-8 bg-white/30 rounded-full" />
+      </div>
+    ),
+    "audio-player": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex items-center gap-2 p-2`}>
+        <div
+          data-animation-child
+          className={`${size === "small" ? "w-8 h-8" : "w-10 h-10"} rounded-full border flex items-center justify-center shrink-0`}
+          style={{
+            backgroundColor: withOpacity(primaryColor, 0.2),
+            borderColor: withOpacity(primaryColor, 0.3)
+          }}
+        >
+          <div className="w-0 h-0 border-l-2 border-l-white border-t-2 border-t-transparent border-b-2 border-b-transparent ml-0.5" />
+        </div>
+        <div data-animation-child className="flex-1 flex flex-col gap-1">
+          <div className="w-full h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          <div className="w-3/4 h-0.5 bg-[#52525b]/20 rounded" />
+        </div>
+      </div>
+    ),
+
+    // === NEW PRICING VARIANTS ===
+    "pricing-cards": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-1.5 p-2`}>
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`flex-1 rounded border flex flex-col gap-1 p-1.5 ${i === 1 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 1 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.2)}, ${withOpacity(primaryColor, 0.1)})`,
+              borderColor: withOpacity(primaryColor, 0.3)
+            } : {}}
+          >
+            <div className={`w-full h-1 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`w-2/3 h-0.5 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
+            <div className={`w-1/2 h-2 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
+          </div>
+        ))}
+      </div>
+    ),
+    "pricing-minimal": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1 p-2`}>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} data-animation-child className="flex items-center gap-2">
+            <div className="w-16 h-2 bg-[#1a1a1a]/50 rounded border border-[#333]" />
+            <div className="flex-1 h-1 rounded" style={{ backgroundColor: withOpacity(primaryColor, 0.15) }} />
+            <div className={`${size === "small" ? "w-12 h-2" : "w-14 h-2.5"} rounded`} style={{ backgroundColor: withOpacity(primaryColor, 0.2) }} />
+          </div>
+        ))}
+      </div>
+    ),
+    "pricing-slider": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-2 p-2`}>
+        <div data-animation-child className="w-full h-2 bg-[#1a1a1a]/50 rounded-full border border-[#333] relative">
+          <div
+            className="absolute left-0 top-0 w-1/3 h-full rounded-full"
+            style={{ background: `linear-gradient(to right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})` }}
+          />
+        </div>
+        <div data-animation-child className="flex items-center justify-center gap-2">
+          <div className={`${size === "small" ? "w-16 h-3" : "w-20 h-3.5"} rounded`} style={{ backgroundColor: withOpacity(primaryColor, 0.3) }} />
+        </div>
+      </div>
+    ),
+    "pricing-tabs": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex flex-col gap-1.5 p-2`}>
+        <div data-animation-child className="flex gap-1">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className={`flex-1 h-2 rounded ${i === 0 ? "" : "bg-[#1a1a1a]/50 border border-[#333]"}`}
+              style={i === 0 ? {
+                background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.3)}, ${withOpacity(primaryColor, 0.2)})`,
+                borderColor: withOpacity(primaryColor, 0.4)
+              } : {}}
+            />
+          ))}
+        </div>
+        <div data-animation-child className="flex gap-1.5">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex-1 h-8 bg-[#1a1a1a]/50 rounded border border-[#333]" />
+          ))}
+        </div>
+      </div>
+    ),
+    "pricing-highlighted": (
+      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] flex gap-1.5 p-2`}>
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            data-animation-child
+            className={`flex-1 rounded border flex flex-col gap-1 p-1.5 relative ${i === 1 ? "" : "bg-[#1a1a1a]/50 border-[#333]"}`}
+            style={i === 1 ? {
+              background: `linear-gradient(to bottom right, ${withOpacity(primaryColor, 0.25)}, ${withOpacity(primaryColor, 0.15)})`,
+              borderColor: withOpacity(primaryColor, 0.4),
+              borderWidth: "2px"
+            } : {}}
+          >
+            {i === 1 && (
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full" style={{ backgroundColor: primaryColor }} />
+            )}
+            <div className={`w-full h-1 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.3) : "rgba(82, 82, 91, 0.3)" }} />
+            <div className={`w-2/3 h-0.5 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.2) : "rgba(82, 82, 91, 0.2)" }} />
+            <div className={`w-1/2 h-2 rounded`} style={{ backgroundColor: i === 1 ? withOpacity(primaryColor, 0.4) : "rgba(82, 82, 91, 0.3)" }} />
+          </div>
+        ))}
       </div>
     ),
   };
