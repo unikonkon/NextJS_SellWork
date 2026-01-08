@@ -865,6 +865,17 @@ export default function PricingSection() {
       reqs.push(`Font: ${state.step1.fontFamily} (จาก Google Fonts)`);
     }
 
+    if (state.step1.background !== "none" && BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background)?.id) {
+      if (BACKGROUND_CUSTOM_TYPES.find((b) => b.id === "grid-custom"
+        || b.id === "typing-lines"
+        || b.id === "floating-snippets"
+        || b.id === "grid-typing"
+        || b.id === "grid-floating"
+      )?.label) {
+        reqs.push(`Background Custom: ข้อมูลกำหนดเอง ที่เป็นตัวอักษร`);
+      }
+    }
+
     return reqs;
   }, [state]);
 
@@ -3208,13 +3219,14 @@ export default function PricingSection() {
                                     {BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"}
                                   </span>
                                 )}
-                                {state.step1.backgroundCustomColor && (
-                                  <>
-                                    <span className="text-[#52525b] font-mono">สี Background:</span>
-                                    <span className="text-[#52525b] font-mono">{state.step1.backgroundCustomColor}</span>
-                                  </>
-                                )}
+
                               </div>
+                            )}
+                            {state.step1.backgroundCustomColor && (
+                              <>
+                                <span className="text-[#52525b] font-mono"> - สี Background:</span>
+                                <span className="text-[#52525b] font-mono">{state.step1.backgroundCustomColor}</span>
+                              </>
                             )}
 
                             {/* Dark/Light Mode */}

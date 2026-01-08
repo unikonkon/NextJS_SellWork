@@ -38,11 +38,11 @@ export const BACKGROUND_TYPES: BackgroundOption[] = [
 
 // ==================== BACKGROUND CUSTOM TYPES ====================
 export const BACKGROUND_CUSTOM_TYPES: BackgroundOption[] = [
-  { id: "grid-custom", label: "Grid Custom", description: "Grid + Typing + Floating", icon: "▦", preview: "grid-custom" },
-  { id: "typing-lines", label: "Typing Lines", description: "Animated typing code lines", icon: "⌨️", preview: "typing-lines" },
-  { id: "floating-snippets", label: "Floating Snippets", description: "Floating code snippets", icon: "💫", preview: "floating-snippets" },
-  { id: "grid-typing", label: "Grid + Typing", description: "Grid with typing animation", icon: "▦⌨️", preview: "grid-typing" },
-  { id: "grid-floating", label: "Grid + Floating", description: "Grid with floating animation", icon: "▦💫", preview: "grid-floating" },
+  { id: "grid-custom", label: "Grid Custom (กำหนดTextเอง)", description: "Grid + Typing + Floating", icon: "▦", preview: "grid-custom" },
+  { id: "typing-lines", label: "Typing Lines (กำหนดTextเอง)", description: "Animated typing code lines", icon: "⌨️", preview: "typing-lines" },
+  { id: "floating-snippets", label: "Floating Snippets (กำหนดTextเอง)", description: "Floating code snippets", icon: "💫", preview: "floating-snippets" },
+  { id: "grid-typing", label: "Grid + Typing (กำหนดTextเอง)", description: "Grid with typing animation", icon: "▦⌨️", preview: "grid-typing" },
+  { id: "grid-floating", label: "Grid + Floating (กำหนดTextเอง)", description: "Grid with floating animation", icon: "▦💫", preview: "grid-floating" },
 ];
 
 // Combined background types for use in BackgroundModal
@@ -199,8 +199,8 @@ export default function BackgroundModal({
                 <button
                   onClick={() => setViewMode("basic")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === "basic"
-                      ? "bg-[#1a1a1a] text-white border border-[#333]"
-                      : "text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#1a1a1a]"
+                    ? "bg-[#1a1a1a] text-white border border-[#333]"
+                    : "text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#1a1a1a]"
                     }`}
                   style={
                     viewMode === "basic"
@@ -216,8 +216,8 @@ export default function BackgroundModal({
                 <button
                   onClick={() => setViewMode("custom")}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${viewMode === "custom"
-                      ? "bg-[#1a1a1a] text-white border border-[#333]"
-                      : "text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#1a1a1a]"
+                    ? "bg-[#1a1a1a] text-white border border-[#333]"
+                    : "text-[#52525b] hover:text-[#a1a1aa] hover:bg-[#1a1a1a]"
                     }`}
                   style={
                     viewMode === "custom"
