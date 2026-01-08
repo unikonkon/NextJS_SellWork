@@ -5,8 +5,15 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import LayoutModal from "@/components/ui/LayoutModal";
 import LayoutPreview from "@/components/ui/LayoutPreview";
-import BackgroundModal from "@/components/ui/BackgroundModal";
-import BackgroundPreview from "@/components/ui/BackgroundPreview";
+import BackgroundModal, { BACKGROUND_TYPES, BACKGROUND_CUSTOM_TYPES, ALL_BACKGROUND_TYPES } from "@/components/ui/BackgroundModal";
+import BackgroundPreview from "@/components/ui/BackgroundPreviewBasic";
+import {
+  GridCustomBackground,
+  TypingLinesBackground,
+  FloatingSnippetsBackground,
+  GridTypingBackground,
+  GridFloatingBackground,
+} from "@/components/ui/BackgroundPreviewCustom";
 import {
   NAVBAR_ANIMATION_TYPES,
   FOOTER_ANIMATION_TYPES,
@@ -183,21 +190,6 @@ interface CalculatorState {
 
 // Custom animation option ที่จะใช้กับทุก layout
 const CUSTOM_ANIMATION_OPTION = { id: "custom", label: "กำหนดเอง", icon: "✏️", description: "ระบุ animation ที่ต้องการ" };
-
-// ==================== BACKGROUND TYPES ====================
-const BACKGROUND_TYPES = [
-  { id: "none", label: "ไม่มี Background", description: "ไม่มี background พิเศษ", icon: "⬜", preview: "none" },
-  { id: "solid", label: "Solid Color", description: "สีเดียว", icon: "▣", preview: "solid" },
-  { id: "gradient", label: "Gradient", description: "ไล่สี", icon: "◐", preview: "gradient" },
-  { id: "animated-gradient", label: "Animated Gradient", description: "ไล่สีเคลื่อนไหว", icon: "◑", preview: "animated-gradient" },
-  { id: "pattern", label: "Pattern", description: "ลาย", icon: "◈", preview: "pattern" },
-  { id: "grid", label: "Grid", description: "ตาราง", icon: "▦", preview: "grid" },
-  { id: "dots", label: "Dots", description: "จุด", icon: "◉", preview: "dots" },
-  { id: "mesh", label: "Mesh Gradient", description: "Mesh gradient", icon: "◊", preview: "mesh" },
-  { id: "particles", label: "Particles", description: "อนุภาค", icon: "◌", preview: "particles" },
-  { id: "noise", label: "Noise", description: "Noise texture", icon: "▓", preview: "noise" },
-  { id: "lines", label: "Lines", description: "เส้น", icon: "▬", preview: "lines" },
-];
 
 
 // ==================== HELPER FUNCTIONS ====================
@@ -916,6 +908,14 @@ export default function PricingSection() {
         ? [`รองรับ 2 ภาษา (TH/EN): +${formatPrice(BILINGUAL_PRICE)}`]
         : []),
       ...(state.step1.fontFamily ? [`Font: ${state.step1.fontFamily}`] : []),
+      ...(state.step1.background !== "none"
+        ? [
+          `Background: ${ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.icon || "▣"} ${ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"} ${BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background)?.label || ""}`,
+          ...(state.step1.backgroundCustomColor
+            ? [`   สี Background: ${state.step1.backgroundCustomColor}`]
+            : []),
+        ]
+        : []),
       "",
       "══════════════════════════════════",
       "",
@@ -981,6 +981,15 @@ export default function PricingSection() {
       "",
       `หน้าทั้งหมด: 1 หน้าหลัก + ${state.step2.pages.length} หน้าเพิ่ม`,
       `Sections ทั้งหมด: ${state.step2.mainSections.length + state.step2.pages.reduce((sum, p) => sum + p.sections.length, 0)} sections`,
+      ...(state.step3.seo || state.step1.bilingual || state.step3.cms
+        ? [
+          "",
+          "บริการเสริม:",
+          ...(state.step3.seo ? ["   📊 SEO Setup"] : []),
+          ...(state.step1.bilingual ? ["   🌐 รองรับ 2 ภาษา (TH/EN)"] : []),
+          ...(state.step3.cms ? ["   ⚙️ CMS"] : []),
+        ]
+        : []),
       "",
       "══════════════════════════════════",
       "",
@@ -1311,9 +1320,35 @@ export default function PricingSection() {
         backgroundColor: "#0a0a0a",
         backgroundImage: `repeating-linear-gradient(0deg, ${withOpacity(bgColor, 0.2)}, ${withOpacity(bgColor, 0.2)} 1px, transparent 1px, transparent 20px)`,
       },
+      // Custom background types - these will be rendered as components
+      "grid-custom": { backgroundColor: "#0a0a0a" },
+      "typing-lines": { backgroundColor: "#0a0a0a" },
+      "floating-snippets": { backgroundColor: "#0a0a0a" },
+      "grid-typing": { backgroundColor: "#0a0a0a" },
+      "grid-floating": { backgroundColor: "#0a0a0a" },
     };
 
     return styles[bgType] || styles.none;
+  }, []);
+
+  // Helper function to render custom background components
+  const renderCustomBackground = useCallback((bgType: string, themeColor: string, customColor?: string) => {
+    const bgColor = customColor || themeColor;
+    // Use isLivePreview=true for live preview in Main Page and Added Pages
+    switch (bgType) {
+      case "grid-custom":
+        return <GridCustomBackground themeColor={themeColor} customColor={bgColor} isLivePreview={true} />;
+      case "typing-lines":
+        return <TypingLinesBackground themeColor={themeColor} customColor={bgColor} isLivePreview={true} />;
+      case "floating-snippets":
+        return <FloatingSnippetsBackground themeColor={themeColor} customColor={bgColor} isLivePreview={true} />;
+      case "grid-typing":
+        return <GridTypingBackground themeColor={themeColor} customColor={bgColor} isLivePreview={true} />;
+      case "grid-floating":
+        return <GridFloatingBackground themeColor={themeColor} customColor={bgColor} isLivePreview={true} />;
+      default:
+        return null;
+    }
   }, []);
 
   // ==================== RENDER ====================
@@ -1723,7 +1758,7 @@ export default function PricingSection() {
                       <BackgroundModal
                         value={state.step1.background}
                         onChange={(value) => updateStep1("background", value)}
-                        options={BACKGROUND_TYPES}
+                        options={ALL_BACKGROUND_TYPES}
                         themeColor={getThemeColor}
                       />
                       {/* Custom Background Color Input */}
@@ -2624,8 +2659,12 @@ export default function PricingSection() {
                               {state.step1.background === "particles" && (
                                 <ParticlesBackground themeColor={getThemeColor} customColor={state.step1.backgroundCustomColor} />
                               )}
+                              {/* Custom Backgrounds */}
+                              {BACKGROUND_CUSTOM_TYPES.some(bg => bg.id === state.step1.background) && (
+                                renderCustomBackground(state.step1.background, getThemeColor, state.step1.backgroundCustomColor)
+                              )}
                               {/* Navbar */}
-                              <div className="flex items-center gap-2">
+                              <div className="z-10 relative flex items-center gap-2">
                                 <div
                                   ref={previewNavbarRef}
                                   className={`flex-1 flex items-center justify-between p-3 rounded-lg transition-all ${getNavbarPreviewClasses}`}
@@ -2732,7 +2771,7 @@ export default function PricingSection() {
                               </div>
 
                               {/* Footer */}
-                              <div className="flex items-center gap-2">
+                              <div className="z-10 relative flex items-center gap-2">
                                 <div
                                   ref={previewFooterRef}
                                   className={`flex-1 p-3 rounded-lg transition-all ${getFooterPreviewClasses}`}
@@ -2794,9 +2833,13 @@ export default function PricingSection() {
                                 {state.step1.background === "particles" && (
                                   <ParticlesBackground themeColor={getThemeColor} customColor={state.step1.backgroundCustomColor} />
                                 )}
+                                {/* Custom Backgrounds */}
+                                {BACKGROUND_CUSTOM_TYPES.some(bg => bg.id === state.step1.background) && (
+                                  renderCustomBackground(state.step1.background, getThemeColor, state.step1.backgroundCustomColor)
+                                )}
 
                                 {/* Navbar */}
-                                <div className="flex items-center gap-2">
+                                <div className="z-10 relative flex items-center gap-2">
                                   <div
                                     ref={previewNavbarRef}
                                     className={`flex-1 flex items-center justify-between p-3 rounded-lg transition-all ${getNavbarPreviewClasses}`}
@@ -2904,7 +2947,7 @@ export default function PricingSection() {
                                 </div>
 
                                 {/* Footer */}
-                                <div className="flex items-center gap-2">
+                                <div className="z-10 relative flex items-center gap-2">
                                   <div
                                     ref={previewFooterRef}
                                     className={`flex-1 p-3 rounded-lg transition-all ${getFooterPreviewClasses}`}
@@ -2947,8 +2990,6 @@ export default function PricingSection() {
                         ))}
                       </div>
                     </div>
-
-
 
                   </div>
 
@@ -3153,13 +3194,26 @@ export default function PricingSection() {
                             )}
 
                             {/* Background */}
-                            {state.step1.background !== "none" && state.step1.backgroundCustomColor && (
+                            {state.step1.background !== "none" && (
                               <div className="flex items-center gap-2">
                                 <span className="text-[#a1a1aa]">Background:</span>
-                                <span className="text-base">▣</span>
-                                <span className="text-white font-medium">{BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label}</span>
-                                <span className="text-[#52525b] font-mono">สี Background:</span>
-                                <span className="text-[#52525b] font-mono">{state.step1.backgroundCustomColor}</span>
+                                <span className="text-base">
+                                  {ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.icon || "▣"}
+                                </span>
+                                <span className="text-white font-medium">
+                                  {ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"}
+                                </span>
+                                {BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background) && (
+                                  <span className="text-white font-medium">
+                                    {BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"}
+                                  </span>
+                                )}
+                                {state.step1.backgroundCustomColor && (
+                                  <>
+                                    <span className="text-[#52525b] font-mono">สี Background:</span>
+                                    <span className="text-[#52525b] font-mono">{state.step1.backgroundCustomColor}</span>
+                                  </>
+                                )}
                               </div>
                             )}
 
