@@ -613,7 +613,7 @@ export default function HeroSection() {
                   }
                 }}
               >
-                <span>ดูราคา & สั่งงาน</span>
+                <span>ออกแบบเว็บ & ดูราคา</span>
                 <svg
                   className="w-4 h-4 transition-transform group-hover:translate-x-1"
                   fill="none"

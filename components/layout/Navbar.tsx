@@ -7,7 +7,7 @@ import Image from "next/image";
 
 const navItems = [
   { label: "หน้าแรก", href: "#home" },
-  { label: "คำนวณราคา", href: "#pricing" },
+  { label: "ออกแบบเว็บ", href: "#pricing" },
   { label: "ผลงาน", href: "#work" },
   { label: "เกี่ยวกับ", href: "#about" },
 ];
