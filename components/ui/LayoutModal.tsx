@@ -255,7 +255,7 @@ export default function LayoutModal({
                     {/* Modal Content */}
                     <div
                         ref={modalRef}
-                        className="relative w-full max-w-4xl max-h-[90vh] rounded-2xl bg-[#0d0d0d] border border-[#262626] shadow-2xl overflow-hidden animate-fade-in-up z-100000"
+                        className="relative w-full max-w-7xl max-h-[90vh] rounded-2xl bg-[#0d0d0d] border border-[#262626] shadow-2xl overflow-hidden animate-fade-in-up z-100000 flex flex-col"
                         style={{
                             boxShadow: themeColor
                                 ? `0 20px 50px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px ${primaryColor}1A, 0 0 40px ${primaryColor}1A`
@@ -263,16 +263,16 @@ export default function LayoutModal({
                         }}
                     >
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-[#262626] bg-[#141414]">
+                        <div className="flex items-center justify-between p-4 border-b border-[#262626] bg-[#141414] shrink-0">
                             <h3 className="text-sm font-medium text-white">เลือก Layout</h3>
-                            {/* Description Header */}
-                            <div className="">
+                            {/* Description Header - Hidden on mobile, shown on web */}
+                            <div className="hidden md:block flex-1 mx-4">
                                 {selectedCategory && CATEGORY_DESCRIPTIONS[selectedCategory] ? (
-                                    <p className="text-sm font-medium text-white leading-relaxed">
+                                    <p className="text-sm font-medium text-white leading-relaxed text-center">
                                         {CATEGORY_DESCRIPTIONS[selectedCategory]}
                                     </p>
                                 ) : (
-                                    <p className="text-sm font-medium text-white leading-relaxed">
+                                    <p className="text-sm font-medium text-white leading-relaxed text-center">
                                         เลือก category เพื่อดูคำอธิบาย
                                     </p>
                                 )}
@@ -285,282 +285,356 @@ export default function LayoutModal({
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-
                         </div>
 
-                        {/* Category Filter Tabs */}
-                        <div className="px-4 pt-4 pb-2 border-b border-[#262626] bg-[#141414]">
-
-                            <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                                {/* All Categories Button */}
-                                <button
-                                    onClick={() => setSelectedCategory(null)}
-                                    className={`group relative px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${selectedCategory === null
+                        {/* Category Filter Tabs - Mobile: Horizontal Scroll, Web: Hidden (moved to sidebar) */}
+                        <div className="md:hidden border-b border-[#262626] bg-[#141414] shrink-0">
+                            {/* Description for Mobile */}
+                            {selectedCategory && CATEGORY_DESCRIPTIONS[selectedCategory] && (
+                                <div className="px-4 pt-3 pb-2">
+                                    <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                                        {CATEGORY_DESCRIPTIONS[selectedCategory]}
+                                    </p>
+                                </div>
+                            )}
+                            <div className="px-4 pt-2 pb-2">
+                                <div className="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                                    {/* All Categories Button */}
+                                    <button
+                                        onClick={() => setSelectedCategory(null)}
+                                        className={`group relative px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${selectedCategory === null
                                             ? "text-white"
                                             : "text-[#adadbb] hover:text-[#a1a1aa] hover:bg-[#1a1a1a]"
-                                        }`}
-                                    style={
-                                        selectedCategory === null
-                                            ? {
-                                                backgroundColor: `${primaryColor}1A`,
-                                                color: primaryColor,
-                                                border: `1px solid ${primaryColor}33`,
-                                            }
-                                            : {}
-                                    }
-                                    title={selectedCategory === null ? "แสดงทุก Layout" : undefined}
-                                >
-                                    ทั้งหมด ({options.length})
-                                </button>
-                                {/* Category Buttons */}
-                                {categories.map((category) => {
-                                    const count = groupedOptions[category]?.length || 0;
-                                    const isActive = selectedCategory === category;
-                                    const description = CATEGORY_DESCRIPTIONS[category] || "";
-                                    return (
-                                        <button
-                                            key={category}
-                                            onClick={() => setSelectedCategory(category)}
-                                            className={`group relative px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${isActive
+                                            }`}
+                                        style={
+                                            selectedCategory === null
+                                                ? {
+                                                    backgroundColor: `${primaryColor}1A`,
+                                                    color: primaryColor,
+                                                    border: `1px solid ${primaryColor}33`,
+                                                }
+                                                : {}
+                                        }
+                                        title={selectedCategory === null ? "แสดงทุก Layout" : undefined}
+                                    >
+                                        ทั้งหมด ({options.length})
+                                    </button>
+                                    {/* Category Buttons */}
+                                    {categories.map((category) => {
+                                        const count = groupedOptions[category]?.length || 0;
+                                        const isActive = selectedCategory === category;
+                                        const description = CATEGORY_DESCRIPTIONS[category] || "";
+                                        return (
+                                            <button
+                                                key={category}
+                                                onClick={() => setSelectedCategory(category)}
+                                                className={`group relative px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${isActive
                                                     ? "text-white"
                                                     : "text-[#adadbb] hover:text-[#a1a1aa] hover:bg-[#1a1a1a]"
-                                                }`}
-                                            style={
-                                                isActive
-                                                    ? {
-                                                        backgroundColor: `${primaryColor}1A`,
-                                                        color: primaryColor,
-                                                        border: `1px solid ${primaryColor}33`,
-                                                    }
-                                                    : {}
-                                            }
-                                            title={description}
-                                        >
-                                            {CATEGORY_LABELS[category] || category} ({count})
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="p-4 overflow-y-auto max-h-[calc(90vh-180px)] custom-scrollbar">
-                            {selectedCategory ? (
-                                // Show options for selected category
-                                <div>
-                                    <div className="mb-4">
-                                        <h4
-                                            className="text-sm font-medium mb-1"
-                                            style={{ color: primaryColor }}
-                                        >
-                                            {CATEGORY_LABELS[selectedCategory] || selectedCategory}
-                                        </h4>
-                                        <p className="text-xs text-[#52525b]">
-                                            {filteredOptions.length} รายการ
-                                        </p>
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {filteredOptions.map((option) => {
-                                            const isSelected = option.id === value;
-
-                                            return (
-                                                <button
-                                                    key={option.id}
-                                                    type="button"
-                                                    onClick={() => handleSelect(option.id)}
-                                                    className={`group relative p-4 rounded-xl border-2 transition-all text-left ${isSelected
-                                                            ? "shadow-lg"
-                                                            : "border-[#262626] bg-[#1a1a1a] hover:border-[#333] hover:bg-[#1f1f1f]"
-                                                        }`}
-                                                    style={
-                                                        isSelected
-                                                            ? {
-                                                                borderColor: primaryColor,
-                                                                backgroundColor: `${primaryColor}1A`,
-                                                                boxShadow: `0 10px 30px -5px ${primaryColor}33`,
-                                                            }
-                                                            : {}
-                                                    }
-                                                >
-                                                    {/* Selected Indicator */}
-                                                    {isSelected && (
-                                                        <div
-                                                            className="z-10 absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
-                                                            style={{ backgroundColor: primaryColor }}
-                                                        >
-                                                            <svg
-                                                                className="w-3 h-3 text-white"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    strokeWidth={2.5}
-                                                                    d="M5 13l4 4L19 7"
-                                                                />
-                                                            </svg>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Preview */}
-                                                    <div className="mb-3">
-                                                        <LayoutPreview
-                                                            preview={option.preview}
-                                                            themeColor={themeColor}
-                                                        />
-                                                    </div>
-
-                                                    {/* Label & Icon */}
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="text-base">{option.icon}</span>
-                                                        <span
-                                                            className={`text-sm font-medium ${isSelected ? "" : "text-white"
-                                                                }`}
-                                                            style={isSelected ? { color: primaryColor } : {}}
-                                                        >
-                                                            {option.label}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Description */}
-                                                    <p
-                                                        className={`text-xs ${isSelected ? "text-[#a1a1aa]" : "text-[#52525b]"
-                                                            }`}
-                                                    >
-                                                        {option.description}
-                                                    </p>
-
-                                                    {/* Hover Glow Effect */}
-                                                    {!isSelected && (
-                                                        <div
-                                                            className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                                                            style={{
-                                                                background: themeColor
-                                                                    ? `radial-gradient(circle at 50% 50%, ${primaryColor}1A, transparent 70%)`
-                                                                    : `radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1), transparent 70%)`,
-                                                            }}
-                                                        />
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            ) : (
-                                // Show all options grouped by category
-                                <div className="space-y-6">
-                                    {categories.map((category) => {
-                                        const categoryOptions = groupedOptions[category] || [];
-                                        if (categoryOptions.length === 0) return null;
-
-                                        return (
-                                            <div key={category} className="space-y-3">
-                                                <div className="flex items-center gap-2 pb-2 border-b border-[#262626]">
-                                                    <h4
-                                                        className="text-sm font-medium"
-                                                        style={{ color: primaryColor }}
-                                                    >
-                                                        {CATEGORY_LABELS[category] || category}
-                                                    </h4>
-                                                    <span className="text-xs text-[#52525b]">
-                                                        ({categoryOptions.length})
-                                                    </span>
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                                    {categoryOptions.map((option) => {
-                                                        const isSelected = option.id === value;
-
-                                                        return (
-                                                            <button
-                                                                key={option.id}
-                                                                type="button"
-                                                                onClick={() => handleSelect(option.id)}
-                                                                className={`group relative p-4 rounded-xl border-2 transition-all text-left ${isSelected
-                                                                        ? "shadow-lg"
-                                                                        : "border-[#262626] bg-[#1a1a1a] hover:border-[#333] hover:bg-[#1f1f1f]"
-                                                                    }`}
-                                                                style={
-                                                                    isSelected
-                                                                        ? {
-                                                                            borderColor: primaryColor,
-                                                                            backgroundColor: `${primaryColor}1A`,
-                                                                            boxShadow: `0 10px 30px -5px ${primaryColor}33`,
-                                                                        }
-                                                                        : {}
-                                                                }
-                                                            >
-                                                                {/* Selected Indicator */}
-                                                                {isSelected && (
-                                                                    <div
-                                                                        className="z-10 absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
-                                                                        style={{ backgroundColor: primaryColor }}
-                                                                    >
-                                                                        <svg
-                                                                            className="w-3 h-3 text-white"
-                                                                            fill="none"
-                                                                            stroke="currentColor"
-                                                                            viewBox="0 0 24 24"
-                                                                        >
-                                                                            <path
-                                                                                strokeLinecap="round"
-                                                                                strokeLinejoin="round"
-                                                                                strokeWidth={2.5}
-                                                                                d="M5 13l4 4L19 7"
-                                                                            />
-                                                                        </svg>
-                                                                    </div>
-                                                                )}
-
-                                                                {/* Preview */}
-                                                                <div className="mb-3">
-                                                                    <LayoutPreview
-                                                                        preview={option.preview}
-                                                                        themeColor={themeColor}
-                                                                    />
-                                                                </div>
-
-                                                                {/* Label & Icon */}
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <span className="text-base">{option.icon}</span>
-                                                                    <span
-                                                                        className={`text-sm font-medium ${isSelected ? "" : "text-white"
-                                                                            }`}
-                                                                        style={isSelected ? { color: primaryColor } : {}}
-                                                                    >
-                                                                        {option.label}
-                                                                    </span>
-                                                                </div>
-
-                                                                {/* Description */}
-                                                                <p
-                                                                    className={`text-xs ${isSelected ? "text-[#a1a1aa]" : "text-[#52525b]"
-                                                                        }`}
-                                                                >
-                                                                    {option.description}
-                                                                </p>
-
-                                                                {/* Hover Glow Effect */}
-                                                                {!isSelected && (
-                                                                    <div
-                                                                        className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                                                                        style={{
-                                                                            background: themeColor
-                                                                                ? `radial-gradient(circle at 50% 50%, ${primaryColor}1A, transparent 70%)`
-                                                                                : `radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1), transparent 70%)`,
-                                                                        }}
-                                                                    />
-                                                                )}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
+                                                    }`}
+                                                style={
+                                                    isActive
+                                                        ? {
+                                                            backgroundColor: `${primaryColor}1A`,
+                                                            color: primaryColor,
+                                                            border: `1px solid ${primaryColor}33`,
+                                                        }
+                                                        : {}
+                                                }
+                                                title={description}
+                                            >
+                                                {CATEGORY_LABELS[category] || category} ({count})
+                                            </button>
                                         );
                                     })}
                                 </div>
-                            )}
+                            </div>
+                        </div>
+
+                        {/* Main Content Area - Flex layout for web with sidebar */}
+                        <div className="flex flex-1 overflow-hidden">
+                            {/* Sidebar - Web only, shows all categories in multiple rows */}
+                            <div className="hidden md:flex md:flex-col md:w-[190px] md:border-r md:border-[#262626] md:bg-[#141414] md:shrink-0 md:overflow-y-auto custom-scrollbar">
+                                <div className="p-4 space-y-2">
+                                    <h4 className="text-xs font-semibold text-[#71717a] uppercase tracking-wider mb-3 px-2">
+                                        หมวดหมู่
+                                    </h4>
+                                    {/* All Categories Button */}
+                                    <button
+                                        onClick={() => setSelectedCategory(null)}
+                                        className={`group relative w-full px-3 py-2 rounded-lg text-xs font-medium text-left transition-all ${selectedCategory === null
+                                            ? "text-white"
+                                            : "text-[#adadbb] hover:text-[#a1a1aa] hover:bg-[#1a1a1a]"
+                                            }`}
+                                        style={
+                                            selectedCategory === null
+                                                ? {
+                                                    backgroundColor: `${primaryColor}1A`,
+                                                    color: primaryColor,
+                                                    border: `1px solid ${primaryColor}33`,
+                                                }
+                                                : {}
+                                        }
+                                        title={selectedCategory === null ? "แสดงทุก Layout" : undefined}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span>ทั้งหมด</span>
+                                            <span className="text-[#52525b]">{options.length}</span>
+                                        </div>
+                                    </button>
+                                    {/* Category Buttons - Multiple rows */}
+                                    {categories.map((category) => {
+                                        const count = groupedOptions[category]?.length || 0;
+                                        const isActive = selectedCategory === category;
+                                        const description = CATEGORY_DESCRIPTIONS[category] || "";
+                                        return (
+                                            <button
+                                                key={category}
+                                                onClick={() => setSelectedCategory(category)}
+                                                className={`group relative w-full px-3 py-2 rounded-lg text-xs font-medium text-left transition-all ${isActive
+                                                    ? "text-white"
+                                                    : "text-[#adadbb] hover:text-[#a1a1aa] hover:bg-[#1a1a1a]"
+                                                    }`}
+                                                style={
+                                                    isActive
+                                                        ? {
+                                                            backgroundColor: `${primaryColor}1A`,
+                                                            color: primaryColor,
+                                                            border: `1px solid ${primaryColor}33`,
+                                                        }
+                                                        : {}
+                                                }
+                                                title={description}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span>{CATEGORY_LABELS[category] || category}</span>
+                                                    <span className="text-[#52525b]">{count}</span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Modal Body - Main content area */}
+                            <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
+                                {selectedCategory ? (
+                                    // Show options for selected category
+                                    <div>
+                                        <div className="mb-4">
+                                            <h4
+                                                className="text-sm font-medium mb-1"
+                                                style={{ color: primaryColor }}
+                                            >
+                                                {CATEGORY_LABELS[selectedCategory] || selectedCategory}
+                                            </h4>
+                                            <p className="text-xs text-[#52525b]">
+                                                {filteredOptions.length} รายการ
+                                            </p>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                            {filteredOptions.map((option) => {
+                                                const isSelected = option.id === value;
+
+                                                return (
+                                                    <button
+                                                        key={option.id}
+                                                        type="button"
+                                                        onClick={() => handleSelect(option.id)}
+                                                        className={`group relative p-4 rounded-xl border-2 transition-all text-left ${isSelected
+                                                            ? "shadow-lg"
+                                                            : "border-[#262626] bg-[#1a1a1a] hover:border-[#333] hover:bg-[#1f1f1f]"
+                                                            }`}
+                                                        style={
+                                                            isSelected
+                                                                ? {
+                                                                    borderColor: primaryColor,
+                                                                    backgroundColor: `${primaryColor}1A`,
+                                                                    boxShadow: `0 10px 30px -5px ${primaryColor}33`,
+                                                                }
+                                                                : {}
+                                                        }
+                                                    >
+                                                        {/* Selected Indicator */}
+                                                        {isSelected && (
+                                                            <div
+                                                                className="z-10 absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
+                                                                style={{ backgroundColor: primaryColor }}
+                                                            >
+                                                                <svg
+                                                                    className="w-3 h-3 text-white"
+                                                                    fill="none"
+                                                                    stroke="currentColor"
+                                                                    viewBox="0 0 24 24"
+                                                                >
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        strokeWidth={2.5}
+                                                                        d="M5 13l4 4L19 7"
+                                                                    />
+                                                                </svg>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Preview */}
+                                                        <div className="mb-3">
+                                                            <LayoutPreview
+                                                                preview={option.preview}
+                                                                themeColor={themeColor}
+                                                            />
+                                                        </div>
+
+                                                        {/* Label & Icon */}
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="text-base">{option.icon}</span>
+                                                            <span
+                                                                className={`text-sm font-medium ${isSelected ? "" : "text-white"
+                                                                    }`}
+                                                                style={isSelected ? { color: primaryColor } : {}}
+                                                            >
+                                                                {option.label}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Description */}
+                                                        <p
+                                                            className={`text-xs ${isSelected ? "text-[#a1a1aa]" : "text-[#52525b]"
+                                                                }`}
+                                                        >
+                                                            {option.description}
+                                                        </p>
+
+                                                        {/* Hover Glow Effect */}
+                                                        {!isSelected && (
+                                                            <div
+                                                                className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                                                                style={{
+                                                                    background: themeColor
+                                                                        ? `radial-gradient(circle at 50% 50%, ${primaryColor}1A, transparent 70%)`
+                                                                        : `radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1), transparent 70%)`,
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // Show all options grouped by category
+                                    <div className="space-y-6">
+                                        {categories.map((category) => {
+                                            const categoryOptions = groupedOptions[category] || [];
+                                            if (categoryOptions.length === 0) return null;
+
+                                            return (
+                                                <div key={category} className="space-y-3">
+                                                    <div className="flex items-center gap-2 pb-2 border-b border-[#262626]">
+                                                        <h4
+                                                            className="text-sm font-medium"
+                                                            style={{ color: primaryColor }}
+                                                        >
+                                                            {CATEGORY_LABELS[category] || category}
+                                                        </h4>
+                                                        <span className="text-xs text-[#52525b]">
+                                                            ({categoryOptions.length})
+                                                        </span>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                                        {categoryOptions.map((option) => {
+                                                            const isSelected = option.id === value;
+
+                                                            return (
+                                                                <button
+                                                                    key={option.id}
+                                                                    type="button"
+                                                                    onClick={() => handleSelect(option.id)}
+                                                                    className={`group relative p-4 rounded-xl border-2 transition-all text-left ${isSelected
+                                                                        ? "shadow-lg"
+                                                                        : "border-[#262626] bg-[#1a1a1a] hover:border-[#333] hover:bg-[#1f1f1f]"
+                                                                        }`}
+                                                                    style={
+                                                                        isSelected
+                                                                            ? {
+                                                                                borderColor: primaryColor,
+                                                                                backgroundColor: `${primaryColor}1A`,
+                                                                                boxShadow: `0 10px 30px -5px ${primaryColor}33`,
+                                                                            }
+                                                                            : {}
+                                                                    }
+                                                                >
+                                                                    {/* Selected Indicator */}
+                                                                    {isSelected && (
+                                                                        <div
+                                                                            className="z-10 absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
+                                                                            style={{ backgroundColor: primaryColor }}
+                                                                        >
+                                                                            <svg
+                                                                                className="w-3 h-3 text-white"
+                                                                                fill="none"
+                                                                                stroke="currentColor"
+                                                                                viewBox="0 0 24 24"
+                                                                            >
+                                                                                <path
+                                                                                    strokeLinecap="round"
+                                                                                    strokeLinejoin="round"
+                                                                                    strokeWidth={2.5}
+                                                                                    d="M5 13l4 4L19 7"
+                                                                                />
+                                                                            </svg>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Preview */}
+                                                                    <div className="mb-3">
+                                                                        <LayoutPreview
+                                                                            preview={option.preview}
+                                                                            themeColor={themeColor}
+                                                                        />
+                                                                    </div>
+
+                                                                    {/* Label & Icon */}
+                                                                    <div className="flex items-center gap-2 mb-1">
+                                                                        <span className="text-base">{option.icon}</span>
+                                                                        <span
+                                                                            className={`text-sm font-medium ${isSelected ? "" : "text-white"
+                                                                                }`}
+                                                                            style={isSelected ? { color: primaryColor } : {}}
+                                                                        >
+                                                                            {option.label}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {/* Description */}
+                                                                    <p
+                                                                        className={`text-xs ${isSelected ? "text-[#a1a1aa]" : "text-[#52525b]"
+                                                                            }`}
+                                                                    >
+                                                                        {option.description}
+                                                                    </p>
+
+                                                                    {/* Hover Glow Effect */}
+                                                                    {!isSelected && (
+                                                                        <div
+                                                                            className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                                                                            style={{
+                                                                                background: themeColor
+                                                                                    ? `radial-gradient(circle at 50% 50%, ${primaryColor}1A, transparent 70%)`
+                                                                                    : `radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1), transparent 70%)`,
+                                                                            }}
+                                                                        />
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>,

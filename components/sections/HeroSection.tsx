@@ -295,7 +295,7 @@ export default function HeroSection() {
       // Animated Background Typing Code Lines
       if (backgroundCodeLinesRef.current) {
         const codeLineElements = backgroundCodeLinesRef.current.querySelectorAll('.bg-code-line');
-        
+
         const animateCodeLines = () => {
           codeLineElements.forEach((line, index) => {
             const lineElement = line as HTMLElement;
@@ -307,13 +307,13 @@ export default function HeroSection() {
             const pauseDuration = 0.8 + Math.random() * 0.7; // 0.8-1.5 seconds
 
             // Set initial state
-            gsap.set(lineElement, { 
+            gsap.set(lineElement, {
               text: "",
-              opacity: 0 
+              opacity: 0
             });
 
             // Create timeline for this line with infinite loop
-            const lineTl = gsap.timeline({ 
+            const lineTl = gsap.timeline({
               delay: randomDelay,
               repeat: -1,
               repeatDelay: pauseDuration
@@ -351,17 +351,17 @@ export default function HeroSection() {
       // Animated Background Floating Code Snippets
       if (floatingCodeSnippetsRef.current) {
         const snippetElements = floatingCodeSnippetsRef.current.querySelectorAll('.floating-snippet');
-        
+
         snippetElements.forEach((snippet, index) => {
           const snippetElement = snippet as HTMLElement;
-          
+
           // Random properties for each snippet
           const floatDistance = 30 + Math.random() * 40; // 30-70px
           const floatDuration = 8 + Math.random() * 6; // 8-14 seconds
           const opacity = 0.02 + Math.random() * 0.04; // 0.02-0.06
           const delay = index * 0.1 + Math.random() * 0.5; // Stagger delays
           const direction = index % 2 === 0 ? 1 : -1; // Alternate up/down
-          
+
           // Set initial opacity
           gsap.set(snippetElement, {
             opacity: opacity,
@@ -698,13 +698,6 @@ export default function HeroSection() {
                     <span className="text-[#f472b6]">developer</span>{" "}
                     <span className="text-white">=</span>{" "}
                     <span className="text-[#fbbf24]">{"{"}</span>
-                  </div>
-                  <div className="code-line opacity-0">
-                    <span className="text-[#6b7280] select-none mr-4">2</span>
-                    <span className="text-[#60a5fa] ml-4">name</span>
-                    <span className="text-white">:</span>{" "}
-                    <span className="text-[#a5f3fc]">&quot;SUTEP JANTHAWEE&quot;</span>
-                    <span className="text-white">,</span>
                   </div>
                   <div className="code-line opacity-0">
                     <span className="text-[#6b7280] select-none mr-4">3</span>
