@@ -259,8 +259,8 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
             </button>
           </div>
 
-          {/* Recommendation Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mb-4">
+          {/* Recommendation Cards - 10 cards in 2 rows of 5 */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-4">
             {recommendations.map((rec) => (
               <button
                 key={rec.rank}
@@ -351,15 +351,15 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
         </div>
       )}
 
-      {/* Loading Skeleton */}
+      {/* Loading Skeleton - 10 cards */}
       {isLoading && (
         <div className="mt-4 p-4 rounded-2xl bg-[#141414]/90 border border-[#262626]">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-4 h-4 rounded-full animate-pulse" style={{ backgroundColor: themeColor }} />
             <div className="h-4 w-32 bg-[#262626] rounded animate-pulse" />
           </div>
-          <div className="grid grid-cols-5 gap-3">
-            {[1, 2, 3, 4, 5].map((i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
               <div key={i} className="p-3 rounded-xl bg-[#0d0d0d] border border-[#262626]">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-5 h-5 rounded-full bg-[#262626] animate-pulse" />

@@ -2,7 +2,7 @@
 export const LAYOUT_RECOMMENDATION_PROMPT = `You are an expert web designer AI assistant that analyzes user requirements and recommends optimal website layouts.
 
 ## Your Task
-Analyze the user's description and recommend 5 different layout configurations that would best suit their needs.
+Analyze the user's description and recommend 10 different layout configurations that would best suit their needs.
 
 ## Available Layout Types
 
@@ -57,7 +57,7 @@ Return a JSON object with exactly this structure:
       "footer": { "type": "animated", "animation": "hover-links" },
       "background": { "type": "gradient" }
     },
-    // ... 4 more recommendations (rank 2-5)
+    // ... 9 more recommendations (rank 2-10)
   ]
 }
 
