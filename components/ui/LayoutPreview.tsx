@@ -9,6 +9,102 @@ interface LayoutPreviewProps {
   themeColor?: string; // Theme color from STEP 1
 }
 
+// Helper function to get preview description from LayoutPreview
+export function getPreviewDescription(preview: string, customLayout?: string | null): string {
+  const previewDescriptions: Record<string, string> = {
+    "full": "Full Width - เนื้อหาเต็มความกว้าง จัดกลาง",
+    "split": "Split Layout - แบ่งครึ่ง ข้อความซ้าย รูปขวา",
+    "split-reverse": "Split Reverse - แบ่งครึ่ง รูปซ้าย ข้อความขวา",
+    "cols-2": "2 Columns - 2 คอลัมน์เรียงกัน",
+    "cols-3": "3 Columns - 3 คอลัมน์เรียงกัน",
+    "cols-4": "4 Columns - 4 คอลัมน์เรียงกัน",
+    "cols-5": "5 Columns - 5 คอลัมน์เรียงกัน",
+    "cols-6": "6 Columns - 6 คอลัมน์เรียงกัน",
+    "gallery": "Gallery Grid - ตารางรูปภาพ 3x2",
+    "hero-split": "Hero Split - Hero แบ่งครึ่ง",
+    "hero-video": "Hero Video - Hero พร้อมวิดีโอพื้นหลัง",
+    "hero-slider": "Hero Slider - Hero แบบ Carousel",
+    "hero-minimal": "Hero Minimal - Hero แบบเรียบง่าย",
+    "hero-fullscreen": "Hero Fullscreen - Hero เต็มหน้าจอ",
+    "hero-centered": "Hero Centered - Hero จัดกลาง",
+    "hero-collage": "Hero Collage - Hero แบบ Collage",
+    "hero-3d": "Hero 3D - Hero แบบ 3D",
+    "zigzag": "Zigzag - สลับซ้าย-ขวาแบบ Zigzag",
+    "text-center": "Text Center - ข้อความจัดกลาง",
+    "quote": "Quote Block - บล็อกคำพูด",
+    "full-image": "Full Width Image - รูปภาพเต็มความกว้าง",
+    "two-col-text": "Two Column Text - ข้อความ 2 คอลัมน์",
+    "highlight": "Highlight Box - กล่องไฮไลท์",
+    "overlay": "Image Overlay - รูปภาพพร้อม Overlay",
+    "content-cards": "Content Cards - การ์ดเนื้อหา",
+    "numbered-list": "Numbered List - รายการแบบมีหมายเลข",
+    "side-note": "Side Note - หมายเหตุด้านข้าง",
+    "rich-text": "Rich Text - ข้อความแบบ Rich Text",
+    "img-caption-grid": "Image Caption Grid - ตารางรูปพร้อม Caption",
+    "sidebar-left": "Sidebar Left - Sidebar ด้านซ้าย",
+    "sidebar-right": "Sidebar Right - Sidebar ด้านขวา",
+    "cols-3-unequal": "3 Columns Unequal - 3 คอลัมน์ไม่เท่ากัน",
+    "gallery-justified": "Gallery Justified - Gallery แบบ Justified",
+    "gallery-hover": "Gallery Hover - Gallery พร้อม Hover Effect",
+    "gallery-filter": "Gallery Filter - Gallery พร้อม Filter",
+    "gallery-infinite": "Gallery Infinite - Gallery แบบ Infinite Scroll",
+    "gallery-mosaic": "Gallery Mosaic - Gallery แบบ Mosaic",
+    "video-grid": "Video Grid - ตารางวิดีโอ",
+    "media-slider": "Media Slider - Slider สื่อ",
+    "fullscreen-gallery": "Fullscreen Gallery - Gallery เต็มหน้าจอ",
+    "before-after": "Before After - Before/After Comparison",
+    "audio-player": "Audio Player - เครื่องเล่นเสียง",
+    "pricing-cards": "Pricing Cards - การ์ดราคา",
+    "pricing-minimal": "Pricing Minimal - ราคาแบบเรียบง่าย",
+    "pricing-slider": "Pricing Slider - ราคาแบบ Slider",
+    "pricing-tabs": "Pricing Tabs - ราคาแบบ Tabs",
+    "pricing-highlighted": "Pricing Highlighted - ราคาแบบ Highlight",
+    "testimonial": "Testimonial - คำรับรอง",
+    "testimonial-slider": "Testimonial Slider - คำรับรองแบบ Slider",
+    "testimonial-grid": "Testimonial Grid - ตารางคำรับรอง",
+    "faq": "FAQ - คำถามที่พบบ่อย",
+    "faq-categories": "FAQ Categories - FAQ แบบ Categories",
+    "faq-search": "FAQ Search - FAQ พร้อม Search",
+    "stats": "Stats - สถิติ",
+    "stats-counter": "Stats Counter - สถิติแบบ Counter",
+    "progress": "Progress - Progress Bar",
+    "charts": "Charts - กราฟ",
+    "pricing": "Pricing - ราคา",
+    "pricing-toggle": "Pricing Toggle - ราคาแบบ Toggle",
+    "pricing-comparison": "Pricing Comparison - เปรียบเทียบราคา",
+    "cta": "CTA - Call to Action",
+    "cta-split": "CTA Split - CTA แบ่งครึ่ง",
+    "cta-banner": "CTA Banner - CTA แบบ Banner",
+    "newsletter": "Newsletter - จดหมายข่าว",
+    "download": "Download - ดาวน์โหลด",
+    "contact": "Contact - ติดต่อ",
+    "contact-split": "Contact Split - ติดต่อแบบ Split",
+    "signup": "Signup - สมัครสมาชิก",
+    "lead": "Lead Form - ฟอร์ม Lead",
+    "team": "Team - ทีม",
+    "team-grid": "Team Grid - ตารางทีม",
+    "team-carousel": "Team Carousel - ทีมแบบ Carousel",
+    "timeline": "Timeline - ไทม์ไลน์",
+    "timeline-h": "Timeline Horizontal - ไทม์ไลน์แนวนอน",
+    "process": "Process - กระบวนการ",
+    "roadmap": "Roadmap - แผนงาน",
+    "map": "Map - แผนที่",
+    "map-contact": "Map Contact - แผนที่พร้อมติดต่อ",
+    "blog-grid": "Blog Grid - ตารางบล็อก",
+    "blog-list": "Blog List - รายการบล็อก",
+    "blog-featured": "Blog Featured - บล็อกแนะนำ",
+    "news-ticker": "News Ticker - ข่าวแบบ Ticker",
+    "tabs": "Tabs - แท็บ",
+    "accordion": "Accordion - แอคคอร์เดียน",
+    "filter-gallery": "Filter Gallery - Gallery พร้อม Filter",
+    "comparison": "Comparison - เปรียบเทียบ",
+    "custom": customLayout ? `Custom Layout: ${customLayout}` : "Custom Layout - กำหนดเอง",
+    "embed": "Embed - Embed Content",
+  };
+  return previewDescriptions[preview] || `Preview Type: ${preview}`;
+}
+
+
 // Preview component for different layout types - centered with realistic web section structure
 export default function LayoutPreview({ preview, customLabel, size = "medium", themeColor }: LayoutPreviewProps) {
   const heightClass = size === "small" ? "h-16" : "h-20";
@@ -1852,4 +1948,6 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
     </div>
   );
 }
+
+
 

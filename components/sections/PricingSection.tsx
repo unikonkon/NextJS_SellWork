@@ -22,6 +22,9 @@ import {
 } from "@/components/sections/PricingSectionAnimation/landing-page-animations";
 import executeAnimation, { killAnimations, refreshScrollTrigger } from "@/components/sections/PricingSectionAnimation/gsap-animation-executor";
 
+import LayoutPreviewASCII from "@/components/ui/LayoutPreviewASCII";
+import { getPreviewDescription } from "@/components/ui/LayoutPreview";
+
 gsap.registerPlugin(ScrollTrigger);
 
 
@@ -999,6 +1002,61 @@ export default function PricingSection() {
           ...(state.step3.seo ? ["   📊 SEO Setup"] : []),
           ...(state.step1.bilingual ? ["   🌐 รองรับ 2 ภาษา (TH/EN)"] : []),
           ...(state.step3.cms ? ["   ⚙️ CMS"] : []),
+        ]
+        : []),
+      "",
+      "══════════════════════════════════",
+      "",
+      "👁️ Layout Preview Details",
+      "──────────────────────────────────",
+      "",
+      "📐 หน้าหลัก - Layout Preview Structure",
+      ...state.step2.mainSections.map((section, idx) => {
+        const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+        const previewType = layoutInfo?.preview || (section.layout === "custom" ? "custom" : "full");
+
+        const layoutText = section.layout === "custom"
+          ? `✏️ ${section.customLayout || "กำหนดเอง"}`
+          : `${layoutInfo?.icon || ""} ${layoutInfo?.label || section.layout}`;
+
+        const previewASCII = LayoutPreviewASCII(previewType, section.customLayout);
+        const previewDesc = getPreviewDescription(previewType, section.customLayout);
+
+        return [
+          "",
+          `   Section ${idx + 1}: ${layoutText}`,
+          ...previewASCII.map(line => `   ${line}`),
+          `   Type: ${previewDesc}`,
+          ...(layoutInfo?.description ? [`   Description: ${layoutInfo.description}`] : []),
+        ];
+      }).flat(),
+      ...(state.step2.pages.length > 0
+        ? [
+          "",
+          "📐 หน้าที่เพิ่ม - Layout Preview Structure",
+          ...state.step2.pages.flatMap((page) => [
+            "",
+            `   📄 ${page.name} (${page.sections.length} sections)`,
+            ...page.sections.map((section, idx) => {
+              const layoutInfo = SECTION_LAYOUTS.find((l) => l.id === section.layout);
+              const previewType = layoutInfo?.preview || (section.layout === "custom" ? "custom" : "full");
+
+              const layoutText = section.layout === "custom"
+                ? `✏️ ${section.customLayout || "กำหนดเอง"}`
+                : `${layoutInfo?.icon || ""} ${layoutInfo?.label || section.layout}`;
+
+              const previewASCII = LayoutPreviewASCII(previewType, section.customLayout);
+              const previewDesc = getPreviewDescription(previewType, section.customLayout);
+
+              return [
+                "",
+                `      Section ${idx + 1}: ${layoutText}`,
+                ...previewASCII.map(line => `      ${line}`),
+                `      Type: ${previewDesc}`,
+                ...(layoutInfo?.description ? [`      Description: ${layoutInfo.description}`] : []),
+              ];
+            }).flat(),
+          ]),
         ]
         : []),
       "",
