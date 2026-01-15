@@ -7,6 +7,9 @@ export interface AISection {
   layout: string;
   animation: string | null;
   order: number;
+  customLayout?: string;
+  customLayoutLabel?: string;
+  customLayoutDescription?: string;
 }
 
 export interface AIRecommendation {
@@ -25,11 +28,22 @@ export interface AIRecommendation {
   background: {
     type: string;
   };
+  isCustom?: boolean;
+  customLayoutId?: string;
+  designConcept?: string;
+  targetAudience?: string;
+  uniqueFeatures?: string[];
 }
 
 export interface AILayoutResponse {
   recommendations: AIRecommendation[];
+  customRecommendations?: AIRecommendation[];
   userInput: string;
+  meta?: {
+    standardCount: number;
+    customCount: number;
+    totalCount: number;
+  };
 }
 
 // History item with timestamp
@@ -38,6 +52,7 @@ interface HistoryItem {
   timestamp: number;
   userInput: string;
   recommendations: AIRecommendation[];
+  customRecommendations?: AIRecommendation[];
   appliedRecommendation?: AIRecommendation;
 }
 
@@ -81,6 +96,7 @@ export function useAILayoutGenerator() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
+  const [customRecommendations, setCustomRecommendations] = useState<AIRecommendation[]>([]);
   const [selectedRecommendation, setSelectedRecommendation] = useState<AIRecommendation | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
@@ -99,6 +115,7 @@ export function useAILayoutGenerator() {
     setIsLoading(true);
     setError(null);
     setRecommendations([]);
+    setCustomRecommendations([]);
     setSelectedRecommendation(null);
 
     try {
@@ -111,10 +128,11 @@ export function useAILayoutGenerator() {
       if (!response.ok) throw new Error("Failed to generate layouts");
 
       const data: AILayoutResponse = await response.json();
-      setRecommendations(data.recommendations);
+      setRecommendations(data.recommendations || []);
+      setCustomRecommendations(data.customRecommendations || []);
 
       // Auto select first recommendation
-      if (data.recommendations.length > 0) {
+      if (data.recommendations && data.recommendations.length > 0) {
         setSelectedRecommendation(data.recommendations[0]);
       }
 
@@ -123,7 +141,8 @@ export function useAILayoutGenerator() {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
         timestamp: Date.now(),
         userInput,
-        recommendations: data.recommendations,
+        recommendations: data.recommendations || [],
+        customRecommendations: data.customRecommendations || [],
       };
       const newHistory = addToHistory(historyItem);
       setHistory(newHistory);
@@ -141,6 +160,8 @@ export function useAILayoutGenerator() {
 
   const loadFromHistory = useCallback((item: HistoryItem) => {
     setRecommendations(item.recommendations);
+    setCustomRecommendations(item.customRecommendations || []);
+    console.log("loadFromHistory", item);
     setSelectedRecommendation(item.appliedRecommendation || item.recommendations[0] || null);
     setCurrentHistoryId(item.id);
     setError(null);
@@ -163,8 +184,23 @@ export function useAILayoutGenerator() {
     setHistory([]);
   }, []);
 
+  const removeHistoryItem = useCallback((itemId: string) => {
+    const updatedHistory = history.filter(item => item.id !== itemId);
+    setHistory(updatedHistory);
+    saveHistory(updatedHistory);
+
+    // If the removed item was the current one, clear recommendations
+    if (currentHistoryId === itemId) {
+      setRecommendations([]);
+      setCustomRecommendations([]);
+      setSelectedRecommendation(null);
+      setCurrentHistoryId(null);
+    }
+  }, [history, currentHistoryId]);
+
   const clearRecommendations = useCallback(() => {
     setRecommendations([]);
+    setCustomRecommendations([]);
     setSelectedRecommendation(null);
     setError(null);
     setCurrentHistoryId(null);
@@ -174,6 +210,7 @@ export function useAILayoutGenerator() {
     isLoading,
     error,
     recommendations,
+    customRecommendations,
     selectedRecommendation,
     history,
     currentHistoryId,
@@ -182,6 +219,7 @@ export function useAILayoutGenerator() {
     loadFromHistory,
     markAsApplied,
     clearAllHistory,
+    removeHistoryItem,
     clearRecommendations,
   };
 }
@@ -202,6 +240,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
     isLoading,
     error,
     recommendations,
+    customRecommendations,
     selectedRecommendation,
     history,
     generateLayouts,
@@ -209,6 +248,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
     loadFromHistory,
     markAsApplied,
     clearAllHistory,
+    removeHistoryItem,
     clearRecommendations,
   } = useAILayoutGenerator();
 
@@ -223,7 +263,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
       onApplyLayout(selectedRecommendation);
       markAsApplied(selectedRecommendation);
       setIsApplied(true); // Mark as applied
-      
+
       // Scroll to Live Preview section after a short delay to ensure DOM is updated
       setTimeout(() => {
         const livePreviewElement = document.getElementById("live-preview");
@@ -255,7 +295,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
   // Reset applied state when a different recommendation is selected
   useEffect(() => {
     setIsApplied(false);
-  }, [selectedRecommendation?.rank]);
+  }, [selectedRecommendation?.rank, selectedRecommendation?.isCustom]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -465,10 +505,9 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[280px] overflow-y-auto pr-1 custom-scrollbar">
               {history.map((item) => (
-                <button
+                <div
                   key={item.id}
-                  onClick={() => handleLoadHistory(item)}
-                  className="p-3 rounded-xl text-left transition-all duration-200 group"
+                  className="p-3 rounded-xl text-left transition-all duration-200 group relative"
                   style={{
                     background: "rgba(255,255,255,0.02)",
                     border: "1px solid #262626",
@@ -482,25 +521,53 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
                     e.currentTarget.style.background = "rgba(255,255,255,0.02)";
                   }}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <span className="text-xs font-medium text-white truncate flex-1">
-                      &quot;{item.userInput}&quot;
-                    </span>
-                    {item.appliedRecommendation && (
-                      <span
-                        className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium"
-                        style={{ backgroundColor: `${themeColor}30`, color: themeColor }}
-                      >
-                        ใช้แล้ว
+                  {/* Delete Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeHistoryItem(item.id);
+                    }}
+                    className="absolute top-2 right-2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-500/20"
+                    title="ลบรายการนี้"
+                    style={{ color: "#ef4444" }}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+
+                  {/* Content */}
+                  <button
+                    onClick={() => handleLoadHistory(item)}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2 pr-6">
+                      <span className="text-xs font-medium text-white truncate flex-1">
+                        &quot;{item.userInput}&quot;
                       </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-[#52525b]">
-                    <span>{formatTime(item.timestamp)}</span>
-                    <span>•</span>
-                    <span>{item.recommendations.length} ผลลัพธ์</span>
-                  </div>
-                </button>
+                      {item.appliedRecommendation && (
+                        <span
+                          className="shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium"
+                          style={{ backgroundColor: `${themeColor}30`, color: themeColor }}
+                        >
+                          ใช้แล้ว
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-[#52525b]">
+                      <span>{formatTime(item.timestamp)}</span>
+                      <span>•</span>
+                      <span>
+                        {item.recommendations.length + (item.customRecommendations?.length || 0)} ผลลัพธ์
+                        {item.customRecommendations && item.customRecommendations.length > 0 && (
+                          <span className="ml-1" style={{ color: themeColor }}>
+                            ({item.customRecommendations.length} custom)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -509,7 +576,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
 
       {/* ==================== RECOMMENDATIONS PANEL ==================== */}
       <div
-        className={`transition-all duration-500 ease-out ${isExpanded && recommendations.length > 0 ? "max-h-[2000px] opacity-100 mt-4" : "max-h-0 opacity-0 overflow-hidden"
+        className={`transition-all duration-500 ease-out ${isExpanded && (recommendations.length > 0 || customRecommendations.length > 0) ? "max-h-[2000px] opacity-100 mt-4" : "max-h-0 opacity-0 overflow-hidden"
           }`}
       >
         <div
@@ -530,7 +597,14 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
                 <span className="text-base">✨</span>
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">AI แนะนำ {recommendations.length} รูปแบบ</h3>
+                <h3 className="text-sm font-semibold text-white">
+                  AI แนะนำ {recommendations.length + customRecommendations.length} รูปแบบ
+                  {customRecommendations.length > 0 && (
+                    <span className="ml-2 text-xs font-normal" style={{ color: themeColor }}>
+                      ({recommendations.length} มาตรฐาน + {customRecommendations.length} แบบกำหนดเอง)
+                    </span>
+                  )}
+                </h3>
                 <p className="text-[10px] text-[#52525b]">เลือกรูปแบบที่เหมาะกับความต้องการของคุณ</p>
               </div>
             </div>
@@ -545,63 +619,171 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
             </button>
           </div>
 
-          {/* Recommendation Cards Grid - 10 cards (5x2) */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 mb-5">
-            {recommendations.map((rec, index) => (
-              <button
-                key={rec.rank}
-                onClick={() => selectRecommendation(rec)}
-                className="cursor-pointer p-3 rounded-xl text-left transition-all duration-300 relative overflow-hidden group"
-                style={{
-                  background: selectedRecommendation?.rank === rec.rank
-                    ? `linear-gradient(135deg, ${themeColor}15 0%, ${themeColor}08 100%)`
-                    : "rgba(255,255,255,0.02)",
-                  border: selectedRecommendation?.rank === rec.rank
-                    ? `2px solid ${themeColor}`
-                    : "1px solid #262626",
-                  boxShadow: selectedRecommendation?.rank === rec.rank
-                    ? `0 4px 20px ${themeColor}20`
-                    : "none",
-                  animationDelay: `${index * 50}ms`,
-                }}
-              >
-                {/* Hover gradient */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: `linear-gradient(135deg, ${themeColor}08 0%, transparent 60%)` }}
-                />
+          {/* Standard Recommendations Section */}
+          {recommendations.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs font-semibold text-white">รูปแบบมาตรฐาน</span>
+                <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, ${themeColor}40, transparent)` }} />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
+                {recommendations.map((rec, index) => (
+                  <button
+                    key={rec.rank}
+                    onClick={() => selectRecommendation(rec)}
+                    className="cursor-pointer p-3 rounded-xl text-left transition-all duration-300 relative overflow-hidden group"
+                    style={{
+                      background: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                        ? `linear-gradient(135deg, ${themeColor}15 0%, ${themeColor}08 100%)`
+                        : "rgba(255,255,255,0.02)",
+                      border: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                        ? `2px solid ${themeColor}`
+                        : "1px solid #262626",
+                      boxShadow: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                        ? `0 4px 20px ${themeColor}20`
+                        : "none",
+                      animationDelay: `${index * 50}ms`,
+                    }}
+                  >
+                    {/* Hover gradient */}
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{ background: `linear-gradient(135deg, ${themeColor}08 0%, transparent 60%)` }}
+                    />
 
-                {/* Card content */}
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className="w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center transition-transform group-hover:scale-110"
-                      style={{
-                        background: selectedRecommendation?.rank === rec.rank
-                          ? themeColor
-                          : `${themeColor}40`,
-                        color: selectedRecommendation?.rank === rec.rank
-                          ? getContrastColor(themeColor)
-                          : "#fff"
-                      }}
-                    >
-                      {rec.rank}
-                    </span>
-                    <span className="text-xs font-medium text-white truncate">{rec.name}</span>
-                  </div>
-                  <p className="text-[10px] text-[#71717a] line-clamp-2 mb-2 leading-relaxed">{rec.description}</p>
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="text-[9px] px-1.5 py-0.5 rounded"
-                      style={{ backgroundColor: `${themeColor}15`, color: `${themeColor}` }}
-                    >
-                      {rec.sections.length} sections
-                    </span>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
+                    {/* Card content */}
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className="w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center transition-transform group-hover:scale-110"
+                          style={{
+                            background: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                              ? themeColor
+                              : `${themeColor}40`,
+                            color: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                              ? getContrastColor(themeColor)
+                              : "#fff"
+                          }}
+                        >
+                          {rec.rank}
+                        </span>
+                        <span className="text-xs font-medium text-white truncate">{rec.name}</span>
+                      </div>
+                      <p className="text-[10px] text-[#71717a] line-clamp-2 mb-2 leading-relaxed">{rec.description}</p>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="text-[9px] px-1.5 py-0.5 rounded"
+                          style={{ backgroundColor: `${themeColor}15`, color: `${themeColor}` }}
+                        >
+                          {rec.sections.length} sections
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Custom Recommendations Section */}
+          {customRecommendations.length > 0 && (
+            <div className="mb-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs font-semibold text-white flex items-center gap-2">
+                  <span style={{ color: themeColor }}>✨</span>
+                  รูปแบบกำหนดเอง (Custom)
+                </span>
+                <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, ${themeColor}40, transparent)` }} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {customRecommendations.map((rec, index) => (
+                  <button
+                    key={`custom-${rec.rank}`}
+                    onClick={() => selectRecommendation(rec)}
+                    className="cursor-pointer p-4 rounded-xl text-left transition-all duration-300 relative overflow-hidden group"
+                    style={{
+                      background: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                        ? `linear-gradient(135deg, ${themeColor}20 0%, ${themeColor}10 100%)`
+                        : "rgba(255,255,255,0.03)",
+                      border: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                        ? `2px solid ${themeColor}`
+                        : `1px solid ${themeColor}30`,
+                      boxShadow: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                        ? `0 4px 20px ${themeColor}30`
+                        : `0 2px 10px ${themeColor}10`,
+                      animationDelay: `${index * 50}ms`,
+                    }}
+                  >
+                    {/* Hover gradient */}
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{ background: `linear-gradient(135deg, ${themeColor}15 0%, transparent 60%)` }}
+                    />
+
+                    {/* Custom badge */}
+                    <div className="absolute top-2 right-2">
+                      <span
+                        className="text-[8px] px-2 py-1 rounded-full font-bold uppercase tracking-wider"
+                        style={{
+                          backgroundColor: `${themeColor}30`,
+                          color: themeColor,
+                          border: `1px solid ${themeColor}50`
+                        }}
+                      >
+                        Custom
+                      </span>
+                    </div>
+
+                    {/* Card content */}
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className="w-6 h-6 rounded-md text-[11px] font-bold flex items-center justify-center transition-transform group-hover:scale-110"
+                          style={{
+                            background: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                              ? themeColor
+                              : `${themeColor}50`,
+                            color: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                              ? getContrastColor(themeColor)
+                              : "#fff"
+                          }}
+                        >
+                          C{rec.rank}
+                        </span>
+                        <span className="text-sm font-semibold text-white truncate flex-1">{rec.name}</span>
+                      </div>
+                      <p className="text-[11px] text-[#a1a1aa] line-clamp-2 mb-3 leading-relaxed">{rec.description}</p>
+
+                      {/* Custom info */}
+                      {rec.designConcept && (
+                        <div className="mb-2 p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.2)" }}>
+                          <p className="text-[10px] text-[#71717a] mb-1">แนวคิด:</p>
+                          <p className="text-[10px] text-white line-clamp-2">{rec.designConcept}</p>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className="text-[9px] px-1.5 py-0.5 rounded"
+                          style={{ backgroundColor: `${themeColor}15`, color: `${themeColor}` }}
+                        >
+                          {rec.sections.length} sections
+                        </span>
+                        {rec.targetAudience && (
+                          <span
+                            className="text-[9px] px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: `${themeColor}10`, color: `${themeColor}cc` }}
+                          >
+                            👥 {rec.targetAudience}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Selected Recommendation Details */}
           {selectedRecommendation && (
@@ -658,15 +840,47 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
                 </button>
               </div>
 
+              {/* Custom Recommendation Info */}
+              {selectedRecommendation.isCustom && (
+                <div className="mb-4 p-3 rounded-lg relative z-10" style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${themeColor}30` }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span style={{ color: themeColor }} className="text-sm">✨</span>
+                    <span className="text-xs font-semibold text-white">รูปแบบกำหนดเอง</span>
+                  </div>
+                  {selectedRecommendation.designConcept && (
+                    <div className="mb-2 flex items-center gap-1">
+                      <p className="text-[10px] text-[#a1a1aa] mb-1">แนวคิดการออกแบบ:</p>
+                      <p className="text-xs text-white">{selectedRecommendation.designConcept}</p>
+                    </div>
+                  )}
+                  {selectedRecommendation.targetAudience && (
+                    <div className="mb-2 flex items-center gap-1">
+                      <p className="text-[10px] text-[#a1a1aa] mb-1">กลุ่มเป้าหมาย:</p>
+                      <p className="text-xs text-white">{selectedRecommendation.targetAudience}</p>
+                    </div>
+                  )}
+                  {selectedRecommendation.uniqueFeatures && selectedRecommendation.uniqueFeatures.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <p className="text-[10px] text-[#a1a1aa] mb-1">จุดเด่น:</p>
+                      <ul className="list-disc list-inside space-y-1 flex items-center gap-3">
+                        {selectedRecommendation.uniqueFeatures.map((feature, idx) => (
+                          <li key={idx} className="text-xs text-white">{feature}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Sections Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 mb-2 relative z-10">
+              <div className="flex  gap-2 mb-2 relative z-10">
                 {selectedRecommendation.sections.map((section, idx) => (
                   <div
                     key={idx}
                     className="p-2.5 rounded-lg transition-all duration-200 hover:scale-[1.02]"
                     style={{
                       background: "rgba(0,0,0,0.3)",
-                      border: "1px solid #333"
+                      border: section.customLayout ? `1px solid ${themeColor}40` : "1px solid #333"
                     }}
                   >
                     <div className="flex items-center gap-1.5 mb-1">
@@ -676,14 +890,21 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
                       >
                         {section.order}
                       </span>
-                      <span className="text-[10px] text-[#52525b]">Section</span>
+                      <span className="text-[10px] text-[#52525b]">
+                        {section.customLayout ? "Custom" : "Section"}
+                      </span>
                     </div>
-                    <div className="text-xs text-white font-medium truncate mb-1">{section.layout}</div>
                     {section.animation && (
                       <div className="flex items-center gap-1">
                         <span style={{ color: themeColor }} className="text-[10px]">✦</span>
                         <span className="text-[10px] text-[#71717a] truncate">{section.animation}</span>
                       </div>
+                    )}
+                    <div className="text-xs text-white font-medium truncate mb-1">
+                      {section.customLayoutLabel || section.layout}
+                    </div>
+                    {section.customLayoutDescription && (
+                      <p className="text-[9px] text-white line-clamp-4 mb-1">{section.customLayoutDescription}</p>
                     )}
                   </div>
                 ))}

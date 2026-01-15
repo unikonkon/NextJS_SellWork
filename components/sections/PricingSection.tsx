@@ -540,13 +540,20 @@ export default function PricingSection() {
   // ==================== AI LAYOUT RECOMMENDATION HANDLER ====================
   const handleApplyAILayout = useCallback((recommendation: AIRecommendation) => {
     // Convert AI sections to SectionItem format
-    const newSections: SectionItem[] = recommendation.sections.map((section) => ({
-      id: generateId(),
-      layout: section.layout,
-      customLayout: null,
-      animation: section.animation,
-      customAnimation: null,
-    }));
+    const newSections: SectionItem[] = recommendation.sections.map((section) => {
+      // Check if this is a custom layout section (has customLayoutLabel or layout is "custom")
+      const isCustomLayout = section.layout === "custom" || !!section.customLayoutLabel;
+      
+      return {
+        id: generateId(),
+        layout: isCustomLayout ? "custom" : section.layout,
+        // customLayoutLabel goes to customLayout field
+        customLayout: section.customLayoutLabel || (section.customLayout || null),
+        animation: section.animation,
+        // customLayoutDescription goes to customAnimation field (will be displayed in UI)
+        customAnimation: section.customLayoutDescription || null,
+      };
+    });
 
     // Update state with AI recommendations
     setState((prev) => ({
