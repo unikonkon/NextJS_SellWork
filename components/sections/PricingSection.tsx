@@ -23,7 +23,7 @@ import {
 import executeAnimation, { killAnimations, refreshScrollTrigger } from "@/components/sections/PricingSectionAnimation/gsap-animation-executor";
 
 import LayoutPreviewASCII from "@/components/ui/LayoutPreviewASCII";
-import { getPreviewDescription } from "@/components/ui/LayoutPreview";
+import AILayoutInput, { AIRecommendation } from "@/components/ui/useAIGen";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -537,6 +537,38 @@ export default function PricingSection() {
     }));
   }, []);
 
+  // ==================== AI LAYOUT RECOMMENDATION HANDLER ====================
+  const handleApplyAILayout = useCallback((recommendation: AIRecommendation) => {
+    // Convert AI sections to SectionItem format
+    const newSections: SectionItem[] = recommendation.sections.map((section) => ({
+      id: generateId(),
+      layout: section.layout,
+      customLayout: null,
+      animation: section.animation,
+      customAnimation: null,
+    }));
+
+    // Update state with AI recommendations
+    setState((prev) => ({
+      ...prev,
+      step1: {
+        ...prev.step1,
+        background: recommendation.background.type,
+      },
+      step2: {
+        ...prev.step2,
+        // Update navbar
+        navbar: recommendation.navbar.type === "animated" ? "animated" : "basic",
+        selectedNavbarAnim: recommendation.navbar.animation,
+        // Update footer
+        footer: recommendation.footer.type === "animated" ? "animated" : "basic",
+        selectedFooterAnim: recommendation.footer.animation,
+        // Replace main sections with AI recommended sections
+        mainSections: newSections,
+      },
+    }));
+  }, []);
+
   // Update main section layout
   const updateMainSectionLayout = useCallback((sectionId: string, layout: string) => {
     setState((prev) => ({
@@ -1020,13 +1052,12 @@ export default function PricingSection() {
           : `${layoutInfo?.icon || ""} ${layoutInfo?.label || section.layout}`;
 
         const previewASCII = LayoutPreviewASCII(previewType, section.customLayout);
-        const previewDesc = getPreviewDescription(previewType, section.customLayout);
 
         return [
           "",
           `   Section ${idx + 1}: ${layoutText}`,
           ...previewASCII.map(line => `   ${line}`),
-          `   Type: ${previewDesc}`,
+          ...(section.animation ? [`   Animation: ${SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation)?.label || ""}`] : ["   Animation: ไม่มี"]),
           ...(layoutInfo?.description ? [`   Description: ${layoutInfo.description}`] : []),
         ];
       }).flat(),
@@ -1046,13 +1077,12 @@ export default function PricingSection() {
                 : `${layoutInfo?.icon || ""} ${layoutInfo?.label || section.layout}`;
 
               const previewASCII = LayoutPreviewASCII(previewType, section.customLayout);
-              const previewDesc = getPreviewDescription(previewType, section.customLayout);
 
               return [
                 "",
                 `      Section ${idx + 1}: ${layoutText}`,
                 ...previewASCII.map(line => `      ${line}`),
-                `      Type: ${previewDesc}`,
+                ...(section.animation ? [`      Animation: ${SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation)?.label || ""}`] : ["      Animation: ไม่มี"]),
                 ...(layoutInfo?.description ? [`      Description: ${layoutInfo.description}`] : []),
               ];
             }).flat(),
@@ -1520,6 +1550,16 @@ export default function PricingSection() {
         <p className="font-mono text-sm text-[#52525b]">
           {"// "} คำนวณราคาแบบ Real-time ตามความต้องการ
         </p>
+
+
+        {/* AI Layout Recommendation System */}
+        <div className="mt-10">
+          <AILayoutInput
+            onApplyLayout={handleApplyAILayout}
+            themeColor={getThemeColor}
+          />
+        </div>
+
       </div>
 
       {/* Main Calculator Layout */}
