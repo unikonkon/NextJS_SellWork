@@ -2706,7 +2706,7 @@ export default function PricingSection() {
 
                 <div className={`space-y-4 ${mobilePreviewOpen ? "block" : "hidden lg:block"}`}>
                   {/* Live Preview */}
-                  <div className="p-3 rounded-2xl bg-[#141414]/80 border border-[#262626]">
+                  <div id="live-preview" className="p-3 rounded-2xl bg-[#141414]/80 border border-[#262626]">
                     {/* Header with Summary */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
