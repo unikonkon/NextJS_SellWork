@@ -132,6 +132,7 @@ interface SectionItem {
   id: string;
   layout: string;
   customLayout: string | null; // สำหรับ layout แบบกำหนดเอง
+  customLayoutAI?: string | null; // สำหรับ layout แบบกำหนดเองจาก AI
   animation: string | null;
   customAnimation: string | null; // สำหรับ animation แบบกำหนดเอง
 }
@@ -551,7 +552,8 @@ export default function PricingSection() {
         customLayout: section.customLayoutLabel || (section.customLayout || null),
         animation: section.animation,
         // customLayoutDescription goes to customAnimation field (will be displayed in UI)
-        customAnimation: section.customLayoutDescription || null,
+        customLayoutAI: section.customLayoutDescription || null,
+        customAnimation: null,
       };
     });
 
@@ -574,7 +576,9 @@ export default function PricingSection() {
         mainSections: newSections,
       },
     }));
+
   }, []);
+  console.log("state", state);
 
   // Update main section layout
   const updateMainSectionLayout = useCallback((sectionId: string, layout: string) => {
@@ -1066,6 +1070,7 @@ export default function PricingSection() {
           ...previewASCII.map(line => `   ${line}`),
           ...(section.animation ? [`   Animation: ${SECTION_ANIMATIONS[section.layout]?.find((a) => a.id === section.animation)?.label || ""}`] : ["   Animation: ไม่มี"]),
           ...(layoutInfo?.description ? [`   Description: ${layoutInfo.description}`] : []),
+          ...(section.customLayoutAI ? [`   Custom Layout AI: ${section.customLayoutAI}`] : []),
         ];
       }).flat(),
       ...(state.step2.pages.length > 0
@@ -2211,12 +2216,12 @@ export default function PricingSection() {
                               {section.layout === "custom" && (
                                 <div className="pl-7 pb-2">
                                   <div className="flex gap-2">
-                                    <input
-                                      type="text"
+                                    <textarea
                                       placeholder="ระบุชื่อ Section ที่ต้องการ..."
                                       value={section.customLayout || ""}
                                       onChange={(e) => updateMainSectionCustomLayout(section.id, e.target.value)}
-                                      className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#8b5cf6]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#8b5cf6] transition-colors"
+                                      className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#8b5cf6]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#8b5cf6] transition-colors resize-y min-h-[40px] max-h-[200px]"
+                                      rows={1}
                                     />
                                     {section.customLayout && (
                                       <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
@@ -2468,12 +2473,12 @@ export default function PricingSection() {
                                   {section.layout === "custom" && (
                                     <div className="pl-7 pb-2">
                                       <div className="flex gap-2">
-                                        <input
-                                          type="text"
+                                        <textarea
                                           placeholder="ระบุชื่อ Section ที่ต้องการ..."
                                           value={section.customLayout || ""}
                                           onChange={(e) => updatePageSectionCustomLayout(page.id, section.id, e.target.value)}
-                                          className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors"
+                                          className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors resize-y min-h-[36px] max-h-[160px]"
+                                          rows={1}
                                         />
                                         {section.customLayout && (
                                           <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
@@ -3137,7 +3142,7 @@ export default function PricingSection() {
                                     <span className="text-[#f97316]">✏️ {section.customLayout || "กำหนดเอง"}</span>
                                   ) : (
                                     <span>{layoutInfo?.icon} {layoutInfo?.label}</span>
-                                  )}
+                                  )} {section.customLayoutAI ? ` | ✏️ ${section.customLayoutAI}` : ""}
                                 </span>
                                 {(section.animation || section.customAnimation) && (
                                   <>

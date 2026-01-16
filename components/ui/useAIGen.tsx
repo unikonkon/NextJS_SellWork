@@ -322,141 +322,328 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
     <div className="w-full max-w-6xl mx-auto relative">
       {/* ==================== MAIN INPUT BAR ==================== */}
       <div className="relative">
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <div
-            className="h-px flex-1 max-w-[60px]"
-            style={{ background: `linear-gradient(to right, transparent, ${themeColor}40)` }}
-          />
-          <span className="text-sm font-medium tracking-wide text-[#a1a1aa]">
-            AI Layout Generator
-          </span>
-          <div
-            className="h-px flex-1 max-w-[60px]"
-            style={{ background: `linear-gradient(to left, transparent, ${themeColor}40)` }}
-          />
-        </div>
+        {/* Animated Header */}
+        <div className="flex items-center justify-center gap-4 mb-6 relative">
+          {/* Left animated line */}
+          <div className="relative h-[2px] flex-1 max-w-[100px] overflow-hidden">
+            <div
+              className="absolute inset-0 animate-shimmer-left"
+              style={{
+                background: `linear-gradient(90deg, transparent 0%, ${themeColor} 50%, transparent 100%)`,
+                backgroundSize: "200% 100%"
+              }}
+            />
+          </div>
 
-        <div className="flex flex-col md:flex-row  items-center justify-between gap-2">
+          {/* Center badge with glow */}
           <div
-            className="w-full flex items-center gap-3 p-1 sm:p-2 rounded-2xl backdrop-blur-xl transition-all duration-300"
+            className="relative px-5 py-2 rounded-full flex items-center gap-2"
             style={{
-              background: "linear-gradient(135deg, rgba(20,20,20,0.95) 0%, rgba(30,30,30,0.9) 100%)",
-              boxShadow: isExpanded
-                ? `0 8px 32px ${themeColor}25, 0 0 0 1px ${themeColor}30, inset 0 1px 0 rgba(255,255,255,0.05)`
-                : "0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
-              border: `1px solid ${isExpanded ? themeColor + "40" : "#333"}`,
+              background: `linear-gradient(135deg, ${themeColor}20 0%, ${themeColor}08 100%)`,
+              border: `1px solid ${themeColor}40`,
+              boxShadow: `0 0 30px ${themeColor}20, inset 0 1px 0 rgba(255,255,255,0.1)`
             }}
           >
-            {/* AI Robot Icon */}
+            {/* Animated pulse ring */}
             <div
-              className="shrink-0 w-12 h-12 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center relative overflow-hidden group cursor-pointer"
-              style={{
-                background: `linear-gradient(135deg, ${themeColor}30 0%, ${themeColor}10 100%)`,
-                border: `1px solid ${themeColor}30`
-              }}
-              onClick={() => setShowHistory(!showHistory)}
-              title="ดูประวัติ"
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{ background: `radial-gradient(circle at center, ${themeColor}20 0%, transparent 70%)` }}
-              />
-              <svg className="w-6 h-6 relative z-10 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="8" fill={`${themeColor}40`} stroke={themeColor} strokeWidth="1.5" />
-                <circle cx="9" cy="11" r="1.5" fill="#fff" />
-                <circle cx="15" cy="11" r="1.5" fill="#fff" />
-                <path d="M9 15c.8 1 2.2 1.5 3 1.5s2.2-.5 3-1.5" stroke="#fff" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-                <line x1="12" y1="4" x2="12" y2="1.5" stroke={themeColor} strokeWidth="1.5" />
-                <circle cx="12" cy="1" r="1" fill={themeColor} />
-              </svg>
-              {/* History indicator badge */}
-              {history.length > 0 && (
-                <div
-                  className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold"
-                  style={{ backgroundColor: themeColor, color: getContrastColor(themeColor) }}
-                >
-                  {history.length > 9 ? "9+" : history.length}
-                </div>
-              )}
-            </div>
-
-            {/* Input Field */}
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="อธิบายเว็บไซต์ เช่น 'ร้านอาหาร' 'Portfolio' 'SaaS Landing'"
-              className="flex-1 bg-transparent border-none outline-none text-white placeholder-[#52525b] text-sm min-w-0 h-[32px] pl-4 hover:bg-white/5 hover:rounded-md hover:text-white transition-all duration-300"
-              disabled={isLoading}
+              className="absolute inset-0 rounded-full animate-ping-slow opacity-30"
+              style={{ border: `1px solid ${themeColor}` }}
             />
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 shrink-0">
+            {/* AI Icon */}
+            <div className="relative">
+              <svg className="w-4 h-4 animate-pulse-glow" style={{ color: themeColor }} viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" fill="currentColor" opacity="0.3" />
+                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
 
-              {/* Generate Button */}
-              <button
-                onClick={handleGenerate}
-                disabled={isLoading || !inputValue.trim()}
-                className="cursor-pointer px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed relative overflow-hidden group"
-                style={{
-                  background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}cc 100%)`,
-                  boxShadow: `0 4px 15px ${themeColor}40`,
-                }}
-              >
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%)" }}
-                />
-                {isLoading ? (
-                  <span className="flex items-center gap-2 relative z-10">
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span className="hidden sm:inline">กำลังสร้าง...</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2 relative z-10 text-white">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    <span className="hidden sm:inline">สร้าง Layout</span>
-                  </span>
-                )}
-              </button>
+            <span
+              className="text-[9px] md:text-sm font-mono tracking-wider uppercase"
+              style={{
+                background: `linear-gradient(135deg, ${themeColor} 0%, #fff 50%, ${themeColor} 100%)`,
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundSize: "200% auto",
+                animation: "gradient-shift 3s ease infinite"
+              }}
+            >
+              ใช้ AI เพื่อสร้าง Layout website แล้วเลือกตามความต้องการของคุณ
+            </span>
+
+            {/* Sparkle decorations */}
+            <div className="absolute -top-1 -right-1 w-2 h-2 animate-twinkle" style={{ animationDelay: "0s" }}>
+              <svg viewBox="0 0 24 24" fill={themeColor}>
+                <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+              </svg>
+            </div>
+            <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 animate-twinkle" style={{ animationDelay: "0.5s" }}>
+              <svg viewBox="0 0 24 24" fill={themeColor}>
+                <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+              </svg>
             </div>
           </div>
 
-          {/* History Toggle Button */}
-          <div className={`cursor-pointer flex items-center w-[200px] rounded-xl ${showHistory ? "bg-white/10" : "hover:bg-white/5"}`}
-            onClick={() => setShowHistory(!showHistory)}
-          >
-            <button
-              className={`p-2 rounded-lg transition-all duration-200 `}
-              title="ประวัติการใช้งาน"
-            >
-              <svg className="w-5 h-5" style={{ color: showHistory ? themeColor : "#71717a" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
-            <span className="text-sm font-medium tracking-wide text-[#a1a1aa]"> ประวัติการใช้งาน AI</span>
+          {/* Right animated line */}
+          <div className="relative h-[2px] flex-1 max-w-[100px] overflow-hidden">
+            <div
+              className="absolute inset-0 animate-shimmer-right"
+              style={{
+                background: `linear-gradient(90deg, transparent 0%, ${themeColor} 50%, transparent 100%)`,
+                backgroundSize: "200% 100%"
+              }}
+            />
           </div>
-
         </div>
 
-        {/* Error Message */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+          {/* Main Input Container with Enhanced Design */}
+          <div className="w-full relative group">
+            {/* Animated border glow effect */}
+            <div
+              className="absolute -inset-[2px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"
+              style={{
+                background: `linear-gradient(135deg, ${themeColor}60, transparent 40%, transparent 60%, ${themeColor}60)`,
+                backgroundSize: "200% 200%",
+                animation: "gradient-rotate 4s linear infinite"
+              }}
+            />
+
+            {/* Floating particles background */}
+            <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+              <div className="absolute top-2 left-[20%] w-1 h-1 rounded-full animate-float-particle" style={{ backgroundColor: `${themeColor}40`, animationDelay: "0s" }} />
+              <div className="absolute top-4 left-[60%] w-0.5 h-0.5 rounded-full animate-float-particle" style={{ backgroundColor: `${themeColor}60`, animationDelay: "1s" }} />
+              <div className="absolute bottom-3 left-[40%] w-1 h-1 rounded-full animate-float-particle" style={{ backgroundColor: `${themeColor}30`, animationDelay: "2s" }} />
+              <div className="absolute bottom-2 left-[80%] w-0.5 h-0.5 rounded-full animate-float-particle" style={{ backgroundColor: `${themeColor}50`, animationDelay: "0.5s" }} />
+            </div>
+
+            <div
+              className="relative flex items-center gap-3 p-2 sm:p-3 rounded-2xl backdrop-blur-xl transition-all duration-500"
+              style={{
+                background: `linear-gradient(135deg, rgba(12,12,12,0.98) 0%, rgba(22,22,22,0.95) 50%, rgba(12,12,12,0.98) 100%)`,
+                boxShadow: isExpanded
+                  ? `0 0 60px ${themeColor}30, 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.3)`
+                  : `0 10px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(0,0,0,0.2)`,
+                border: `1px solid ${isExpanded ? themeColor + "50" : "rgba(60,60,60,0.5)"}`,
+              }}
+            >
+              {/* AI Brain Icon with Orbital Animation */}
+              <div
+                className="shrink-0 w-14 h-14 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center relative cursor-pointer overflow-visible"
+                onClick={() => setShowHistory(!showHistory)}
+                title="ดูประวัติ"
+              >
+                {/* Orbital rings */}
+                <div className="absolute inset-[-8px] rounded-full border opacity-30 animate-orbit-slow" style={{ borderColor: themeColor }} />
+                <div className="absolute inset-[-4px] rounded-full border opacity-20 animate-orbit-reverse" style={{ borderColor: themeColor }} />
+
+                {/* Core glow */}
+                <div
+                  className="absolute inset-0 rounded-xl animate-pulse-soft"
+                  style={{
+                    background: `radial-gradient(circle at center, ${themeColor}40 0%, transparent 70%)`,
+                  }}
+                />
+
+                {/* Icon background */}
+                <div
+                  className="absolute inset-0 rounded-xl"
+                  style={{
+                    background: `linear-gradient(135deg, ${themeColor}25 0%, ${themeColor}08 100%)`,
+                    border: `1px solid ${themeColor}40`
+                  }}
+                />
+
+                {/* AI Brain Icon */}
+                <svg className="w-6 h-6 relative z-10 transition-all duration-300 group-hover:scale-110" viewBox="0 0 24 24" fill="none">
+                  {/* Brain outline */}
+                  <path
+                    d="M12 3C7.5 3 4 6.5 4 11c0 2.5 1.5 4.5 3.5 5.5V19c0 1.1.9 2 2 2h5c1.1 0 2-.9 2-2v-2.5c2-1 3.5-3 3.5-5.5 0-4.5-3.5-8-8-8z"
+                    stroke={themeColor}
+                    strokeWidth="1.5"
+                    fill={`${themeColor}20`}
+                  />
+                  {/* Neural connections */}
+                  <circle cx="9" cy="10" r="1" fill="#fff" className="animate-pulse" />
+                  <circle cx="15" cy="10" r="1" fill="#fff" className="animate-pulse" style={{ animationDelay: "0.3s" }} />
+                  <circle cx="12" cy="13" r="1" fill="#fff" className="animate-pulse" style={{ animationDelay: "0.6s" }} />
+                  <path d="M9 10L12 13M15 10L12 13" stroke="#fff" strokeWidth="0.5" opacity="0.6" />
+                  {/* Antenna */}
+                  <line x1="12" y1="3" x2="12" y2="0" stroke={themeColor} strokeWidth="1.5" />
+                  <circle cx="12" cy="0" r="1.5" fill={themeColor} className="animate-pulse" />
+                </svg>
+
+                {/* History indicator badge */}
+                {history.length > 0 && (
+                  <div
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg animate-bounce-subtle"
+                    style={{
+                      backgroundColor: themeColor,
+                      color: getContrastColor(themeColor),
+                      boxShadow: `0 0 10px ${themeColor}80`
+                    }}
+                  >
+                    {history.length > 9 ? "9+" : history.length}
+                  </div>
+                )}
+              </div>
+
+              {/* Input Field with Enhanced Styling & Clear Button */}
+              <div className="flex-1 relative min-w-0">
+                {/* Glowing underline */}
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-1px opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    background: `linear-gradient(90deg, transparent 0%, ${themeColor}60 50%, transparent 100%)`
+                  }}
+                />
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="อธิบายเว็บไซต์ของคุณ... เช่น 'ร้านกาแฟ' 'Portfolio' 'SaaS Landing'"
+                  className="w-full font-mono bg-transparent border-none outline-none text-white placeholder-[#4a4a5a] text-base font-medium min-w-0 h-[40px] px-4 rounded-lg transition-all duration-300 focus:placeholder-[#606070] pr-10"
+                  style={{
+                    textShadow: inputValue ? `0 0 20px ${themeColor}40` : "none"
+                  }}
+                  disabled={isLoading}
+                />
+                {/* Clear Text Button */}
+                {inputValue && !isLoading && (
+                  <button
+                    type="button"
+                    aria-label="Clear text"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full bg-[#23232f] hover:bg-[#30304a] transition-colors"
+                    style={{
+                      boxShadow: `0 2px 10px ${themeColor}15`,
+                    }}
+                    onClick={() => setInputValue("")}
+                    tabIndex={0}
+                  >
+                    {/* X Icon */}
+                    <svg width={18} height={18} viewBox="0 0 18 18" fill="none">
+                      <circle cx="9" cy="9" r="8" fill="none" />
+                      <path d="M6 6l6 6M12 6l-6 6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Generate Button with Enhanced Effects */}
+                <button
+                  onClick={handleGenerate}
+                  disabled={isLoading || !inputValue.trim()}
+                  className="cursor-pointer px-5 py-3 rounded-xl text-sm font-bold transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed relative overflow-hidden group/btn"
+                  style={{
+                    background: isLoading
+                      ? `linear-gradient(135deg, ${themeColor}80 0%, ${themeColor}60 100%)`
+                      : `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}cc 100%)`,
+                    boxShadow: !isLoading && inputValue.trim()
+                      ? `0 0 30px ${themeColor}50, 0 8px 20px ${themeColor}30`
+                      : `0 4px 15px ${themeColor}20`,
+                  }}
+                >
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500"
+                    style={{
+                      background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%)",
+                      backgroundSize: "200% 100%",
+                      animation: "shine 2s infinite"
+                    }}
+                  />
+
+                  {/* Ripple effect background */}
+                  <div className="absolute inset-0 overflow-hidden rounded-xl">
+                    <div
+                      className="absolute inset-0 opacity-0 group-hover/btn:opacity-20 transition-opacity"
+                      style={{
+                        background: `radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), white 0%, transparent 50%)`
+                      }}
+                    />
+                  </div>
+
+                  {isLoading ? (
+                    <span className="flex items-center gap-2 relative z-10">
+                      {/* Custom spinner */}
+                      <div className="relative w-5 h-5">
+                        <div className="absolute inset-0 rounded-full border-2 border-white/20" />
+                        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-white animate-spin" />
+                      </div>
+                      <span className="hidden sm:inline text-white">AI กำลังคิด...</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2 relative z-10 text-white">
+                      {/* Lightning icon with glow */}
+                      <svg className="w-5 h-5 transition-transform group-hover/btn:scale-110 group-hover/btn:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span className="hidden sm:inline font-bold tracking-wide">Generate</span>
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* History Toggle Button - Enhanced */}
+          <div
+            className={`cursor-pointer flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-300 ${showHistory ? "scale-[1.02]" : "hover:scale-[1.01]"}`}
+            style={{
+              background: showHistory
+                ? `linear-gradient(135deg, ${themeColor}15 0%, ${themeColor}08 100%)`
+                : "rgba(255,255,255,0.02)",
+              border: `1px solid ${showHistory ? themeColor + "40" : "rgba(60,60,60,0.3)"}`,
+              boxShadow: showHistory ? `0 0 20px ${themeColor}20` : "none"
+            }}
+            onClick={() => setShowHistory(!showHistory)}
+          >
+            <div className="relative">
+              <svg
+                className={`w-5 h-5 transition-all duration-300 ${showHistory ? "rotate-360deg" : ""}`}
+                style={{ color: showHistory ? themeColor : "#71717a" }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {showHistory && (
+                <div
+                  className="absolute inset-0 rounded-full animate-ping opacity-30"
+                  style={{ borderColor: themeColor }}
+                />
+              )}
+            </div>
+            <span
+              className="text-sm font-mono font-bold tracking-wide whitespace-nowrap"
+              style={{ color: showHistory ? themeColor : "#a1a1aa" }}
+            >
+              ประวัติการใช้ AI
+            </span>
+          </div>
+        </div>
+
+        {/* Error Message - Enhanced */}
         {error && (
           <div
-            className="mt-3 p-3 rounded-xl text-sm flex items-center gap-2"
+            className="mt-4 p-4 rounded-xl text-sm flex items-center gap-3 animate-shake"
             style={{
-              background: "rgba(239,68,68,0.1)",
+              background: "linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.05) 100%)",
               border: "1px solid rgba(239,68,68,0.3)",
-              color: "#fca5a5"
+              color: "#fca5a5",
+              boxShadow: "0 0 20px rgba(239,68,68,0.1)"
             }}
           >
-            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {error}
+            <div className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "rgba(239,68,68,0.2)" }}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="font-medium">{error}</span>
           </div>
         )}
       </div>
@@ -576,7 +763,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
 
       {/* ==================== RECOMMENDATIONS PANEL ==================== */}
       <div
-        className={`transition-all duration-500 ease-out ${isExpanded && (recommendations.length > 0 || customRecommendations.length > 0) ? "max-h-[2000px] opacity-100 mt-4" : "max-h-0 opacity-0 overflow-hidden"
+        className={`overflow-x-auto overflow-y-auto transition-all duration-500 ease-out ${isExpanded && (recommendations.length > 0 || customRecommendations.length > 0) ? "max-h-[2000px] opacity-100 mt-4" : "max-h-0 opacity-0 overflow-hidden"
           }`}
       >
         <div
@@ -843,24 +1030,24 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
               {/* Custom Recommendation Info */}
               {selectedRecommendation.isCustom && (
                 <div className="mb-4 p-3 rounded-lg relative z-10" style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${themeColor}30` }}>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-start gap-2 mb-2">
                     <span style={{ color: themeColor }} className="text-sm">✨</span>
                     <span className="text-xs font-semibold text-white">รูปแบบกำหนดเอง</span>
                   </div>
                   {selectedRecommendation.designConcept && (
-                    <div className="mb-2 flex items-center gap-1">
+                    <div className="mb-2 flex items-start gap-1 flex-wrap">
                       <p className="text-[10px] text-[#a1a1aa] mb-1">แนวคิดการออกแบบ:</p>
                       <p className="text-xs text-white">{selectedRecommendation.designConcept}</p>
                     </div>
                   )}
                   {selectedRecommendation.targetAudience && (
-                    <div className="mb-2 flex items-center gap-1">
+                    <div className="mb-2 flex items-start gap-1 flex-wrap">
                       <p className="text-[10px] text-[#a1a1aa] mb-1">กลุ่มเป้าหมาย:</p>
                       <p className="text-xs text-white">{selectedRecommendation.targetAudience}</p>
                     </div>
                   )}
                   {selectedRecommendation.uniqueFeatures && selectedRecommendation.uniqueFeatures.length > 0 && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-start gap-1 flex-wrap">
                       <p className="text-[10px] text-[#a1a1aa] mb-1">จุดเด่น:</p>
                       <ul className="list-disc list-inside space-y-1 flex items-center gap-3">
                         {selectedRecommendation.uniqueFeatures.map((feature, idx) => (
@@ -873,7 +1060,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
               )}
 
               {/* Sections Grid */}
-              <div className="flex  gap-2 mb-2 relative z-10">
+              <div className="flex flex-wrap sm:flex-nowrap gap-2 mb-2 relative z-10">
                 {selectedRecommendation.sections.map((section, idx) => (
                   <div
                     key={idx}
@@ -969,7 +1156,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
         </div>
       )}
 
-      {/* Custom scrollbar styles */}
+      {/* Custom scrollbar styles and animations */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
@@ -983,6 +1170,124 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: ${themeColor}60;
+        }
+
+        /* ==================== ENHANCED ANIMATIONS ==================== */
+
+        /* Shimmer effect for lines */
+        @keyframes shimmer-left {
+          0%, 100% { background-position: 200% 0; }
+          50% { background-position: 0% 0; }
+        }
+        @keyframes shimmer-right {
+          0%, 100% { background-position: -200% 0; }
+          50% { background-position: 0% 0; }
+        }
+        .animate-shimmer-left {
+          animation: shimmer-left 3s ease-in-out infinite;
+        }
+        .animate-shimmer-right {
+          animation: shimmer-right 3s ease-in-out infinite;
+        }
+
+        /* Slow ping for badge */
+        @keyframes ping-slow {
+          0%, 100% { transform: scale(1); opacity: 0.3; }
+          50% { transform: scale(1.1); opacity: 0; }
+        }
+        .animate-ping-slow {
+          animation: ping-slow 2s ease-in-out infinite;
+        }
+
+        /* Pulse glow for AI icon */
+        @keyframes pulse-glow {
+          0%, 100% { filter: drop-shadow(0 0 2px ${themeColor}); }
+          50% { filter: drop-shadow(0 0 8px ${themeColor}); }
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        /* Gradient shift for text */
+        @keyframes gradient-shift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+
+        /* Twinkle for sparkles */
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+        .animate-twinkle {
+          animation: twinkle 2s ease-in-out infinite;
+        }
+
+        /* Gradient rotate for border */
+        @keyframes gradient-rotate {
+          0% { background-position: 0% 0%; }
+          100% { background-position: 200% 200%; }
+        }
+
+        /* Floating particles */
+        @keyframes float-particle {
+          0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+          25% { transform: translateY(-5px) translateX(3px); opacity: 0.6; }
+          50% { transform: translateY(-10px) translateX(-2px); opacity: 0.4; }
+          75% { transform: translateY(-5px) translateX(2px); opacity: 0.5; }
+        }
+        .animate-float-particle {
+          animation: float-particle 4s ease-in-out infinite;
+        }
+
+        /* Orbital rings */
+        @keyframes orbit-slow {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes orbit-reverse {
+          0% { transform: rotate(360deg); }
+          100% { transform: rotate(0deg); }
+        }
+        .animate-orbit-slow {
+          animation: orbit-slow 8s linear infinite;
+        }
+        .animate-orbit-reverse {
+          animation: orbit-reverse 6s linear infinite;
+        }
+
+        /* Soft pulse for core glow */
+        @keyframes pulse-soft {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 0.8; }
+        }
+        .animate-pulse-soft {
+          animation: pulse-soft 2s ease-in-out infinite;
+        }
+
+        /* Bounce subtle for badge */
+        @keyframes bounce-subtle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-2px); }
+        }
+        .animate-bounce-subtle {
+          animation: bounce-subtle 2s ease-in-out infinite;
+        }
+
+        /* Shine effect for button */
+        @keyframes shine {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+
+        /* Shake for error */
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+          20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
         }
       `}</style>
     </div>

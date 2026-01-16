@@ -411,7 +411,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
 
     // === FEATURES VARIANTS ===
     "features-grid": (
-      <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1.5 p-2`}>
+      <div data-animation-target className={`w-full h-full rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#262626] grid grid-cols-3 gap-1.5 p-2`}>
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
@@ -1276,7 +1276,7 @@ export default function LayoutPreview({ preview, customLabel, size = "medium", t
       <div data-animation-target className={`w-full ${heightClass} rounded-lg bg-linear-to-br from-[#0d0d0d] to-[#1a1a1a] border border-[#333] flex items-center justify-center`}>
         <div data-animation-child className={`flex flex-col items-center ${size === "small" ? "gap-1.5" : "gap-2"}`}>
           <span className="text-[#52525b] text-xs">✏️</span>
-          <span className="text-[#52525b] text-[10px]">{customLabel || "กำหนดเอง"}</span>
+          <span className="text-[#52525b] text-[10px]">{customLabel?.substring(0, 80) + (customLabel?.length && customLabel?.length > 70 ? "..." : "") || "กำหนดเอง"}</span>
         </div>
       </div>
     ),
