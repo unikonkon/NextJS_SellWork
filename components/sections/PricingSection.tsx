@@ -1422,18 +1422,32 @@ export default function PricingSection() {
     const bgColor = customColor || themeColor;
     const bgColorLight = customColor || themeColorLight;
 
+    // Use non-shorthand properties consistently to avoid React style conflicts during re-render
     const styles: Record<string, React.CSSProperties> = {
-      none: { backgroundColor: "#0a0a0a" },
-      solid: { backgroundColor: withOpacity(bgColor, 0.1) },
+      none: {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: "none",
+        backgroundSize: "auto",
+      },
+      solid: {
+        backgroundColor: withOpacity(bgColor, 0.1),
+        backgroundImage: "none",
+        backgroundSize: "auto",
+      },
       gradient: {
-        background: `linear-gradient(135deg, ${withOpacity(bgColor, 0.3)}, ${withOpacity(bgColorLight, 0.2)})`,
+        backgroundColor: "transparent",
+        backgroundImage: `linear-gradient(135deg, ${withOpacity(bgColor, 0.3)}, ${withOpacity(bgColorLight, 0.2)})`,
+        backgroundSize: "100% 100%",
       },
       "animated-gradient": {
-        background: `linear-gradient(135deg, ${withOpacity(bgColor, 0.3)}, ${withOpacity(bgColorLight, 0.2)})`,
+        backgroundColor: "transparent",
+        backgroundImage: `linear-gradient(135deg, ${withOpacity(bgColor, 0.3)}, ${withOpacity(bgColorLight, 0.2)})`,
+        backgroundSize: "100% 100%",
       },
       pattern: {
         backgroundColor: withOpacity(bgColor, 0.05),
         backgroundImage: `repeating-linear-gradient(45deg, ${withOpacity(bgColor, 0.1)}, ${withOpacity(bgColor, 0.1)} 10px, transparent 10px, transparent 20px)`,
+        backgroundSize: "auto",
       },
       grid: {
         backgroundColor: "#0a0a0a",
@@ -1446,28 +1460,54 @@ export default function PricingSection() {
         backgroundSize: "15px 15px",
       },
       mesh: {
-        background: `radial-gradient(circle at 20% 30%, ${withOpacity(bgColor, 0.2)}, transparent 50%),
+        backgroundColor: "#0a0a0a",
+        backgroundImage: `radial-gradient(circle at 20% 30%, ${withOpacity(bgColor, 0.2)}, transparent 50%),
                      radial-gradient(circle at 80% 70%, ${withOpacity(bgColorLight, 0.15)}, transparent 50%),
                      radial-gradient(circle at 50% 50%, ${withOpacity(bgColor, 0.1)}, transparent 50%)`,
+        backgroundSize: "100% 100%",
       },
       particles: {
         backgroundColor: "#0a0a0a",
+        backgroundImage: "none",
+        backgroundSize: "auto",
       },
       noise: {
         backgroundColor: "#0a0a0a",
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+        backgroundSize: "auto",
         opacity: 0.6,
       },
       lines: {
         backgroundColor: "#0a0a0a",
         backgroundImage: `repeating-linear-gradient(0deg, ${withOpacity(bgColor, 0.2)}, ${withOpacity(bgColor, 0.2)} 1px, transparent 1px, transparent 20px)`,
+        backgroundSize: "auto",
       },
       // Custom background types - these will be rendered as components
-      "grid-custom": { backgroundColor: "#0a0a0a" },
-      "typing-lines": { backgroundColor: "#0a0a0a" },
-      "floating-snippets": { backgroundColor: "#0a0a0a" },
-      "grid-typing": { backgroundColor: "#0a0a0a" },
-      "grid-floating": { backgroundColor: "#0a0a0a" },
+      "grid-custom": {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: "none",
+        backgroundSize: "auto",
+      },
+      "typing-lines": {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: "none",
+        backgroundSize: "auto",
+      },
+      "floating-snippets": {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: "none",
+        backgroundSize: "auto",
+      },
+      "grid-typing": {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: "none",
+        backgroundSize: "auto",
+      },
+      "grid-floating": {
+        backgroundColor: "#0a0a0a",
+        backgroundImage: "none",
+        backgroundSize: "auto",
+      },
     };
 
     return styles[bgType] || styles.none;
@@ -1599,7 +1639,6 @@ export default function PricingSection() {
         <div className="mt-10">
           <AILayoutInput
             onApplyLayout={handleApplyAILayout}
-            themeColor={getThemeColor}
           />
         </div>
 
@@ -3031,7 +3070,7 @@ export default function PricingSection() {
                             </div>
 
                             {/* Page Content with Background */}
-                            <div className="p-4 space-y-4 relative" style={state.step1.background === "user-custom" ? { background: "#0a0a0a" } : getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
+                            <div className="p-4 space-y-4 relative" style={state.step1.background === "user-custom" ? { backgroundColor: "#0a0a0a", backgroundImage: "none", backgroundSize: "auto" } : getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
                               {/* Particles Background */}
                               {state.step1.background === "particles" && (
                                 <ParticlesBackground themeColor={getThemeColor} customColor={state.step1.backgroundCustomColor} />
@@ -3242,7 +3281,7 @@ export default function PricingSection() {
                               </div>
 
                               {/* Page Sections - Vertical Scroll with Background */}
-                              <div className="p-4 space-y-4 relative" style={state.step1.background === "user-custom" ? { background: "#0a0a0a" } : getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
+                              <div className="p-4 space-y-4 relative" style={state.step1.background === "user-custom" ? { backgroundColor: "#0a0a0a", backgroundImage: "none", backgroundSize: "auto" } : getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
                                 {/* Particles Background */}
                                 {state.step1.background === "particles" && (
                                   <ParticlesBackground themeColor={getThemeColor} customColor={state.step1.backgroundCustomColor} />

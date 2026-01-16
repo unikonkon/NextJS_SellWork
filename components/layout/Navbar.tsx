@@ -50,7 +50,7 @@ export default function Navbar() {
     <nav
       ref={navRef}
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 font-mono",
         isScrolled ? "glass py-2" : "py-3",
         isVisible ? "translate-y-0" : "-translate-y-full"
       )}
