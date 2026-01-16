@@ -163,6 +163,7 @@ interface CalculatorState {
     // Background Settings
     background: string; // Background type
     backgroundCustomColor: string; // Custom background color
+    customBackground: string; // Custom background description (for "custom" type)
   };
   step2: {
     // Navbar & Footer (moved from step1)
@@ -306,6 +307,7 @@ export default function PricingSection() {
       fontFamily: "",
       background: "none", // Background type
       backgroundCustomColor: "#8b5cf6", // Custom background color
+      customBackground: "", // Custom background description
     },
     step2: {
       navbar: "basic",
@@ -587,6 +589,12 @@ export default function PricingSection() {
       step1: {
         ...prev.step1,
         background: recommendation.background.type,
+        // Apply custom background color if provided
+        backgroundCustomColor: recommendation.background.customColor || prev.step1.backgroundCustomColor,
+        // Apply custom background description if user-custom type
+        customBackground: recommendation.background.type === "user-custom"
+          ? (recommendation.background.customDescription || "")
+          : "",
       },
       step2: {
         ...prev.step2,
@@ -602,7 +610,6 @@ export default function PricingSection() {
     }));
 
   }, []);
-  console.log("state", state);
 
   // Update main section layout
   const updateMainSectionLayout = useCallback((sectionId: string, layout: string) => {
@@ -696,17 +703,12 @@ export default function PricingSection() {
   // GSAP Animation Preview for sections
   const playSectionAnimation = useCallback((refKey: string, animationType: string) => {
     const containerElement = getPreviewRef(refKey); // ✅ ใช้ ref แทน document.getElementById(elementId)
-    console.log("refKey", refKey);
-    console.log("containerElement", containerElement);
-    console.log("animationType", animationType);
     if (!containerElement) return;
 
     // Find the actual animation target element inside LayoutPreview
     // Look for element with data-animation-target attribute
     const animationTarget = containerElement.querySelector('[data-animation-target]') as HTMLElement | null;
     const element = animationTarget || containerElement;
-
-    console.log("animationTarget found:", animationTarget);
 
     // Reset any existing animations
     killAnimations(element);
@@ -991,8 +993,13 @@ export default function PricingSection() {
       ...(state.step1.fontFamily ? [`Font: ${state.step1.fontFamily}`] : []),
       ...(state.step1.background !== "none"
         ? [
-          `Background: ${ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.icon || "▣"} ${ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"} ${BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background)?.label || ""}`,
-          ...(state.step1.backgroundCustomColor
+          state.step1.background === "user-custom"
+            ? `Background: ✨ กำหนดเอง`
+            : `Background: ${ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.icon || "▣"} ${ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"} ${BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background)?.label || ""}`,
+          ...(state.step1.background === "user-custom" && state.step1.customBackground
+            ? [`   รายละเอียด: ${state.step1.customBackground}`]
+            : []),
+          ...(state.step1.background !== "user-custom" && state.step1.backgroundCustomColor
             ? [`   สี Background: ${state.step1.backgroundCustomColor}`]
             : []),
         ]
@@ -1899,15 +1906,132 @@ export default function PricingSection() {
                     <label className="block font-mono text-[13px] text-[#cfcfe2] mb-3">
                       <span style={{ color: getThemeColor }}>{">"}</span> เลือก Background
                     </label>
-                    <div className="mb-3 flex flex-col md:flex-row gap-3 w-full">
-                      <BackgroundModal
-                        value={state.step1.background}
-                        onChange={(value) => updateStep1("background", value)}
-                        options={ALL_BACKGROUND_TYPES}
-                        themeColor={getThemeColor}
-                      />
+
+                    {/* Background Type Selection */}
+                    <div className="mb-4 flex flex-col gap-3 w-full">
+                      {/* Standard Backgrounds */}
+                      <div className="flex flex-col md:flex-row gap-3">
+                        <BackgroundModal
+                          value={state.step1.background === "user-custom" ? "none" : state.step1.background}
+                          onChange={(value) => {
+                            updateStep1("background", value);
+                            if (value !== "user-custom") {
+                              updateStep1("customBackground", "");
+                            }
+                          }}
+                          options={ALL_BACKGROUND_TYPES}
+                          themeColor={getThemeColor}
+                        />
+
+                        {/* Custom Background Toggle Button */}
+                        <button
+                          onClick={() => {
+                            if (state.step1.background === "user-custom") {
+                              updateStep1("background", "none");
+                              updateStep1("customBackground", "");
+                            } else {
+                              updateStep1("background", "user-custom");
+                            }
+                          }}
+                          className={`group relative px-4 py-2.5 rounded-xl text-xs font-medium transition-all overflow-hidden ${state.step1.background === "user-custom"
+                            ? "text-white border-2"
+                            : "bg-[#0d0d0d] text-[#a1a1aa] border border-[#333] hover:border-[#52525b]"
+                            }`}
+                          style={
+                            state.step1.background === "user-custom"
+                              ? {
+                                borderColor: getThemeColor,
+                                backgroundColor: `${getThemeColor}15`,
+                              }
+                              : {}
+                          }
+                        >
+                          <div className="relative z-10 flex items-center gap-2">
+                            <span className="text-base">✨</span>
+                            <span>กำหนดเอง</span>
+                            {state.step1.background === "user-custom" && (
+                              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                          {state.step1.background !== "user-custom" && (
+                            <div
+                              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{
+                                background: `linear-gradient(135deg, ${getThemeColor}10, transparent)`,
+                              }}
+                            />
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Custom Background Input */}
+                      {state.step1.background === "user-custom" && (
+                        <div className="relative p-4 rounded-xl border-2 bg-linear-to-br from-[#0d0d0d] to-[#141414] overflow-hidden"
+                          style={{ borderColor: `${getThemeColor}40` }}
+                        >
+                          {/* Decorative corner */}
+                          <div
+                            className="absolute top-0 right-0 w-24 h-24 opacity-20"
+                            style={{
+                              background: `radial-gradient(circle at top right, ${getThemeColor}, transparent 70%)`,
+                            }}
+                          />
+
+                          <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-sm font-medium text-white">อธิบาย Background ที่ต้องการ</span>
+                              <span className="text-[10px] text-[#52525b] ml-auto italic">ระบุรายละเอียดให้ชัดเจน</span>
+                            </div>
+
+                            <div className="flex gap-3">
+                              <textarea
+                                placeholder="เช่น: gradient สีม่วงไล่ไปชมพู พร้อม particle เคลื่อนไหวช้าๆ, หรือ background แบบ glassmorphism..."
+                                value={state.step1.customBackground}
+                                onChange={(e) => {
+                                  updateStep1("customBackground", e.target.value);
+                                  handleTypingState("custom-background");
+                                }}
+                                className="flex-1 px-4 py-3 rounded-xl bg-[#0a0a0a] border text-sm text-white placeholder:text-[#3f3f46] focus:outline-none transition-all resize-y min-h-[80px] max-h-[200px]"
+                                style={{
+                                  borderColor: state.step1.customBackground ? `${getThemeColor}50` : "#262626",
+                                }}
+                                rows={3}
+                              />
+
+                              {state.step1.customBackground && (
+                                <span className={`cursor-pointer flex items-center justify-center w-10 h-10 rounded-xl text-sm transition-all shrink-0 ${typingFields.has("custom-background")
+                                  ? "bg-[#f59e0b]/20 text-[#f59e0b]"
+                                  : "bg-[#10b981]/20 text-[#10b981]"
+                                  }`}>
+                                  {typingFields.has("custom-background") ? "✎" : "✓"}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Quick suggestions */}
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <span className="text-[10px] text-[#52525b]">แนะนำ:</span>
+                              {["Gradient mesh", "Glassmorphism", "Animated waves", "Parallax layers", "Aurora effect"].map((suggestion) => (
+                                <button
+                                  key={suggestion}
+                                  onClick={() => {
+                                    const current = state.step1.customBackground;
+                                    updateStep1("customBackground", current ? `${current}, ${suggestion}` : suggestion);
+                                  }}
+                                  className="px-2 py-0.5 rounded-md text-[10px] bg-[#1a1a1a] text-[#71717a] border border-[#262626] hover:border-[#404040] hover:text-[#a1a1aa] transition-all"
+                                >
+                                  {suggestion}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Custom Background Color Input */}
-                      {state.step1.background !== "none" && (
+                      {state.step1.background !== "none" && state.step1.background !== "user-custom" && (
                         <div className="">
                           <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0d0d0d] border border-[#262626]">
                             <div className="relative group">
@@ -1939,8 +2063,6 @@ export default function PricingSection() {
                         </div>
                       )}
                     </div>
-
-
                   </div>
 
                 </div>
@@ -2909,7 +3031,7 @@ export default function PricingSection() {
                             </div>
 
                             {/* Page Content with Background */}
-                            <div className="p-4 space-y-4 relative" style={getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
+                            <div className="p-4 space-y-4 relative" style={state.step1.background === "user-custom" ? { background: "#0a0a0a" } : getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
                               {/* Particles Background */}
                               {state.step1.background === "particles" && (
                                 <ParticlesBackground themeColor={getThemeColor} customColor={state.step1.backgroundCustomColor} />
@@ -2918,6 +3040,7 @@ export default function PricingSection() {
                               {BACKGROUND_CUSTOM_TYPES.some(bg => bg.id === state.step1.background) && (
                                 renderCustomBackground(state.step1.background, getThemeColor, state.step1.backgroundCustomColor)
                               )}
+
                               {/* Navbar */}
                               <div className="z-10 relative flex items-center gap-2">
                                 <div
@@ -3026,7 +3149,7 @@ export default function PricingSection() {
                               </div>
 
                               {/* Footer */}
-                              <div className="z-10 relative flex items-center gap-2">
+                              <div className="z-10 relative flex items-center gap-2" style={state.step1.background === "user-custom" ? { marginBottom: "40px" } : {}}>
                                 <div
                                   ref={previewFooterRef}
                                   className={`flex-1 p-3 rounded-lg transition-all ${getFooterPreviewClasses}`}
@@ -3054,6 +3177,42 @@ export default function PricingSection() {
                                   </button>
                                 )}
                               </div>
+
+                              {/* User Custom Background Description */}
+                              {state.step1.background === "user-custom" && (
+                                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                  {/* Animated gradient mesh background */}
+                                  <div
+                                    className="absolute inset-0 opacity-30"
+                                    style={{
+                                      background: `
+                                        radial-gradient(ellipse at 20% 20%, ${getThemeColor}40 0%, transparent 50%),
+                                        radial-gradient(ellipse at 80% 80%, ${getThemeColor}30 0%, transparent 50%),
+                                        radial-gradient(ellipse at 40% 70%, ${getThemeColor}20 0%, transparent 40%)
+                                      `,
+                                      animation: "pulse 4s ease-in-out infinite",
+                                    }}
+                                  />
+                                  {/* Custom description badge */}
+                                  {state.step1.customBackground && (
+                                    <div className="absolute bottom-2 left-2 right-2 z-20">
+                                      <div
+                                        className="px-3 py-2 rounded-lg backdrop-blur-sm text-[10px] leading-relaxed line-clamp-2"
+                                        style={{
+                                          background: `${getThemeColor}15`,
+                                          border: `1px solid ${getThemeColor}30`,
+                                          color: "#a1a1aa",
+                                        }}
+                                      >
+                                        <span className="font-medium" style={{ color: getThemeColor }}>✨ Custom:</span>{" "}
+                                        {state.step1.customBackground.length > 80
+                                          ? state.step1.customBackground.substring(0, 80) + "..."
+                                          : state.step1.customBackground}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
 
                             {/* Section Count */}
@@ -3083,7 +3242,7 @@ export default function PricingSection() {
                               </div>
 
                               {/* Page Sections - Vertical Scroll with Background */}
-                              <div className="p-4 space-y-4 relative" style={getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
+                              <div className="p-4 space-y-4 relative" style={state.step1.background === "user-custom" ? { background: "#0a0a0a" } : getBackgroundStyles(state.step1.background, getThemeColor, getThemeColorLight, state.step1.backgroundCustomColor)}>
                                 {/* Particles Background */}
                                 {state.step1.background === "particles" && (
                                   <ParticlesBackground themeColor={getThemeColor} customColor={state.step1.backgroundCustomColor} />
@@ -3202,7 +3361,7 @@ export default function PricingSection() {
                                 </div>
 
                                 {/* Footer */}
-                                <div className="z-10 relative flex items-center gap-2">
+                                <div className="z-10 relative flex items-center gap-2" style={state.step1.background === "user-custom" ? { marginBottom: "40px" } : {}}>
                                   <div
                                     ref={previewFooterRef}
                                     className={`flex-1 p-3 rounded-lg transition-all ${getFooterPreviewClasses}`}
@@ -3230,6 +3389,42 @@ export default function PricingSection() {
                                     </button>
                                   )}
                                 </div>
+
+                                {/* User Custom Background Description */}
+                                {state.step1.background === "user-custom" && (
+                                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                    {/* Animated gradient mesh background */}
+                                    <div
+                                      className="absolute inset-0 opacity-30"
+                                      style={{
+                                        background: `
+                                          radial-gradient(ellipse at 20% 20%, ${getThemeColor}40 0%, transparent 50%),
+                                          radial-gradient(ellipse at 80% 80%, ${getThemeColor}30 0%, transparent 50%),
+                                          radial-gradient(ellipse at 40% 70%, ${getThemeColor}20 0%, transparent 40%)
+                                        `,
+                                        animation: "pulse 4s ease-in-out infinite",
+                                      }}
+                                    />
+                                    {/* Custom description badge */}
+                                    {state.step1.customBackground && (
+                                      <div className="absolute bottom-2 left-2 right-2 z-20">
+                                        <div
+                                          className="px-3 py-2 rounded-lg backdrop-blur-sm text-[10px] leading-relaxed line-clamp-2"
+                                          style={{
+                                            background: `${getThemeColor}15`,
+                                            border: `1px solid ${getThemeColor}30`,
+                                            color: "#a1a1aa",
+                                          }}
+                                        >
+                                          <span className="font-medium" style={{ color: getThemeColor }}>✨ Custom:</span>{" "}
+                                          {state.step1.customBackground.length > 80
+                                            ? state.step1.customBackground.substring(0, 80) + "..."
+                                            : state.step1.customBackground}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
 
                               </div>
 
@@ -3450,23 +3645,36 @@ export default function PricingSection() {
 
                             {/* Background */}
                             {state.step1.background !== "none" && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-[#a1a1aa]">Background:</span>
-                                <span className="text-base">
-                                  {ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.icon || "▣"}
-                                </span>
-                                <span className="text-white font-medium">
-                                  {ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"}
-                                </span>
-                                {BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background) && (
-                                  <span className="text-white font-medium">
-                                    {BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"}
-                                  </span>
+                                {state.step1.background === "user-custom" ? (
+                                  <>
+                                    <span className="text-base">✨</span>
+                                    <span className="text-white font-medium">กำหนดเอง</span>
+                                    {state.step1.customBackground && (
+                                      <span className="text-[#71717a] text-xs max-w-[200px] truncate">
+                                        ({state.step1.customBackground})
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="text-base">
+                                      {ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.icon || "▣"}
+                                    </span>
+                                    <span className="text-white font-medium">
+                                      {ALL_BACKGROUND_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"}
+                                    </span>
+                                    {BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background) && (
+                                      <span className="text-white font-medium">
+                                        {BACKGROUND_CUSTOM_TYPES.find((b) => b.id === state.step1.background)?.label || "Custom"}
+                                      </span>
+                                    )}
+                                  </>
                                 )}
-
                               </div>
                             )}
-                            {state.step1.backgroundCustomColor && (
+                            {state.step1.background !== "user-custom" && state.step1.backgroundCustomColor && (
                               <>
                                 <span className="text-[#52525b] font-mono"> - สี Background:</span>
                                 <span className="text-[#52525b] font-mono">{state.step1.backgroundCustomColor}</span>

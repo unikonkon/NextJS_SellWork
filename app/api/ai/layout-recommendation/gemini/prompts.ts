@@ -38,7 +38,17 @@ Analyze the user's description and recommend:
 
 ### Background Types
 - **Basic**: none, solid, gradient, animated-gradient, pattern, grid, dots, mesh, particles, noise, lines
-- **Custom**: grid-custom, typing-lines, floating-snippets, grid-typing, grid-floating
+- **Custom Preset**: grid-custom, typing-lines, floating-snippets, grid-typing, grid-floating
+- **User Custom**: user-custom (for completely custom background - requires customDescription)
+
+### Background Selection Guidelines
+1. **Corporate/Professional**: solid, gradient, or mesh - subtle and clean
+2. **Creative/Portfolio**: animated-gradient, particles, or grid-custom - dynamic and eye-catching
+3. **Tech/SaaS**: grid, dots, lines, or typing-lines - modern and technical
+4. **E-commerce**: gradient or solid - doesn't distract from products
+5. **Entertainment/Gaming**: particles, animated-gradient, or floating-snippets - immersive
+6. **Minimal/Luxury**: none or solid with custom color - elegant simplicity
+7. **Innovative/Unique**: user-custom - describe a completely new background concept
 
 ## Response Format
 Return a JSON object with exactly this structure:
@@ -58,7 +68,11 @@ Return a JSON object with exactly this structure:
       ],
       "navbar": { "type": "animated", "animation": "sticky-fade" },
       "footer": { "type": "animated", "animation": "hover-links" },
-      "background": { "type": "gradient" }
+      "background": {
+        "type": "gradient",
+        "customColor": "#8b5cf6",
+        "reasoning": "Gradient เข้ากับธุรกิจสร้างสรรค์ เพิ่มความทันสมัย"
+      }
     }
     // ... ranks 2-10 are standard layouts (isCustom: false)
   ],
@@ -82,7 +96,12 @@ Return a JSON object with exactly this structure:
       ],
       "navbar": { "type": "animated", "animation": "blur-glass" },
       "footer": { "type": "animated", "animation": "gradient-shift" },
-      "background": { "type": "mesh" },
+      "background": {
+        "type": "user-custom",
+        "customColor": "#6366f1",
+        "customDescription": "Aurora borealis effect พร้อม gradient mesh ที่เคลื่อนไหวช้าๆ แบบ organic",
+        "reasoning": "สร้างบรรยากาศ immersive เหมาะกับ creative business"
+      },
       "designConcept": "Explain the overall design concept and why it's innovative (Thai, max 150 chars)",
       "targetAudience": "Who this layout is best for (Thai, max 50 chars)",
       "uniqueFeatures": ["Feature 1 (Thai)", "Feature 2 (Thai)", "Feature 3 (Thai)"]
@@ -100,6 +119,9 @@ Return a JSON object with exactly this structure:
 6. Provide diverse options (minimal to elaborate)
 7. Use ONLY existing layout types from the list above
 8. Set isCustom: false
+9. **Background Analysis**: Always recommend an appropriate background type with:
+   - customColor: A hex color that matches the business type/brand feel
+   - reasoning: Brief explanation in Thai why this background suits the website
 
 ## Guidelines for Custom Recommendations (ranks 1-9)
 1. **BE CREATIVE** - Invent NEW layout types that don't exist in our system
@@ -114,6 +136,10 @@ Return a JSON object with exactly this structure:
    - Unique visual arrangements (diagonal layouts, overlapping sections, asymmetric grids)
    - Innovative navigation patterns
    - Creative content presentation (storytelling, gamification, immersive experiences)
+9. **Custom Background**: For creative layouts, consider using "user-custom" background type with:
+   - customDescription: Describe a unique, innovative background effect in Thai (max 100 chars)
+   - customColor: Primary color that complements the design
+   - reasoning: Why this background enhances the overall concept
 
 ## Examples of Custom Layout Ideas
 - "floating-product-cards" - Products float and rotate on hover with 3D effect
@@ -164,6 +190,9 @@ export interface FooterConfig {
 
 export interface BackgroundConfig {
   type: string;
+  customColor?: string; // Hex color code for custom background color
+  customDescription?: string; // Description for user-custom background type
+  reasoning?: string; // Why this background was recommended (Thai)
 }
 
 export interface StandardRecommendation {

@@ -27,6 +27,9 @@ export interface AIRecommendation {
   };
   background: {
     type: string;
+    customColor?: string;
+    customDescription?: string;
+    reasoning?: string;
   };
   isCustom?: boolean;
   customLayoutId?: string;
@@ -161,7 +164,6 @@ export function useAILayoutGenerator() {
   const loadFromHistory = useCallback((item: HistoryItem) => {
     setRecommendations(item.recommendations);
     setCustomRecommendations(item.customRecommendations || []);
-    console.log("loadFromHistory", item);
     setSelectedRecommendation(item.appliedRecommendation || item.recommendations[0] || null);
     setCurrentHistoryId(item.id);
     setError(null);
@@ -319,11 +321,11 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto relative">
+    <div className="w-full max-w-7xl mx-auto relative">
       {/* ==================== MAIN INPUT BAR ==================== */}
       <div className="relative">
         {/* Animated Header */}
-        <div className="flex items-center justify-center gap-4 mb-6 relative">
+        <div className="flex items-center justify-center gap-4 mb-2 relative">
           {/* Left animated line */}
           <div className="relative h-[2px] flex-1 max-w-[100px] overflow-hidden">
             <div
@@ -335,54 +337,99 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
             />
           </div>
 
-          {/* Center badge with glow */}
+          {/* Center badge with glow (Purple theme) */}
           <div
-            className="relative px-5 py-2 rounded-full flex items-center gap-2"
+            className="relative px-5 py-2 rounded-full flex sm:flex-row flex-col items-center gap-2"
             style={{
-              background: `linear-gradient(135deg, ${themeColor}20 0%, ${themeColor}08 100%)`,
-              border: `1px solid ${themeColor}40`,
-              boxShadow: `0 0 30px ${themeColor}20, inset 0 1px 0 rgba(255,255,255,0.1)`
+              background: `linear-gradient(135deg, #a21caf20 0%, #a21caf08 100%)`, // Fixed purple color
+              border: `1px solid #a21caf40`,
+              boxShadow: `0 0 30px #a21caf20, inset 0 1px 0 rgba(255,255,255,0.1)`
             }}
           >
             {/* Animated pulse ring */}
             <div
               className="absolute inset-0 rounded-full animate-ping-slow opacity-30"
-              style={{ border: `1px solid ${themeColor}` }}
+              style={{ border: `1px solid #a21caf` }} // Fixed purple color
             />
 
             {/* AI Icon */}
             <div className="relative">
-              <svg className="w-4 h-4 animate-pulse-glow" style={{ color: themeColor }} viewBox="0 0 24 24" fill="none">
+              <svg className="w-4 h-4 animate-pulse-glow" style={{ color: "#a21caf" }} viewBox="0 0 24 24" fill="none">
                 <path d="M12 2L2 7l10 5 10-5-10-5z" fill="currentColor" opacity="0.3" />
                 <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
 
             <span
-              className="text-[9px] md:text-sm font-mono tracking-wider uppercase"
+              className="text-[9px] md:text-sm font-mono tracking-wider uppercase text-white"
+            >
+              ใช้ AI เพื่อสร้าง Layout website แล้วเลือก
+            </span>
+            <span className="font-mono"
               style={{
-                background: `linear-gradient(135deg, ${themeColor} 0%, #fff 50%, ${themeColor} 100%)`,
+                background: `linear-gradient(135deg, #a21caf 0%, #fff 50%, #a21caf 100%)`,
                 backgroundClip: "text",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundSize: "200% auto",
-                animation: "gradient-shift 3s ease infinite"
+                animation: "gradient-shift 1s ease infinite"
               }}
+            >ใช้รูปแบบนี้
+            </span>
+            <span
+              className="text-[9px] md:text-sm font-mono tracking-wider uppercase text-white"
             >
-              ใช้ AI เพื่อสร้าง Layout website แล้วเลือกตามความต้องการของคุณ
+              เพื่อสร้างเว็บไซต์ของคุณ
             </span>
 
             {/* Sparkle decorations */}
             <div className="absolute -top-1 -right-1 w-2 h-2 animate-twinkle" style={{ animationDelay: "0s" }}>
-              <svg viewBox="0 0 24 24" fill={themeColor}>
+              <svg viewBox="0 0 24 24" fill="#a21caf">
                 <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
               </svg>
             </div>
             <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 animate-twinkle" style={{ animationDelay: "0.5s" }}>
-              <svg viewBox="0 0 24 24" fill={themeColor}>
+              <svg viewBox="0 0 24 24" fill="#a21caf">
                 <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
               </svg>
             </div>
+          </div>
+
+          {/* History Toggle Button - Enhanced */}
+          <div
+            className={`cursor-pointer flex items-center gap-2 px-5 py-2 rounded-full transition-all duration-300 ${showHistory ? "scale-[1.02]" : "hover:scale-[1.01]"}`}
+            style={{
+              background: showHistory
+                ? `linear-gradient(135deg, ${themeColor}15 0%, ${themeColor}08 100%)`
+                : "rgba(255,255,255,0.02)",
+              border: `1px solid ${showHistory ? themeColor + "40" : "rgba(60,60,60,0.3)"}`,
+              boxShadow: showHistory ? `0 0 20px ${themeColor}20` : "none"
+            }}
+            onClick={() => setShowHistory(!showHistory)}
+          >
+            <div className="relative">
+              <svg
+                className={`w-5 h-5 transition-all duration-300 ${showHistory ? "rotate-360deg" : ""}`}
+                style={{ color: showHistory ? themeColor : "#71717a" }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {showHistory && (
+                <div
+                  className="absolute inset-0 rounded-full animate-ping opacity-30"
+                  style={{ borderColor: themeColor }}
+                />
+              )}
+            </div>
+            <span
+              className="text-sm font-mono font-bold tracking-wide whitespace-nowrap"
+              style={{ color: showHistory ? themeColor : "#a1a1aa" }}
+            >
+              ประวัติการใช้ AI
+            </span>
           </div>
 
           {/* Right animated line */}
@@ -404,7 +451,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
             <div
               className="absolute -inset-[2px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"
               style={{
-                background: `linear-gradient(135deg, ${themeColor}60, transparent 40%, transparent 60%, ${themeColor}60)`,
+                background: `linear-gradient(135deg, ${themeColor}60, transparent 20%, transparent 60%, ${themeColor}60)`,
                 backgroundSize: "200% 200%",
                 animation: "gradient-rotate 4s linear infinite"
               }}
@@ -419,7 +466,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
             </div>
 
             <div
-              className="relative flex items-center gap-3 p-2 sm:p-3 rounded-2xl backdrop-blur-xl transition-all duration-500"
+              className="relative flex items-center gap-3 px-2 py-1.5 sm:px-3 rounded-2xl backdrop-blur-xl transition-all duration-500"
               style={{
                 background: `linear-gradient(135deg, rgba(12,12,12,0.98) 0%, rgba(22,22,22,0.95) 50%, rgba(12,12,12,0.98) 100%)`,
                 boxShadow: isExpanded
@@ -430,7 +477,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
             >
               {/* AI Brain Icon with Orbital Animation */}
               <div
-                className="shrink-0 w-14 h-14 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center relative cursor-pointer overflow-visible"
+                className="shrink-0 w-8 h-8 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center relative cursor-pointer overflow-visible"
                 onClick={() => setShowHistory(!showHistory)}
                 title="ดูประวัติ"
               >
@@ -504,7 +551,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="อธิบายเว็บไซต์ของคุณ... เช่น 'ร้านกาแฟ' 'Portfolio' 'SaaS Landing'"
-                  className="w-full font-mono bg-transparent border-none outline-none text-white placeholder-[#4a4a5a] text-base font-medium min-w-0 h-[40px] px-4 rounded-lg transition-all duration-300 focus:placeholder-[#606070] pr-10"
+                  className="w-full font-mono bg-transparent border-none outline-none text-white placeholder-[#4a4a5a] md:text-[14px] text-[10px] font-medium min-w-0 h-[40px] px-4 rounded-lg transition-all duration-300 focus:placeholder-[#606070] pr-10"
                   style={{
                     textShadow: inputValue ? `0 0 20px ${themeColor}40` : "none"
                   }}
@@ -589,42 +636,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
             </div>
           </div>
 
-          {/* History Toggle Button - Enhanced */}
-          <div
-            className={`cursor-pointer flex items-center gap-2 px-4 py-3 rounded-xl transition-all duration-300 ${showHistory ? "scale-[1.02]" : "hover:scale-[1.01]"}`}
-            style={{
-              background: showHistory
-                ? `linear-gradient(135deg, ${themeColor}15 0%, ${themeColor}08 100%)`
-                : "rgba(255,255,255,0.02)",
-              border: `1px solid ${showHistory ? themeColor + "40" : "rgba(60,60,60,0.3)"}`,
-              boxShadow: showHistory ? `0 0 20px ${themeColor}20` : "none"
-            }}
-            onClick={() => setShowHistory(!showHistory)}
-          >
-            <div className="relative">
-              <svg
-                className={`w-5 h-5 transition-all duration-300 ${showHistory ? "rotate-360deg" : ""}`}
-                style={{ color: showHistory ? themeColor : "#71717a" }}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {showHistory && (
-                <div
-                  className="absolute inset-0 rounded-full animate-ping opacity-30"
-                  style={{ borderColor: themeColor }}
-                />
-              )}
-            </div>
-            <span
-              className="text-sm font-mono font-bold tracking-wide whitespace-nowrap"
-              style={{ color: showHistory ? themeColor : "#a1a1aa" }}
-            >
-              ประวัติการใช้ AI
-            </span>
-          </div>
+
         </div>
 
         {/* Error Message - Enhanced */}
@@ -767,7 +779,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
           }`}
       >
         <div
-          className="rounded-2xl p-4 sm:p-5 backdrop-blur-xl"
+          className="rounded-2xl p-4 sm:px-5 sm:pt-5 sm:pb-1 backdrop-blur-xl"
           style={{
             background: "linear-gradient(135deg, rgba(12,12,12,0.98) 0%, rgba(20,20,20,0.95) 100%)",
             border: `1px solid ${themeColor}25`,
@@ -792,7 +804,7 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
                     </span>
                   )}
                 </h3>
-                <p className="text-[10px] text-[#52525b]">เลือกรูปแบบที่เหมาะกับความต้องการของคุณ</p>
+                <p className="text-[10px] text-start text-[#52525b]">เลือกรูปแบบที่เหมาะกับความต้องการของคุณ</p>
               </div>
             </div>
             <button
@@ -806,314 +818,338 @@ export default function AILayoutInput({ onApplyLayout, themeColor = "#8b5cf6" }:
             </button>
           </div>
 
-          {/* Standard Recommendations Section */}
-          {recommendations.length > 0 && (
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-semibold text-white">รูปแบบมาตรฐาน</span>
-                <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, ${themeColor}40, transparent)` }} />
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
-                {recommendations.map((rec, index) => (
-                  <button
-                    key={rec.rank}
-                    onClick={() => selectRecommendation(rec)}
-                    className="cursor-pointer p-3 rounded-xl text-left transition-all duration-300 relative overflow-hidden group"
-                    style={{
-                      background: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
-                        ? `linear-gradient(135deg, ${themeColor}15 0%, ${themeColor}08 100%)`
-                        : "rgba(255,255,255,0.02)",
-                      border: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
-                        ? `2px solid ${themeColor}`
-                        : "1px solid #262626",
-                      boxShadow: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
-                        ? `0 4px 20px ${themeColor}20`
-                        : "none",
-                      animationDelay: `${index * 50}ms`,
-                    }}
-                  >
-                    {/* Hover gradient */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      style={{ background: `linear-gradient(135deg, ${themeColor}08 0%, transparent 60%)` }}
-                    />
-
-                    {/* Card content */}
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span
-                          className="w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center transition-transform group-hover:scale-110"
-                          style={{
-                            background: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
-                              ? themeColor
-                              : `${themeColor}40`,
-                            color: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
-                              ? getContrastColor(themeColor)
-                              : "#fff"
-                          }}
-                        >
-                          {rec.rank}
-                        </span>
-                        <span className="text-xs font-medium text-white truncate">{rec.name}</span>
-                      </div>
-                      <p className="text-[10px] text-[#71717a] line-clamp-2 mb-2 leading-relaxed">{rec.description}</p>
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className="text-[9px] px-1.5 py-0.5 rounded"
-                          style={{ backgroundColor: `${themeColor}15`, color: `${themeColor}` }}
-                        >
-                          {rec.sections.length} sections
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Custom Recommendations Section */}
-          {customRecommendations.length > 0 && (
-            <div className="mb-5">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-semibold text-white flex items-center gap-2">
-                  <span style={{ color: themeColor }}>✨</span>
-                  รูปแบบกำหนดเอง (Custom)
-                </span>
-                <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, ${themeColor}40, transparent)` }} />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {customRecommendations.map((rec, index) => (
-                  <button
-                    key={`custom-${rec.rank}`}
-                    onClick={() => selectRecommendation(rec)}
-                    className="cursor-pointer p-4 rounded-xl text-left transition-all duration-300 relative overflow-hidden group"
-                    style={{
-                      background: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
-                        ? `linear-gradient(135deg, ${themeColor}20 0%, ${themeColor}10 100%)`
-                        : "rgba(255,255,255,0.03)",
-                      border: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
-                        ? `2px solid ${themeColor}`
-                        : `1px solid ${themeColor}30`,
-                      boxShadow: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
-                        ? `0 4px 20px ${themeColor}30`
-                        : `0 2px 10px ${themeColor}10`,
-                      animationDelay: `${index * 50}ms`,
-                    }}
-                  >
-                    {/* Hover gradient */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      style={{ background: `linear-gradient(135deg, ${themeColor}15 0%, transparent 60%)` }}
-                    />
-
-                    {/* Custom badge */}
-                    <div className="absolute top-2 right-2">
-                      <span
-                        className="text-[8px] px-2 py-1 rounded-full font-bold uppercase tracking-wider"
-                        style={{
-                          backgroundColor: `${themeColor}30`,
-                          color: themeColor,
-                          border: `1px solid ${themeColor}50`
-                        }}
-                      >
-                        Custom
-                      </span>
-                    </div>
-
-                    {/* Card content */}
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span
-                          className="w-6 h-6 rounded-md text-[11px] font-bold flex items-center justify-center transition-transform group-hover:scale-110"
-                          style={{
-                            background: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
-                              ? themeColor
-                              : `${themeColor}50`,
-                            color: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
-                              ? getContrastColor(themeColor)
-                              : "#fff"
-                          }}
-                        >
-                          C{rec.rank}
-                        </span>
-                        <span className="text-sm font-semibold text-white truncate flex-1">{rec.name}</span>
-                      </div>
-                      <p className="text-[11px] text-[#a1a1aa] line-clamp-2 mb-3 leading-relaxed">{rec.description}</p>
-
-                      {/* Custom info */}
-                      {rec.designConcept && (
-                        <div className="mb-2 p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.2)" }}>
-                          <p className="text-[10px] text-[#71717a] mb-1">แนวคิด:</p>
-                          <p className="text-[10px] text-white line-clamp-2">{rec.designConcept}</p>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          className="text-[9px] px-1.5 py-0.5 rounded"
-                          style={{ backgroundColor: `${themeColor}15`, color: `${themeColor}` }}
-                        >
-                          {rec.sections.length} sections
-                        </span>
-                        {rec.targetAudience && (
-                          <span
-                            className="text-[9px] px-1.5 py-0.5 rounded"
-                            style={{ backgroundColor: `${themeColor}10`, color: `${themeColor}cc` }}
-                          >
-                            👥 {rec.targetAudience}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Selected Recommendation Details */}
-          {selectedRecommendation && (
-            <div
-              className="rounded-xl p-4 sm:p-5 relative overflow-hidden"
-              style={{
-                background: `linear-gradient(135deg, ${themeColor}08 0%, rgba(0,0,0,0.3) 100%)`,
-                border: `1px solid ${themeColor}20`
-              }}
-            >
-              {/* Background decoration */}
-              <div
-                className="absolute top-0 right-0 w-32 h-32 opacity-20 blur-3xl"
-                style={{ background: themeColor }}
-              />
-
-              {/* Header with Apply Button */}
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4 relative z-10">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className="w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center"
-                      style={{ backgroundColor: themeColor, color: getContrastColor(themeColor) }}
-                    >
-                      {selectedRecommendation.rank}
-                    </span>
-                    <h4 className="text-base font-semibold text-white">{selectedRecommendation.name}</h4>
-                  </div>
-                  <p className="text-xs text-[#a1a1aa]">{selectedRecommendation.description}</p>
-                </div>
-                <button
-                  onClick={handleApply}
-                  className="shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden group"
+          {/* Main Layout: Two Column (Desktop) / Stacked (Mobile) */}
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Left Column: Recommendations (Standard + Custom) */}
+            <div className="flex flex-col gap-4 lg:w-[45%] lg:max-w-[45%]">
+              {/* Standard Recommendations Section */}
+              {recommendations.length > 0 && (
+                <div
+                  className="rounded-xl p-2 relative overflow-hidden"
                   style={{
-                    background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}dd 100%)`,
-                    boxShadow: `0 4px 20px ${themeColor}40`,
+                    background: "linear-gradient(135deg, rgba(15,15,15,0.95) 0%, rgba(25,25,25,0.9) 100%)",
+                    border: `1px solid ${themeColor}25`,
+                    boxShadow: `0 4px 20px ${themeColor}10, inset 0 1px 0 rgba(255,255,255,0.03)`,
                   }}
                 >
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%)" }}
-                  />
-                  <span className="cursor-pointer relative z-10 flex items-center gap-2 text-white">
-                    {isApplied ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                    {isApplied ? "อัปเดตแล้ว" : "ใช้รูปแบบนี้"}
-                  </span>
-                </button>
-              </div>
-
-              {/* Custom Recommendation Info */}
-              {selectedRecommendation.isCustom && (
-                <div className="mb-4 p-3 rounded-lg relative z-10" style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${themeColor}30` }}>
-                  <div className="flex items-start gap-2 mb-2">
-                    <span style={{ color: themeColor }} className="text-sm">✨</span>
-                    <span className="text-xs font-semibold text-white">รูปแบบกำหนดเอง</span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs font-semibold text-white">รูปแบบมาตรฐาน</span>
+                    <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, ${themeColor}40, transparent)` }} />
                   </div>
-                  {selectedRecommendation.designConcept && (
-                    <div className="mb-2 flex items-start gap-1 flex-wrap">
-                      <p className="text-[10px] text-[#a1a1aa] mb-1">แนวคิดการออกแบบ:</p>
-                      <p className="text-xs text-white">{selectedRecommendation.designConcept}</p>
-                    </div>
-                  )}
-                  {selectedRecommendation.targetAudience && (
-                    <div className="mb-2 flex items-start gap-1 flex-wrap">
-                      <p className="text-[10px] text-[#a1a1aa] mb-1">กลุ่มเป้าหมาย:</p>
-                      <p className="text-xs text-white">{selectedRecommendation.targetAudience}</p>
-                    </div>
-                  )}
-                  {selectedRecommendation.uniqueFeatures && selectedRecommendation.uniqueFeatures.length > 0 && (
-                    <div className="flex items-start gap-1 flex-wrap">
-                      <p className="text-[10px] text-[#a1a1aa] mb-1">จุดเด่น:</p>
-                      <ul className="list-disc list-inside space-y-1 flex items-center gap-3">
-                        {selectedRecommendation.uniqueFeatures.map((feature, idx) => (
-                          <li key={idx} className="text-xs text-white">{feature}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto custom-scrollbar">
+                    {recommendations.map((rec, index) => (
+                      <button
+                        key={rec.rank}
+                        onClick={() => selectRecommendation(rec)}
+                        className="cursor-pointer p-3 rounded-xl text-left transition-all duration-300 relative overflow-hidden group"
+                        style={{
+                          background: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                            ? `linear-gradient(135deg, ${themeColor}15 0%, ${themeColor}08 100%)`
+                            : "rgba(255,255,255,0.02)",
+                          border: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                            ? `2px solid ${themeColor}`
+                            : "1px solid #262626",
+                          boxShadow: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                            ? `0 4px 20px ${themeColor}20`
+                            : "none",
+                          animationDelay: `${index * 50}ms`,
+                        }}
+                      >
+                        {/* Hover gradient */}
+                        <div
+                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          style={{ background: `linear-gradient(135deg, ${themeColor}08 0%, transparent 60%)` }}
+                        />
+
+                        {/* Card content */}
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span
+                              className="w-5 h-5 rounded-md text-[10px] font-bold flex items-center justify-center transition-transform group-hover:scale-110"
+                              style={{
+                                background: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                                  ? themeColor
+                                  : `${themeColor}40`,
+                                color: selectedRecommendation?.rank === rec.rank && !selectedRecommendation?.isCustom
+                                  ? getContrastColor(themeColor)
+                                  : "#fff"
+                              }}
+                            >
+                              {rec.rank}
+                            </span>
+                            <span className="text-xs font-medium text-white truncate">{rec.name}</span>
+                          </div>
+                          <p className="text-[10px] text-[#71717a] line-clamp-2 mb-2 leading-relaxed">{rec.description}</p>
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className="text-[9px] px-1.5 py-0.5 rounded"
+                              style={{ backgroundColor: `${themeColor}15`, color: `${themeColor}` }}
+                            >
+                              {rec.sections.length} sections
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Sections Grid */}
-              <div className="flex flex-wrap sm:flex-nowrap gap-2 mb-2 relative z-10">
-                {selectedRecommendation.sections.map((section, idx) => (
-                  <div
-                    key={idx}
-                    className="p-2.5 rounded-lg transition-all duration-200 hover:scale-[1.02]"
+              {/* Custom Recommendations Section */}
+              {customRecommendations.length > 0 && (
+                <div
+                  className="rounded-xl p-2 relative overflow-hidden"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(15,15,15,0.95) 0%, rgba(25,25,25,0.9) 100%)",
+                    border: `1px solid ${themeColor}30`,
+                    boxShadow: `0 4px 20px ${themeColor}15, inset 0 1px 0 rgba(255,255,255,0.03)`,
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs font-semibold text-white flex items-center gap-2">
+                      <span style={{ color: themeColor }}>✨</span>
+                      รูปแบบกำหนดเอง (Custom)
+                    </span>
+                    <div className="flex-1 h-px" style={{ background: `linear-gradient(to right, ${themeColor}40, transparent)` }} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto custom-scrollbar">
+                    {customRecommendations.map((rec, index) => (
+                      <button
+                        key={`custom-${rec.rank}`}
+                        onClick={() => selectRecommendation(rec)}
+                        className="cursor-pointer p-4 rounded-xl text-left transition-all duration-300 relative overflow-hidden group"
+                        style={{
+                          background: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                            ? `linear-gradient(135deg, ${themeColor}20 0%, ${themeColor}10 100%)`
+                            : "rgba(255,255,255,0.03)",
+                          border: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                            ? `2px solid ${themeColor}`
+                            : `1px solid ${themeColor}30`,
+                          boxShadow: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                            ? `0 4px 20px ${themeColor}30`
+                            : `0 2px 10px ${themeColor}10`,
+                          animationDelay: `${index * 50}ms`,
+                        }}
+                      >
+                        {/* Hover gradient */}
+                        <div
+                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          style={{ background: `linear-gradient(135deg, ${themeColor}15 0%, transparent 60%)` }}
+                        />
+
+                        {/* Custom badge */}
+                        <div className="absolute top-0 right-2">
+                          <span
+                            className="text-[8px] px-2 py-1 rounded-full font-bold uppercase tracking-wider"
+                            style={{
+                              backgroundColor: `${themeColor}30`,
+                              color: themeColor,
+                              border: `1px solid ${themeColor}50`
+                            }}
+                          >
+                            Custom
+                          </span>
+                        </div>
+
+                        {/* Card content */}
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span
+                              className="w-6 h-6 rounded-md text-[11px] font-bold flex items-center justify-center transition-transform group-hover:scale-110"
+                              style={{
+                                background: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                                  ? themeColor
+                                  : `${themeColor}50`,
+                                color: selectedRecommendation?.isCustom && selectedRecommendation?.rank === rec.rank
+                                  ? getContrastColor(themeColor)
+                                  : "#fff"
+                              }}
+                            >
+                              C{rec.rank}
+                            </span>
+                            <span className="text-sm font-semibold text-white truncate flex-1">{rec.name}</span>
+                          </div>
+                          <p className="text-[11px] text-[#a1a1aa] line-clamp-2 mb-3 leading-relaxed">{rec.description}</p>
+
+                          {/* Custom info */}
+                          {rec.designConcept && (
+                            <div className="mb-2 p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.2)" }}>
+                              <p className="text-[10px] text-[#71717a] mb-1">แนวคิด:</p>
+                              <p className="text-[10px] text-white line-clamp-2">{rec.designConcept}</p>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span
+                              className="text-[9px] px-1.5 py-0.5 rounded"
+                              style={{ backgroundColor: `${themeColor}15`, color: `${themeColor}` }}
+                            >
+                              {rec.sections.length} sections
+                            </span>
+                            {rec.targetAudience && (
+                              <span
+                                className="text-[9px] px-1.5 py-0.5 rounded"
+                                style={{ backgroundColor: `${themeColor}10`, color: `${themeColor}cc` }}
+                              >
+                                👥 {rec.targetAudience}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Selected Recommendation Details */}
+            {selectedRecommendation && (
+              <div
+                className="rounded-xl p-4 sm:p-5 relative overflow-hidden lg:w-[55%] lg:max-w-[55%]"
+                style={{
+                  background: `linear-gradient(135deg, ${themeColor}08 0%, rgba(0,0,0,0.3) 100%)`,
+                  border: `1px solid ${themeColor}20`
+                }}
+              >
+                {/* Background decoration */}
+                <div
+                  className="absolute top-0 right-0 w-32 h-32 opacity-20 blur-3xl"
+                  style={{ background: themeColor }}
+                />
+
+                {/* Header with Apply Button */}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4 relative z-10">
+                  <div className="flex-1 text-start">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className="w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center"
+                        style={{ backgroundColor: themeColor, color: getContrastColor(themeColor) }}
+                      >
+                        {selectedRecommendation.rank}
+                      </span>
+                      <h4 className="text-base font-semibold text-white">{selectedRecommendation.name}</h4>
+                    </div>
+                    <p className="text-xs text-[#a1a1aa]">{selectedRecommendation.description}</p>
+                  </div>
+                  <button
+                    onClick={handleApply}
+                    className="shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden group"
                     style={{
-                      background: "rgba(0,0,0,0.3)",
-                      border: section.customLayout ? `1px solid ${themeColor}40` : "1px solid #333"
+                      background: `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}dd 100%)`,
+                      boxShadow: `0 4px 20px ${themeColor}40`,
                     }}
                   >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span
-                        className="w-4 h-4 rounded text-[8px] font-bold flex items-center justify-center"
-                        style={{ backgroundColor: `${themeColor}30`, color: themeColor }}
-                      >
-                        {section.order}
-                      </span>
-                      <span className="text-[10px] text-[#52525b]">
-                        {section.customLayout ? "Custom" : "Section"}
-                      </span>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%)" }}
+                    />
+                    <span className="cursor-pointer relative z-10 flex items-center gap-2 text-white">
+                      {isApplied ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                      {isApplied ? "อัปเดตแล้ว" : "ใช้รูปแบบนี้"}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Custom Recommendation Info */}
+                {selectedRecommendation.isCustom && (
+                  <div className="mb-4 p-3 rounded-lg relative z-10" style={{ background: "rgba(0,0,0,0.2)", border: `1px solid ${themeColor}30` }}>
+                    <div className="flex items-start gap-2 mb-2">
+                      <span style={{ color: themeColor }} className="text-sm">✨</span>
+                      <span className="text-xs font-semibold text-white">รูปแบบกำหนดเอง</span>
                     </div>
-                    {section.animation && (
-                      <div className="flex items-center gap-1">
-                        <span style={{ color: themeColor }} className="text-[10px]">✦</span>
-                        <span className="text-[10px] text-[#71717a] truncate">{section.animation}</span>
+                    {selectedRecommendation.designConcept && (
+                      <div className="mb-2 flex items-start gap-1 flex-wrap">
+                        <p className="text-[10px] text-[#a1a1aa] mb-1">แนวคิดการออกแบบ:</p>
+                        <p className="text-xs text-white">{selectedRecommendation.designConcept}</p>
                       </div>
                     )}
-                    <div className="text-xs text-white font-medium truncate mb-1">
-                      {section.customLayoutLabel || section.layout}
-                    </div>
-                    {section.customLayoutDescription && (
-                      <p className="text-[9px] text-white line-clamp-4 mb-1">{section.customLayoutDescription}</p>
+                    {selectedRecommendation.targetAudience && (
+                      <div className="mb-2 flex items-start gap-1 flex-wrap">
+                        <p className="text-[10px] text-[#a1a1aa] mb-1">กลุ่มเป้าหมาย:</p>
+                        <p className="text-xs text-white">{selectedRecommendation.targetAudience}</p>
+                      </div>
+                    )}
+                    {selectedRecommendation.uniqueFeatures && selectedRecommendation.uniqueFeatures.length > 0 && (
+                      <div className="flex items-start gap-1 flex-wrap">
+                        <p className="text-[10px] text-[#a1a1aa] mb-1">จุดเด่น:</p>
+                        <ul className="list-disc list-inside space-y-1 flex items-center gap-3">
+                          {selectedRecommendation.uniqueFeatures.map((feature, idx) => (
+                            <li key={idx} className="text-xs text-white">{feature}</li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
-                ))}
-              </div>
+                )}
+                <div className="text-xs text-[#a1a1aa] pb-3 flex justify-start">รูปแบบการจัดวางหน้าจอ</div>
 
-              {/* Config Summary */}
-              <div className="grid grid-cols-3 gap-3 pt-2 border-t border-[#333] relative z-10">
-                <div className="text-center p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.2)" }}>
-                  <div className="text-[10px] text-[#52525b] mb-1 uppercase tracking-wider">Navbar</div>
-                  <div className="text-xs text-white font-medium">{selectedRecommendation.navbar.animation}</div>
+                {/* Sections Grid */}
+                <div className="flex flex-col sm:flex-nowrap gap-2 mb-2 relative z-10">
+                  {selectedRecommendation.sections.map((section, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-lg transition-all duration-200 hover:scale-[1.02]"
+                      style={{
+                        background: "rgba(0,0,0,0.3)",
+                        border: section.customLayout ? `1px solid ${themeColor}40` : "1px solid #333"
+                      }}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span
+                          className="w-4 h-4 rounded text-[8px] font-bold flex items-center justify-center"
+                          style={{ backgroundColor: `${themeColor}30`, color: themeColor }}
+                        >
+                          {section.order}
+                        </span>
+                        <span className="text-[10px] text-[#52525b]">
+                          {section.customLayout ? "Custom" : "Section"}
+                        </span>
+                      </div>
+                      {section.animation && (
+                        <div className="flex items-center gap-1">
+                          <span style={{ color: themeColor }} className="text-[10px]">✦</span>
+                          <span className="text-[10px] text-[#71717a] truncate">{section.animation}</span>
+                        </div>
+                      )}
+                      <div className="text-xs text-white font-medium truncate mb-1">
+                        {section.customLayoutLabel || section.layout}
+                      </div>
+                      {section.customLayoutDescription && (
+                        <p className="text-[9px] text-white line-clamp-4 mb-1">{section.customLayoutDescription}</p>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className="text-center p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.2)" }}>
-                  <div className="text-[10px] text-[#52525b] mb-1 uppercase tracking-wider">Footer</div>
-                  <div className="text-xs text-white font-medium">{selectedRecommendation.footer.animation}</div>
-                </div>
-                <div className="text-center p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.2)" }}>
-                  <div className="text-[10px] text-[#52525b] mb-1 uppercase tracking-wider">Background</div>
-                  <div className="text-xs text-white font-medium">{selectedRecommendation.background.type}</div>
+
+                {/* Config Summary */}
+                <div className="grid grid-cols-3 gap-3 pt-2 border-t border-[#333] relative z-10">
+                  <div className="text-center p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.2)" }}>
+                    <div className="text-[10px] text-[#52525b] mb-1 uppercase tracking-wider">Navbar</div>
+                    <div className="text-xs text-white font-medium">{selectedRecommendation.navbar.animation}</div>
+                  </div>
+                  <div className="text-center p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.2)" }}>
+                    <div className="text-[10px] text-[#52525b] mb-1 uppercase tracking-wider">Footer</div>
+                    <div className="text-xs text-white font-medium">{selectedRecommendation.footer.animation}</div>
+                  </div>
+                  <div className="text-center p-2 rounded-lg" style={{ background: "rgba(0,0,0,0.2)" }}>
+                    <div className="text-[10px] text-[#52525b] mb-1 uppercase tracking-wider">Background</div>
+                    <div className="text-xs text-white font-medium">{selectedRecommendation.background.type}</div>
+                    {selectedRecommendation.background.customDescription && (
+                      <p className="text-[9px] text-white line-clamp-4 mb-1">{selectedRecommendation.background.customDescription}</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
