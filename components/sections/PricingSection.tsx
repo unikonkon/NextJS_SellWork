@@ -325,6 +325,30 @@ export default function PricingSection() {
 
   const [newCustomItem, setNewCustomItem] = useState("");
 
+  // Typing indicator state - tracks which fields are currently being typed
+  const [typingFields, setTypingFields] = useState<Set<string>>(new Set());
+  const typingTimeoutsRef = useRef<Record<string, NodeJS.Timeout>>({});
+
+  // Helper function to handle typing state with debounce
+  const handleTypingState = (fieldId: string) => {
+    // Set field as typing
+    setTypingFields((prev) => new Set(prev).add(fieldId));
+
+    // Clear existing timeout for this field
+    if (typingTimeoutsRef.current[fieldId]) {
+      clearTimeout(typingTimeoutsRef.current[fieldId]);
+    }
+
+    // Set timeout to mark as done typing after 800ms
+    typingTimeoutsRef.current[fieldId] = setTimeout(() => {
+      setTypingFields((prev) => {
+        const next = new Set(prev);
+        next.delete(fieldId);
+        return next;
+      });
+    }, 600);
+  };
+
   // ==================== PRICE CALCULATION ====================
   const priceBreakdown = useMemo(() => {
     const items: { label: string; price: number; category: string }[] = [];
@@ -544,7 +568,7 @@ export default function PricingSection() {
     const newSections: SectionItem[] = recommendation.sections.map((section) => {
       // Check if this is a custom layout section (has customLayoutLabel or layout is "custom")
       const isCustomLayout = section.layout === "custom" || !!section.customLayoutLabel;
-      
+
       return {
         id: generateId(),
         layout: isCustomLayout ? "custom" : section.layout,
@@ -2219,13 +2243,29 @@ export default function PricingSection() {
                                     <textarea
                                       placeholder="ระบุชื่อ Section ที่ต้องการ..."
                                       value={section.customLayout || ""}
-                                      onChange={(e) => updateMainSectionCustomLayout(section.id, e.target.value)}
+                                      onChange={(e) => {
+                                        updateMainSectionCustomLayout(section.id, e.target.value);
+                                        handleTypingState(`main-layout-${section.id}`);
+                                      }}
                                       className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#8b5cf6]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#8b5cf6] transition-colors resize-y min-h-[40px] max-h-[200px]"
                                       rows={1}
                                     />
                                     {section.customLayout && (
-                                      <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
-                                        ✓
+                                      <span className={`cursor-pointer flex items-center justify-center w-12 h-8 rounded-lg text-sm transition-all ${typingFields.has(`main-layout-${section.id}`)
+                                        ? "bg-[#f59e0b]/20 text-[#f59e0b]"
+                                        : "bg-[#10b981]/20 text-[#10b981]"
+                                        }`}>
+                                        {typingFields.has(`main-layout-${section.id}`) ? (
+                                          <>
+                                            <span className="text-[#f59e0b] mr-1">✎</span>
+                                            <svg className="animate-spin h-4 w-4 text-[#f59e0b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                            </svg>
+                                          </>
+                                        ) : (
+                                          "✓"
+                                        )}
                                       </span>
                                     )}
                                   </div>
@@ -2312,7 +2352,7 @@ export default function PricingSection() {
                                     <span className="text-[12px] text-[#ec4899]">✦</span>
                                     <span className="text-[12px] text-[#71717a]">Animation กำหนดเอง</span>
                                   </div>
-                                  <div className="flex flex-wrap gap-1.5 mb-3">
+                                  <div className="flex flex-wrap justify-between gap-1.5 mb-3">
                                     <button
                                       onClick={() => {
                                         updateMainSectionAnimation(section.id, section.animation === "custom" ? null : "custom");
@@ -2326,26 +2366,41 @@ export default function PricingSection() {
                                       <span className="mr-1">{CUSTOM_ANIMATION_OPTION.icon}</span>
                                       {CUSTOM_ANIMATION_OPTION.label}
                                     </button>
+                                    {selectedAnim && (
+                                      <p className="mt-1.5 text-[15px] text-[#d9d9ea] italic">{selectedAnim.description}</p>
+                                    )}
                                   </div>
-
-                                  {selectedAnim && (
-                                    <p className="mt-1.5 text-[12px] text-[#52525b] italic">{selectedAnim.description}</p>
-                                  )}
 
                                   {/* Custom Animation Input */}
                                   {section.animation === "custom" && (
                                     <div className="mt-2">
                                       <div className="flex gap-2">
-                                        <input
-                                          type="text"
+                                        <textarea
                                           placeholder="ระบุ Animation ที่ต้องการ..."
                                           value={section.customAnimation || ""}
-                                          onChange={(e) => updateMainSectionCustomAnimation(section.id, e.target.value)}
-                                          className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors"
+                                          onChange={(e) => {
+                                            updateMainSectionCustomAnimation(section.id, e.target.value);
+                                            handleTypingState(`main-anim-${section.id}`);
+                                          }}
+                                          className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors resize-y min-h-[36px] max-h-[160px]"
+                                          rows={1}
                                         />
                                         {section.customAnimation && (
-                                          <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
-                                            ✓
+                                          <span className={`cursor-pointer flex items-center justify-center w-12 h-8 rounded-lg text-sm transition-all ${typingFields.has(`main-anim-${section.id}`)
+                                            ? "bg-[#f59e0b]/20 text-[#f59e0b]"
+                                            : "bg-[#10b981]/20 text-[#10b981]"
+                                            }`}>
+                                            {typingFields.has(`main-anim-${section.id}`) ? (
+                                              <>
+                                                <span className="text-[#f59e0b] mr-1">✎</span>
+                                                <svg className="animate-spin h-4 w-4 text-[#f59e0b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                </svg>
+                                              </>
+                                            ) : (
+                                              "✓"
+                                            )}
                                           </span>
                                         )}
                                       </div>
@@ -2420,6 +2475,9 @@ export default function PricingSection() {
                           <div className="p-3 space-y-3">
                             {page.sections.map((section, secIdx) => {
                               const availableAnims = SECTION_ANIMATIONS[section.layout] || [];
+                              // แยก animations ออกเป็น 2 กลุ่ม
+                              const basicAnims = availableAnims.filter((anim) => anim.type === "BASIC");
+                              const sectionSpecificAnims = availableAnims.filter((anim) => !anim.type || anim.type !== "BASIC");
                               const selectedAnim = availableAnims.find((a) => a.id === section.animation);
                               return (
                                 <div
@@ -2476,88 +2534,164 @@ export default function PricingSection() {
                                         <textarea
                                           placeholder="ระบุชื่อ Section ที่ต้องการ..."
                                           value={section.customLayout || ""}
-                                          onChange={(e) => updatePageSectionCustomLayout(page.id, section.id, e.target.value)}
+                                          onChange={(e) => {
+                                            updatePageSectionCustomLayout(page.id, section.id, e.target.value);
+                                            handleTypingState(`page-${page.id}-layout-${section.id}`);
+                                          }}
                                           className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors resize-y min-h-[36px] max-h-[160px]"
                                           rows={1}
                                         />
                                         {section.customLayout && (
-                                          <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
-                                            ✓
+                                          <span className={`cursor-pointer flex items-center justify-center w-12 h-8 rounded-lg text-sm transition-all ${typingFields.has(`page-${page.id}-layout-${section.id}`)
+                                            ? "bg-[#f59e0b]/20 text-[#f59e0b]"
+                                            : "bg-[#10b981]/20 text-[#10b981]"
+                                            }`}>
+                                            {typingFields.has(`page-${page.id}-layout-${section.id}`) ? (
+                                              <>
+                                                <span className="text-[#f59e0b] mr-1">✎</span>
+                                                <svg className="animate-spin h-4 w-4 text-[#f59e0b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                </svg>
+                                              </>
+                                            ) : (
+                                              "✓"
+                                            )}
                                           </span>
                                         )}
                                       </div>
                                     </div>
                                   )}
 
-                                  {/* Animation Selection */}
-                                  {availableAnims.length > 0 && (
+                                  {/* Animation Selection Row */}
+                                  {(basicAnims.length > 0 || sectionSpecificAnims.length > 0) && (
                                     <div className="pl-7 pt-2 border-t border-[#262626]/50">
+                                      {/* Basic Animations Section */}
+                                      {basicAnims.length > 0 && (
+                                        <>
+                                          <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-[12px] text-[#ec4899]">✦</span>
+                                            <span className="text-[12px] text-[#71717a]">เลือก Animation พื้นฐาน</span>
+                                            <span className="text-[10px] text-[#52525b] italic">(มาจาก BASIC_ANIMATIONS)</span>
+
+                                            {(section.animation || section.customAnimation) && (
+                                              <button
+                                                onClick={() => {
+                                                  clearAnimation(`preview-page-${page.id}-${section.id}`);
+                                                  updatePageSectionAnimation(page.id, section.id, null);
+                                                  updatePageSectionCustomAnimation(page.id, section.id, "");
+                                                }}
+                                                className="ml-auto text-[10px] text-[#71717a] hover:text-[#ec4899] transition-colors"
+                                              >
+                                                ยกเลิก
+                                              </button>
+                                            )}
+                                          </div>
+                                          <div className="flex flex-wrap gap-1.5 mb-3">
+                                            {basicAnims.map((anim) => (
+                                              <button
+                                                key={anim.id}
+                                                onClick={() => {
+                                                  updatePageSectionAnimation(page.id, section.id, section.animation === anim.id ? null : anim.id);
+                                                  if (section.animation !== anim.id) updatePageSectionCustomAnimation(page.id, section.id, "");
+                                                }}
+                                                className={`group/anim relative px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === anim.id
+                                                  ? "bg-[#ec4899] text-white"
+                                                  : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                                  }`}
+                                                title={anim.description}
+                                              >
+                                                <span className="mr-1">{anim.icon}</span>
+                                                {anim.label}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </>
+                                      )}
+
+                                      {/* Section Specific Animations */}
+                                      {sectionSpecificAnims.length > 0 && (
+                                        <>
+                                          <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-[12px] text-[#ec4899]">✦</span>
+                                            <span className="text-[12px] text-[#71717a]">เลือก Animation เฉพาะหน้านี้</span>
+                                          </div>
+                                          <div className="flex flex-wrap gap-1.5 mb-3">
+                                            {sectionSpecificAnims.map((anim) => (
+                                              <button
+                                                key={anim.id}
+                                                onClick={() => {
+                                                  updatePageSectionAnimation(page.id, section.id, section.animation === anim.id ? null : anim.id);
+                                                  if (section.animation !== anim.id) updatePageSectionCustomAnimation(page.id, section.id, "");
+                                                }}
+                                                className={`group/anim relative px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === anim.id
+                                                  ? "bg-[#ec4899] text-white"
+                                                  : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
+                                                  }`}
+                                                title={anim.description}
+                                              >
+                                                <span className="mr-1">{anim.icon}</span>
+                                                {anim.label}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </>
+                                      )}
+
+                                      {/* Custom Animation Button */}
                                       <div className="flex items-center gap-2 mb-2">
                                         <span className="text-[12px] text-[#ec4899]">✦</span>
-                                        <span className="text-[12px] text-[#71717a]">Animation</span>
-                                        {(section.animation || section.customAnimation) && (
-                                          <button
-                                            onClick={() => {
-                                              clearAnimation(`preview-page-${page.id}-${section.id}`);
-                                              updatePageSectionAnimation(page.id, section.id, null);
-                                              updatePageSectionCustomAnimation(page.id, section.id, "");
-                                            }}
-                                            className="ml-auto text-[10px] text-[#71717a] hover:text-[#ec4899] transition-colors"
-                                          >
-                                            ยกเลิก
-                                          </button>
-                                        )}
+                                        <span className="text-[12px] text-[#71717a]">Animation กำหนดเอง</span>
                                       </div>
-                                      <div className="flex flex-wrap gap-1.5">
-                                        {availableAnims.map((anim) => (
-                                          <button
-                                            key={anim.id}
-                                            onClick={() => {
-                                              updatePageSectionAnimation(page.id, section.id, section.animation === anim.id ? null : anim.id);
-                                              if (section.animation !== anim.id) updatePageSectionCustomAnimation(page.id, section.id, "");
-                                            }}
-                                            className={`px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === anim.id
-                                              ? "bg-[#ec4899] text-white"
-                                              : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
-                                              }`}
-                                            title={anim.description}
-                                          >
-                                            <span className="mr-1">{anim.icon}</span>
-                                            {anim.label}
-                                          </button>
-                                        ))}
-                                        {/* Custom Animation Button */}
+                                      <div className="flex flex-wrap justify-between gap-1.5 mb-3">
                                         <button
                                           onClick={() => {
                                             updatePageSectionAnimation(page.id, section.id, section.animation === "custom" ? null : "custom");
                                           }}
-                                          className={`px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === "custom"
+                                          className={`group/anim relative px-2 py-1 rounded-md text-[12px] transition-all ${section.animation === "custom"
                                             ? "bg-[#ec4899] text-white"
                                             : "bg-[#262626] text-[#a1a1aa] hover:bg-[#333] hover:text-white"
                                             }`}
                                           title={CUSTOM_ANIMATION_OPTION.description}
                                         >
-                                          <span className="mr-1 text-[12px]">{CUSTOM_ANIMATION_OPTION.icon}</span>
+                                          <span className="mr-1">{CUSTOM_ANIMATION_OPTION.icon}</span>
                                           {CUSTOM_ANIMATION_OPTION.label}
                                         </button>
+                                        {selectedAnim && (
+                                          <p className="mt-1.5 text-[15px] text-[#d9d9ea] italic">{selectedAnim.description}</p>
+                                        )}
                                       </div>
-                                      {selectedAnim && (
-                                        <p className="mt-1.5 text-[12px] text-[#52525b] italic">{selectedAnim.description}</p>
-                                      )}
+
                                       {/* Custom Animation Input */}
                                       {section.animation === "custom" && (
                                         <div className="mt-2">
                                           <div className="flex gap-2">
-                                            <input
-                                              type="text"
+                                            <textarea
                                               placeholder="ระบุ Animation ที่ต้องการ..."
                                               value={section.customAnimation || ""}
-                                              onChange={(e) => updatePageSectionCustomAnimation(page.id, section.id, e.target.value)}
-                                              className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors"
+                                              onChange={(e) => {
+                                                updatePageSectionCustomAnimation(page.id, section.id, e.target.value);
+                                                handleTypingState(`page-${page.id}-anim-${section.id}`);
+                                              }}
+                                              className="flex-1 px-3 py-1.5 rounded-lg bg-[#0d0d0d] border border-[#ec4899]/30 text-xs text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#ec4899] transition-colors resize-y min-h-[36px] max-h-[160px]"
+                                              rows={1}
                                             />
                                             {section.customAnimation && (
-                                              <span className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg bg-[#10b981]/20 text-[#10b981] text-sm">
-                                                ✓
+                                              <span className={`cursor-pointer flex items-center justify-center w-12 h-8 rounded-lg text-sm transition-all ${typingFields.has(`page-${page.id}-anim-${section.id}`)
+                                                ? "bg-[#f59e0b]/20 text-[#f59e0b]"
+                                                : "bg-[#10b981]/20 text-[#10b981]"
+                                                }`}>
+                                                {typingFields.has(`page-${page.id}-anim-${section.id}`) ? (
+                                                  <>
+                                                    <span className="text-[#f59e0b] mr-1">✎</span>
+                                                    <svg className="animate-spin h-4 w-4 text-[#f59e0b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                    </svg>
+                                                  </>
+                                                ) : (
+                                                  "✓"
+                                                )}
                                               </span>
                                             )}
                                           </div>

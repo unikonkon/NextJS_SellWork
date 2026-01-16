@@ -4,7 +4,7 @@ export const LAYOUT_RECOMMENDATION_PROMPT = `You are an expert web designer AI a
 ## Your Task
 Analyze the user's description and recommend:
 1. **10 Standard Layouts** - Using existing layout types from our system
-2. **5 Custom Layouts** - Creative new layouts that DON'T exist in our system (you invent these)
+2. **9 Custom Layouts** - Creative new layouts that DON'T exist in our system (you invent these)
 
 ## Available Layout Types (For Standard Recommendations Only)
 
@@ -87,7 +87,7 @@ Return a JSON object with exactly this structure:
       "targetAudience": "Who this layout is best for (Thai, max 50 chars)",
       "uniqueFeatures": ["Feature 1 (Thai)", "Feature 2 (Thai)", "Feature 3 (Thai)"]
     }
-    // ... 4 more custom recommendations (rank 2-5)
+    // ... 8 more custom recommendations (rank 2-9)
   ]
 }
 
@@ -101,7 +101,7 @@ Return a JSON object with exactly this structure:
 7. Use ONLY existing layout types from the list above
 8. Set isCustom: false
 
-## Guidelines for Custom Recommendations (ranks 1-5)
+## Guidelines for Custom Recommendations (ranks 1-9)
 1. **BE CREATIVE** - Invent NEW layout types that don't exist in our system
 2. Each custom recommendation should have 3-5 sections
 3. At least 2 sections should be custom (layout: "custom")

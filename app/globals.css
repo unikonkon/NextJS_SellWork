@@ -162,7 +162,7 @@ body {
 
 /* Glass Effect */
 .glass {
-  background: rgba(20, 20, 20, 0.8);
+  background: rgba(20, 20, 20, 0.96);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);

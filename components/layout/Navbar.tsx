@@ -51,7 +51,7 @@ export default function Navbar() {
       ref={navRef}
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        isScrolled ? "glass py-3" : "py-5",
+        isScrolled ? "glass py-2" : "py-3",
         isVisible ? "translate-y-0" : "-translate-y-full"
       )}
     >
@@ -138,7 +138,7 @@ export default function Navbar() {
           isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
         )}
       >
-        <div className="px-6 py-4 flex flex-col gap-2">
+        <div className="px-6 py-3 flex flex-col gap-2">
           {navItems.map((item) => (
             <a
               key={item.label}
